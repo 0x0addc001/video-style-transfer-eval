@@ -2090,7 +2090,7 @@ def resolve_cjk_fonts(
         raise FileNotFoundError(
             "Chinese PDF output requires a CJK font. Pass --cjk-font PATH or set "
             "VST_EVAL_CJK_FONT. The font must use TrueType outlines; "
-            "WenQuanYi Zen Hei is a portable Linux choice."
+            "WenQuanYi Zen Hei is a Linux choice with TrueType outlines."
         )
     regular_path = regular_path.resolve()
 

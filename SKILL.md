@@ -84,4 +84,4 @@ evaluation_report/
   assets/
 ```
 
-Single-language mode writes `report.md`, `report.html`, `report.pdf`, and `report.tex`. The report uses publication-style tables with mean and dispersion, best and second-best means, direction-adjusted paired effects, evidence-gated analysis, and copyable `booktabs` LaTeX tables. The report sections, evidence gates, bilingual parity, and claim language are fixed by [references/report-spec.md](references/report-spec.md).
+Single-language mode writes `report.md`, `report.html`, `report.pdf`, and `report.tex`. The report uses publication-style tables with mean and dispersion, best and second-best means, direction-adjusted paired effects, evidence-gated analysis, and copyable `booktabs` LaTeX tables. The report sections, evidence gates, language parity, and claim language are fixed by [references/report-spec.md](references/report-spec.md).

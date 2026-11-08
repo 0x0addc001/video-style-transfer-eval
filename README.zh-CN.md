@@ -2,7 +2,7 @@
 
 **语言：** [English](README.md) | [简体中文](README.zh-CN.md)
 
-这是一个可移植的 Agent 技能，用于评估视频风格迁移输出，支持成对的风格、内容和运动诊断，
+这是一个 Agent 技能，用于评估视频风格迁移输出，支持成对的风格、内容和运动诊断，
 盲评视觉语言模型（VLM）审查，以及带证据完整性检查的评估报告。
 
 该工具将以下四个问题分开评估：
@@ -54,23 +54,10 @@ XeLaTeX 报告。
 python -m pip install -r requirements.txt
 ```
 
-该技能使用可移植的 `SKILL.md` 规范。将当前目录复制到所用 Agent 运行时的技能目录即可。
+请选择对应 Agent 的安装指南：
 
-在 Claude Code 中安装为用户级技能：
-
-```bash
-mkdir -p ~/.claude/skills
-cp -R video-style-transfer-eval ~/.claude/skills/
-```
-
-将 Claude Code 技能限定在某个项目中：
-
-```bash
-mkdir -p /path/to/project/.claude/skills
-cp -R video-style-transfer-eval /path/to/project/.claude/skills/
-```
-
-其他 Agent 运行时可使用其文档规定的本地技能目录。
+- [Codex 安装指南](docs/codex.md)
+- [Claude Code 安装指南](docs/claude-code.md)
 
 生成中文 PDF 需要具有 TrueType 轮廓的中文字体。脚本会自动检测常见的
 Windows、Linux 和 macOS 字体。在 Linux 上可安装 `fonts-wqy-zenhei`，
@@ -156,6 +143,8 @@ python -m unittest discover -s tests -v
 
 ```text
 SKILL.md
+docs/codex.md
+docs/claude-code.md
 agents/
 assets/
 references/

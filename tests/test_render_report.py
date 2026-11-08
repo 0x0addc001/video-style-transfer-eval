@@ -12,8 +12,8 @@ ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts" / "render_report.py"
 
 
-class BilingualRenderTest(unittest.TestCase):
-    def test_bilingual_outputs_are_created_and_localized(self) -> None:
+class LocalizedRenderTest(unittest.TestCase):
+    def test_localized_outputs_are_created(self) -> None:
         fixture = {
             "schema_version": "1.0",
             "manifest_sha256": "test",
