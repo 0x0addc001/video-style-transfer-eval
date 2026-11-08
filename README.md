@@ -1,5 +1,7 @@
 # Video Style Transfer Evaluation
 
+**Languages:** [English](README.md) | [简体中文](README.zh-CN.md)
+
 A Codex skill for evaluating video style transfer outputs with paired
 style-content-motion diagnostics, blinded visual-language-model review, and
 evidence-gated reports.
@@ -118,15 +120,9 @@ See:
 - [VLM rubric](references/vlm-rubric.md)
 - [Report specification](references/report-spec.md)
 
-## 中文简介
+## Testing
 
-本项目提供一个用于视频风格迁移评估的 Codex 技能，分别评估风格迁移、内容保持、
-运动一致性与时序稳定性，并支持盲评 VLM 审查。
-
-脚本会从同一份指标和审查数据生成英文、中文两套 Markdown、HTML 和 PDF 报告。
-合成示例只用于验证评估流程，不代表 EchoStyle、UniVST 或实际模型性能。
-
-运行测试：
+Run the smoke tests:
 
 ```bash
 python -m unittest discover -s tests -v
