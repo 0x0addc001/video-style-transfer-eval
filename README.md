@@ -19,6 +19,20 @@ the same machine-readable evidence.
 The bundled example under `examples/sample_report` is synthetic. It demonstrates
 the evaluation workflow and is not a benchmark of any model.
 
+## Sample report
+
+The screenshots below are rendered from the compiled English sample report.
+The full example is available in
+[`examples/sample_report`](examples/sample_report/).
+
+![Metric definitions, formulas, and motivation](docs/images/report-en-metrics.png)
+
+*Each metric is reported with its formula, motivation, availability, and interpretation caveat.*
+
+![Publication-style quantitative tables](docs/images/report-en-tables.png)
+
+*The report marks best and second-best means and separates per-metric results from paired comparisons.*
+
 ## Features
 
 - Paired source/style/output manifests.

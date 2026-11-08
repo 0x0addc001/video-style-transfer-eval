@@ -47,6 +47,119 @@ Claim status & Exploratory & Caveat \\
 \item Temporal offsets: [1, 5]
 \item Blinding: True
 \end{itemize}
+\section*{Metric Definitions and Motivation}
+\subsection*{SSIM}
+\textit{Computed in this run}
+\begin{equation*}
+\mathrm{SSIM}(x,y)=\frac{(2\mu_x\mu_y+C_1)(2\sigma_{xy}+C_2)}{(\mu_x^2+\mu_y^2+C_1)(\sigma_x^2+\sigma_y^2+C_2)}
+\end{equation*}
+\textbf{Motivation.} SSIM compares local luminance, contrast, and structure instead of raw pixel error. It is useful for detecting geometric and structural changes, but strong stylization legitimately changes contrast and texture.
+\textbf{Interpretation and reporting caveat.} Interpret it as a content diagnostic, not a perceptual style score.
+\subsection*{PSNR}
+\textit{Computed in this run}
+\begin{equation*}
+\mathrm{PSNR}=10\log_{10}\!\left(\frac{\mathrm{MAX}^2}{\mathrm{MSE}}\right)
+\end{equation*}
+\textbf{Motivation.} PSNR converts mean squared error into a logarithmic scale and gives a quick, deterministic fidelity diagnostic. It is sensitive to global color shifts, compression, and resolution differences.
+\textbf{Interpretation and reporting caveat.} Do not treat a small PSNR change as a proportional change in perceived quality.
+\subsection*{LPIPS}
+\textit{Not provided in this run; definition retained for paper-grade extension}
+\begin{equation*}
+\mathrm{LPIPS}(x,y)=\sum_l\frac{1}{H_lW_l}\sum_{h,w}\left\|w_l\odot(\hat\phi_l(x)_{h,w}-\hat\phi_l(y)_{h,w})\right\|_2^2
+\end{equation*}
+\textbf{Motivation.} LPIPS compares normalized deep features and aligns better with perceptual similarity than pixel metrics. It is preferred as preservation evidence when a fixed LPIPS implementation is available.
+\textbf{Interpretation and reporting caveat.} The network, preprocessing, and weights must be identical across every compared method.
+\subsection*{CLIP-F}
+\textit{Not provided in this run; definition retained for paper-grade extension}
+\begin{equation*}
+\mathrm{CLIP\text{-}F}(R,I)=100\cos\!\left(\phi_I(R),\phi_I(I)\right)
+\end{equation*}
+\textbf{Motivation.} CLIP-F measures whether the stylized and original frames retain the same image-level semantics. It complements structure metrics when appearance changes substantially.
+\textbf{Interpretation and reporting caveat.} Image-level embeddings can miss local identity, boundary, and occlusion errors.
+\subsection*{CLIP-I}
+\textit{Not provided in this run; definition retained for paper-grade extension}
+\begin{equation*}
+\mathrm{CLIP\text{-}I}(R,S)=100\cos\!\left(\phi_I(R),\phi_I(S)\right)
+\end{equation*}
+\textbf{Motivation.} CLIP-I provides a content-robust global signal for whether the generated frame and style reference occupy a similar semantic visual space. It is one component of style evidence, not a texture-transfer proof.
+\textbf{Interpretation and reporting caveat.} Report it comparatively and supplement it with texture-specific features or blinded review.
+\subsection*{FID}
+\textit{Not provided in this run; definition retained for paper-grade extension}
+\begin{equation*}
+\mathrm{FID}=\left\|\mu_s-\mu_g\right\|_2^2+\operatorname{Tr}\!\left(\Sigma_s+\Sigma_g-2(\Sigma_s\Sigma_g)^{1/2}\right)
+\end{equation*}
+\textbf{Motivation.} FID compares Inception feature distributions, so it can capture style-set mismatch beyond single-image color statistics. It requires a meaningful distribution of reference and generated frames.
+\textbf{Interpretation and reporting caveat.} A single style image is not a valid FID style distribution. Record image count, resolution, and preprocessing.
+\subsection*{ArtFID}
+\textit{Not provided in this run; definition retained for paper-grade extension}
+\begin{equation*}
+\mathrm{ArtFID}=\left(1+\frac{1}{N}\sum_i\mathrm{LPIPS}(I_i,R_i)\right)\left(1+\mathrm{FID}(R,S)\right)
+\end{equation*}
+\textbf{Motivation.} ArtFID combines perceptual content preservation and style-distribution distance in one number. The product makes a method visible when it improves one factor while degrading the other.
+\textbf{Interpretation and reporting caveat.} Do not use it unless its LPIPS and FID components follow the cited, fixed implementation.
+\subsection*{LAB palette W1}
+\textit{Computed in this run}
+\begin{equation*}
+W_{1,c}=\frac{1}{255}\sum_{k=0}^{255}\left|F^{\mathrm{frame}}_c(k)-F^{\mathrm{style}}_c(k)\right|,\qquad \mathrm{PaletteW1}=100\cdot\frac{1}{|C|}\sum_{c\in C}W_{1,c}
+\end{equation*}
+\textbf{Motivation.} This inexpensive diagnostic summarizes marginal LAB color alignment. It is useful for detecting global recoloring and palette mismatch before expensive perceptual metrics.
+\textbf{Interpretation and reporting caveat.} It does not measure brushwork, texture attachment, composition, or style semantics.
+\subsection*{Source-flow warping RMSE}
+\textit{Computed in this run}
+\begin{equation*}
+\mathrm{WarpRMSE}_{\Delta}=\sqrt{\frac{\sum_x M_t(x)\left\|R_t(x)-W(R_{t+\Delta})(x)\right\|_2^2}{\sum_x M_t(x)}}
+\end{equation*}
+\textbf{Motivation.} Source optical flow supplies the expected motion. Warping a later output frame back with that flow isolates drift and flicker from legitimate scene motion; occluded pixels are masked.
+\textbf{Interpretation and reporting caveat.} The result inherits the flow estimator's errors; Farneback is a diagnostic proxy, not RAFT.
+\subsection*{Flow endpoint error}
+\textit{Computed in this run}
+\begin{equation*}
+\mathrm{EPE}_{\Delta}=\frac{1}{|\Omega|}\sum_{x\in\Omega}\left\|F^R_t(x)-F^I_t(x)\right\|_2
+\end{equation*}
+\textbf{Motivation.} EPE measures whether stylization changes the estimated displacement between frames. It is sensitive to motion alteration and can reveal propagation failures that still images miss.
+\textbf{Interpretation and reporting caveat.} Texture changes can create spurious flow; use the same estimator and occlusion handling for every method.
+\subsection*{Flow-field correlation}
+\textit{Computed in this run}
+\begin{equation*}
+\rho_{\Delta}=\operatorname{corr}\!\left(\operatorname{vec}(F^R_t),\operatorname{vec}(F^I_t)\right)
+\end{equation*}
+\textbf{Motivation.} Correlation measures agreement in motion direction independently of the flow magnitude emphasized by EPE. Together they separate directional corruption from displacement scaling.
+\textbf{Interpretation and reporting caveat.} It is a global summary and may hide localized motion errors.
+\subsection*{Temporal LPIPS (tLP)}
+\textit{Not provided in this run; definition retained for paper-grade extension}
+\begin{equation*}
+\mathrm{tLP}=\frac{1}{T-\Delta}\sum_t\mathrm{LPIPS}\!\left(R_t,W(R_{t+\Delta})\right)
+\end{equation*}
+\textbf{Motivation.} tLP replaces pixel error in warping analysis with a perceptual deep-feature error, making texture and structure instability easier to detect than raw L2 differences.
+\textbf{Interpretation and reporting caveat.} Use a fixed LPIPS network and report the temporal offset.
+\subsection*{CLIP temporal consistency}
+\textit{Not provided in this run; definition retained for paper-grade extension}
+\begin{equation*}
+\mathrm{CLIP\text{-}CONS}=100\cos\!\left(\phi(R_{t+1})-\phi(R_t),\phi(I_{t+1})-\phi(I_t)\right)
+\end{equation*}
+\textbf{Motivation.} CLIP-CONS asks whether semantic change between adjacent stylized frames follows the semantic change in the source. It complements pixel warping when content is stylized heavily.
+\textbf{Interpretation and reporting caveat.} It measures semantic change agreement, not spatial alignment or flicker.
+\subsection*{Detrended luminance flicker}
+\textit{Computed in this run}
+\begin{equation*}
+F=\sqrt{\frac{1}{T}\sum_t\left(l_t-(at+b)\right)^2},\quad l_t=\operatorname{mean}(\operatorname{luma}(R_t))
+\end{equation*}
+\textbf{Motivation.} Removing a linear luminance trend distinguishes intentional exposure or scene changes from abrupt global flicker. The measure is cheap and directly targets one common VST artifact.
+\textbf{Interpretation and reporting caveat.} It ignores local flicker and texture sticking, which require motion-aware or visual review.
+\subsection*{Blinded VLM score}
+\textit{Computed in this run}
+\begin{equation*}
+\bar S_{d,m}=\frac{1}{R}\sum_{r=1}^{R}\frac{1}{|C_{\mathrm{valid}}|}\sum_{c\in C_{\mathrm{valid}}}s_{r,c,m,d},\quad s\in\{1,\ldots,5\}
+\end{equation*}
+\textbf{Motivation.} The rubric captures style adherence, content preservation, temporal stability, artifact control, and overall quality when automated metrics cannot separate texture and motion failures. Per-case blinded labels reduce method-identity bias.
+\textbf{Interpretation and reporting caveat.} VLM judgments are perceptual evidence, not ground truth; record model version and use multiple independent reviewers for paper-level claims.
+\subsection*{Runtime and peak memory}
+\textit{Computed in this run}
+\begin{equation*}
+\mathrm{Runtime}_m=\frac{1}{|C|}\sum_c t_{c,m},\qquad \mathrm{PeakMem}_m=\max_c p_{c,m}
+\end{equation*}
+\textbf{Motivation.} Quality comparisons are incomplete without deployment cost. Mean runtime captures expected latency, while maximum peak memory captures the worst observed resource requirement.
+\textbf{Interpretation and reporting caveat.} Measure on identical hardware, precision, resolution, and batch settings; report both mean and peak.
 \section*{Data and Paired Design}
 \begin{table}[H]
 \centering

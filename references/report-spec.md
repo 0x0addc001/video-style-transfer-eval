@@ -50,6 +50,8 @@ Use arrows to show preferred direction. Show `n`, mean, dispersion, and missing 
 
 For paper-facing tables, mark the best and second-best means, explain the marking in the caption, and distinguish a direction-adjusted paired difference from the raw metric difference. Report standardized paired effect size only as descriptive evidence when the sample is small.
 
+Before the quantitative results, include a metric-definition section with the formula, motivation, current-run availability, and interpretation/reporting caveat for every metric shown or proposed for paper-grade evaluation. This includes SSIM, PSNR, LPIPS, CLIP-F, CLIP-I, FID, ArtFID, LAB palette distance, warping error, EPE, flow correlation, tLP, CLIP-CONS, luminance flicker, VLM aggregation, and runtime/peak-memory cost. Do not hide unavailable metrics; mark them as extensions while retaining their definitions.
+
 ## 6. Blinded Visual Review
 
 Report reviewer identity/model, blinding, input type, and agreement across reviewers. Keep the five dimensions separate. Show failure-tag counts and pairwise preferences with supporting frame ranges. Label contact sheets as evidence, not ground truth.

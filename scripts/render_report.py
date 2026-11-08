@@ -155,6 +155,9 @@ TEXT = {
         "date": "Date",
         "executive": "Executive verdict",
         "protocol": "Protocol and reproducibility",
+        "metric_definitions": "Metric definitions and motivation",
+        "motivation": "Motivation",
+        "implementation": "Interpretation and reporting caveat",
         "evidence_gates": "Evidence gates",
         "gate": "Gate",
         "value": "Value",
@@ -237,6 +240,9 @@ TEXT = {
         "date": "日期",
         "executive": "执行摘要",
         "protocol": "评估协议与可复现性",
+        "metric_definitions": "指标定义与设计动机",
+        "motivation": "设计动机",
+        "implementation": "解释与报告注意事项",
         "evidence_gates": "证据完整性检查",
         "gate": "检查项",
         "value": "结果",
@@ -316,6 +322,239 @@ TEXT = {
 
 def tr(lang: str, key: str) -> Any:
     return TEXT[lang][key]
+
+
+METRIC_DEFINITIONS = [
+    {
+        "id": "ssim",
+        "name_en": "SSIM",
+        "name_zh": "SSIM 结构相似度",
+        "available_keys": ["ssim"],
+        "formula": "SSIM(x,y) = ((2*mu_x*mu_y + C1)*(2*sigma_xy + C2)) / ((mu_x^2 + mu_y^2 + C1)*(sigma_x^2 + sigma_y^2 + C2))",
+        "formula_tex": r"\mathrm{SSIM}(x,y)=\frac{(2\mu_x\mu_y+C_1)(2\sigma_{xy}+C_2)}{(\mu_x^2+\mu_y^2+C_1)(\sigma_x^2+\sigma_y^2+C_2)}",
+        "rationale_en": "SSIM compares local luminance, contrast, and structure instead of raw pixel error. It is useful for detecting geometric and structural changes, but strong stylization legitimately changes contrast and texture.",
+        "rationale_zh": "SSIM 比较局部亮度、对比度和结构，而不是原始像素误差。它适合检测几何和结构变化，但强风格化本身也会改变对比度与纹理。",
+        "caveat_en": "Interpret it as a content diagnostic, not a perceptual style score.",
+        "caveat_zh": "应将其视为内容诊断，而不是感知风格分数。",
+    },
+    {
+        "id": "psnr",
+        "name_en": "PSNR",
+        "name_zh": "PSNR 峰值信噪比",
+        "available_keys": ["psnr"],
+        "formula": "PSNR = 10 * log10(MAX^2 / MSE)",
+        "formula_tex": r"\mathrm{PSNR}=10\log_{10}\!\left(\frac{\mathrm{MAX}^2}{\mathrm{MSE}}\right)",
+        "rationale_en": "PSNR converts mean squared error into a logarithmic scale and gives a quick, deterministic fidelity diagnostic. It is sensitive to global color shifts, compression, and resolution differences.",
+        "rationale_zh": "PSNR 将均方误差转换为对数尺度，提供快速、确定性的保真度诊断。它对全局颜色变化、压缩和分辨率差异较敏感。",
+        "caveat_en": "Do not treat a small PSNR change as a proportional change in perceived quality.",
+        "caveat_zh": "不能把 PSNR 的小幅变化直接解释为感知质量的等比例变化。",
+    },
+    {
+        "id": "lpips",
+        "name_en": "LPIPS",
+        "name_zh": "LPIPS 感知距离",
+        "available_keys": ["lpips"],
+        "formula": "LPIPS(x,y) = sum_l (1/(H_l*W_l)) * sum_hw ||w_l * (phi_l(x)_hw - phi_l(y)_hw)||^2",
+        "formula_tex": r"\mathrm{LPIPS}(x,y)=\sum_l\frac{1}{H_lW_l}\sum_{h,w}\left\|w_l\odot(\hat\phi_l(x)_{h,w}-\hat\phi_l(y)_{h,w})\right\|_2^2",
+        "rationale_en": "LPIPS compares normalized deep features and aligns better with perceptual similarity than pixel metrics. It is preferred as preservation evidence when a fixed LPIPS implementation is available.",
+        "rationale_zh": "LPIPS 比较归一化深层特征，通常比像素指标更符合人类感知相似性。在有固定 LPIPS 实现时，应优先作为内容保持证据。",
+        "caveat_en": "The network, preprocessing, and weights must be identical across every compared method.",
+        "caveat_zh": "所有比较方法必须使用相同的网络、预处理和权重。",
+    },
+    {
+        "id": "clip_f",
+        "name_en": "CLIP-F",
+        "name_zh": "CLIP-F 内容语义相似度",
+        "available_keys": ["clip_f"],
+        "formula": "CLIP-F(R,I) = 100 * cos(phi_I(R), phi_I(I))",
+        "formula_tex": r"\mathrm{CLIP\text{-}F}(R,I)=100\cos\!\left(\phi_I(R),\phi_I(I)\right)",
+        "rationale_en": "CLIP-F measures whether the stylized and original frames retain the same image-level semantics. It complements structure metrics when appearance changes substantially.",
+        "rationale_zh": "CLIP-F 衡量风格化帧与源帧是否保留相同的图像级语义。当外观变化较大时，它可以补充结构指标。",
+        "caveat_en": "Image-level embeddings can miss local identity, boundary, and occlusion errors.",
+        "caveat_zh": "图像级嵌入可能遗漏局部身份、边界和遮挡错误。",
+    },
+    {
+        "id": "clip_i",
+        "name_en": "CLIP-I",
+        "name_zh": "CLIP-I 风格图像相似度",
+        "available_keys": ["clip_i"],
+        "formula": "CLIP-I(R,S) = 100 * cos(phi_I(R), phi_I(S))",
+        "formula_tex": r"\mathrm{CLIP\text{-}I}(R,S)=100\cos\!\left(\phi_I(R),\phi_I(S)\right)",
+        "rationale_en": "CLIP-I provides a content-robust global signal for whether the generated frame and style reference occupy a similar semantic visual space. It is one component of style evidence, not a texture-transfer proof.",
+        "rationale_zh": "CLIP-I 提供对内容变化较稳健的全局信号，用于判断生成帧与风格参考是否位于相近的语义视觉空间。它只是风格证据的一部分，不能单独证明纹理迁移成功。",
+        "caveat_en": "Report it comparatively and supplement it with texture-specific features or blinded review.",
+        "caveat_zh": "应进行相对比较，并结合纹理特征或盲评审查。",
+    },
+    {
+        "id": "fid",
+        "name_en": "FID",
+        "name_zh": "FID 分布距离",
+        "available_keys": ["fid"],
+        "formula": "FID = ||mu_s - mu_g||_2^2 + Tr(S_s + S_g - 2*(S_s*S_g)^(1/2))",
+        "formula_tex": r"\mathrm{FID}=\left\|\mu_s-\mu_g\right\|_2^2+\operatorname{Tr}\!\left(\Sigma_s+\Sigma_g-2(\Sigma_s\Sigma_g)^{1/2}\right)",
+        "rationale_en": "FID compares Inception feature distributions, so it can capture style-set mismatch beyond single-image color statistics. It requires a meaningful distribution of reference and generated frames.",
+        "rationale_zh": "FID 比较 Inception 特征分布，因此能捕捉超出单图颜色统计的风格集合差异。它需要足够数量的参考和生成帧来估计分布。",
+        "caveat_en": "A single style image is not a valid FID style distribution. Record image count, resolution, and preprocessing.",
+        "caveat_zh": "单张风格图不能构成有效的 FID 风格分布。必须记录图像数量、分辨率和预处理。",
+    },
+    {
+        "id": "artfid",
+        "name_en": "ArtFID",
+        "name_zh": "ArtFID 联合风格-内容距离",
+        "available_keys": ["artfid"],
+        "formula": "ArtFID = (1 + mean_i LPIPS(I_i,R_i)) * (1 + FID(R,S))",
+        "formula_tex": r"\mathrm{ArtFID}=\left(1+\frac{1}{N}\sum_i\mathrm{LPIPS}(I_i,R_i)\right)\left(1+\mathrm{FID}(R,S)\right)",
+        "rationale_en": "ArtFID combines perceptual content preservation and style-distribution distance in one number. The product makes a method visible when it improves one factor while degrading the other.",
+        "rationale_zh": "ArtFID 将感知内容保持和风格分布距离结合为一个数值。乘积形式会让“一个因素改善、另一个因素退化”的方法暴露出来。",
+        "caveat_en": "Do not use it unless its LPIPS and FID components follow the cited, fixed implementation.",
+        "caveat_zh": "除非 LPIPS 和 FID 分量遵循固定的引用实现，否则不要使用该指标。",
+    },
+    {
+        "id": "lab_palette_w1",
+        "name_en": "LAB palette W1",
+        "name_zh": "LAB 调色板 W1",
+        "available_keys": ["lab_palette_w1", "lab_ab_palette_w1"],
+        "formula": "W1_c = sum_k |CDF_frame,c(k) - CDF_style,c(k)| / 255;  PaletteW1 = 100 * mean_c W1_c",
+        "formula_tex": r"W_{1,c}=\frac{1}{255}\sum_{k=0}^{255}\left|F^{\mathrm{frame}}_c(k)-F^{\mathrm{style}}_c(k)\right|,\qquad \mathrm{PaletteW1}=100\cdot\frac{1}{|C|}\sum_{c\in C}W_{1,c}",
+        "rationale_en": "This inexpensive diagnostic summarizes marginal LAB color alignment. It is useful for detecting global recoloring and palette mismatch before expensive perceptual metrics.",
+        "rationale_zh": "该低成本的诊断指标概括 LAB 颜色边缘分布的一致性，可在运行昂贵感知指标前发现全局着色和调色板不匹配。",
+        "caveat_en": "It does not measure brushwork, texture attachment, composition, or style semantics.",
+        "caveat_zh": "它不衡量笔触、纹理附着、构图或风格语义。",
+    },
+    {
+        "id": "warp_rmse",
+        "name_en": "Source-flow warping RMSE",
+        "name_zh": "源光流重映射 RMSE",
+        "available_keys": ["offset_1_warp_rmse", "offset_5_warp_rmse"],
+        "formula": "WarpRMSE_d = sqrt(sum_x M_t(x)*||R_t(x) - W(R_(t+d))(x)||_2^2 / sum_x M_t(x))",
+        "formula_tex": r"\mathrm{WarpRMSE}_{\Delta}=\sqrt{\frac{\sum_x M_t(x)\left\|R_t(x)-W(R_{t+\Delta})(x)\right\|_2^2}{\sum_x M_t(x)}}",
+        "rationale_en": "Source optical flow supplies the expected motion. Warping a later output frame back with that flow isolates drift and flicker from legitimate scene motion; occluded pixels are masked.",
+        "rationale_zh": "源视频光流提供预期运动。使用该光流将后续输出帧重映射回当前帧，可以将漂移和闪烁与正常场景运动分开，并屏蔽遮挡像素。",
+        "caveat_en": "The result inherits the flow estimator's errors; Farneback is a diagnostic proxy, not RAFT.",
+        "caveat_zh": "结果会继承光流估计器的误差；Farneback 是诊断代理，不是 RAFT。",
+    },
+    {
+        "id": "flow_epe",
+        "name_en": "Flow endpoint error",
+        "name_zh": "光流端点误差",
+        "available_keys": ["offset_1_flow_epe", "offset_5_flow_epe"],
+        "formula": "EPE_d = (1/|Omega|) * sum_{x in Omega} ||F_R(x) - F_I(x)||_2",
+        "formula_tex": r"\mathrm{EPE}_{\Delta}=\frac{1}{|\Omega|}\sum_{x\in\Omega}\left\|F^R_t(x)-F^I_t(x)\right\|_2",
+        "rationale_en": "EPE measures whether stylization changes the estimated displacement between frames. It is sensitive to motion alteration and can reveal propagation failures that still images miss.",
+        "rationale_zh": "EPE 衡量风格化是否改变帧间估计位移，可揭示静态图像难以发现的运动改变和传播失败。",
+        "caveat_en": "Texture changes can create spurious flow; use the same estimator and occlusion handling for every method.",
+        "caveat_zh": "纹理变化可能产生虚假光流；所有方法必须使用相同估计器和遮挡处理。",
+    },
+    {
+        "id": "flow_corr",
+        "name_en": "Flow-field correlation",
+        "name_zh": "光流场相关性",
+        "available_keys": ["offset_1_flow_correlation", "offset_5_flow_correlation"],
+        "formula": "rho_d = corr(flatten(F_R), flatten(F_I))",
+        "formula_tex": r"\rho_{\Delta}=\operatorname{corr}\!\left(\operatorname{vec}(F^R_t),\operatorname{vec}(F^I_t)\right)",
+        "rationale_en": "Correlation measures agreement in motion direction independently of the flow magnitude emphasized by EPE. Together they separate directional corruption from displacement scaling.",
+        "rationale_zh": "相关性衡量运动方向的一致性，相比 EPE 更少受幅度影响。两者结合可以区分方向错误和位移尺度变化。",
+        "caveat_en": "It is a global summary and may hide localized motion errors.",
+        "caveat_zh": "这是一个全局概括，可能掩盖局部运动错误。",
+    },
+    {
+        "id": "tlp",
+        "name_en": "Temporal LPIPS (tLP)",
+        "name_zh": "时序 LPIPS（tLP）",
+        "available_keys": ["tlp"],
+        "formula": "tLP = (1/(T-d)) * sum_t LPIPS(R_t, W(R_(t+d)))",
+        "formula_tex": r"\mathrm{tLP}=\frac{1}{T-\Delta}\sum_t\mathrm{LPIPS}\!\left(R_t,W(R_{t+\Delta})\right)",
+        "rationale_en": "tLP replaces pixel error in warping analysis with a perceptual deep-feature error, making texture and structure instability easier to detect than raw L2 differences.",
+        "rationale_zh": "tLP 在重映射分析中用深层特征感知误差替代像素误差，使纹理和结构不稳定性比原始 L2 差值更容易被检测。",
+        "caveat_en": "Use a fixed LPIPS network and report the temporal offset.",
+        "caveat_zh": "必须使用固定的 LPIPS 网络并报告时间偏移。",
+    },
+    {
+        "id": "clip_cons",
+        "name_en": "CLIP temporal consistency",
+        "name_zh": "CLIP 时序一致性",
+        "available_keys": ["clip_cons"],
+        "formula": "CLIP-CONS = 100 * cos(phi(R_t+1)-phi(R_t), phi(I_t+1)-phi(I_t))",
+        "formula_tex": r"\mathrm{CLIP\text{-}CONS}=100\cos\!\left(\phi(R_{t+1})-\phi(R_t),\phi(I_{t+1})-\phi(I_t)\right)",
+        "rationale_en": "CLIP-CONS asks whether semantic change between adjacent stylized frames follows the semantic change in the source. It complements pixel warping when content is stylized heavily.",
+        "rationale_zh": "CLIP-CONS 检查相邻风格化帧的语义变化是否与源视频一致。当内容被强风格化时，它可以补充像素重映射指标。",
+        "caveat_en": "It measures semantic change agreement, not spatial alignment or flicker.",
+        "caveat_zh": "它衡量语义变化一致性，而不是空间对齐或闪烁。",
+    },
+    {
+        "id": "flicker",
+        "name_en": "Detrended luminance flicker",
+        "name_zh": "去趋势亮度闪烁",
+        "available_keys": ["luminance_flicker"],
+        "formula": "F = sqrt((1/T) * sum_t (l_t - (a*t+b))^2), where l_t is frame mean luminance",
+        "formula_tex": r"F=\sqrt{\frac{1}{T}\sum_t\left(l_t-(at+b)\right)^2},\quad l_t=\operatorname{mean}(\operatorname{luma}(R_t))",
+        "rationale_en": "Removing a linear luminance trend distinguishes intentional exposure or scene changes from abrupt global flicker. The measure is cheap and directly targets one common VST artifact.",
+        "rationale_zh": "去除线性亮度趋势可以区分合理的曝光变化和突发全局闪烁。该指标成本低，直接针对常见的视频风格迁移伪影。",
+        "caveat_en": "It ignores local flicker and texture sticking, which require motion-aware or visual review.",
+        "caveat_zh": "它忽略局部闪烁和纹理粘连，这些需要运动感知指标或视觉审查。",
+    },
+    {
+        "id": "vlm",
+        "name_en": "Blinded VLM score",
+        "name_zh": "盲评 VLM 分数",
+        "available_keys": [],
+        "formula": "S_d,m = (1/R) * sum_r (1/|C_valid|) * sum_c s_(r,c,m,d), s in {1,2,3,4,5}",
+        "formula_tex": r"\bar S_{d,m}=\frac{1}{R}\sum_{r=1}^{R}\frac{1}{|C_{\mathrm{valid}}|}\sum_{c\in C_{\mathrm{valid}}}s_{r,c,m,d},\quad s\in\{1,\ldots,5\}",
+        "rationale_en": "The rubric captures style adherence, content preservation, temporal stability, artifact control, and overall quality when automated metrics cannot separate texture and motion failures. Per-case blinded labels reduce method-identity bias.",
+        "rationale_zh": "该评分标准覆盖风格一致性、内容保持、时序稳定性、伪影控制和整体质量，能补充自动指标难以区分的纹理与运动故障。逐案例盲化方法标签可降低方法身份偏差。",
+        "caveat_en": "VLM judgments are perceptual evidence, not ground truth; record model version and use multiple independent reviewers for paper-level claims.",
+        "caveat_zh": "VLM 判断是感知证据而非真实标签；应记录模型版本，并使用多个独立审查者支持论文级结论。",
+    },
+    {
+        "id": "cost",
+        "name_en": "Runtime and peak memory",
+        "name_zh": "运行时间与峰值显存",
+        "available_keys": ["runtime_s", "peak_memory_gb"],
+        "formula": "Runtime_m = mean_c t_(c,m); PeakMemory_m = max_c peak_(c,m)",
+        "formula_tex": r"\mathrm{Runtime}_m=\frac{1}{|C|}\sum_c t_{c,m},\qquad \mathrm{PeakMem}_m=\max_c p_{c,m}",
+        "rationale_en": "Quality comparisons are incomplete without deployment cost. Mean runtime captures expected latency, while maximum peak memory captures the worst observed resource requirement.",
+        "rationale_zh": "如果缺少部署成本，质量比较并不完整。平均运行时间反映预期延迟，最大峰值显存反映最差观测资源需求。",
+        "caveat_en": "Measure on identical hardware, precision, resolution, and batch settings; report both mean and peak.",
+        "caveat_zh": "必须在相同硬件、精度、分辨率和批设置下测量，并同时报告均值和峰值。",
+    },
+]
+
+
+def metric_definition_rows(
+    metrics: dict[str, Any],
+    lang: str,
+) -> list[dict[str, str]]:
+    aggregates = metrics.get("aggregates", {})
+    available_keys = set()
+    for method_summary in aggregates.values():
+        available_keys.update(method_summary.keys())
+    rows = []
+    for definition in METRIC_DEFINITIONS:
+        keys = definition.get("available_keys", [])
+        if definition["id"] == "vlm":
+            available = True
+        else:
+            available = any(key in available_keys for key in keys)
+        rows.append(
+            {
+                "name": definition[f"name_{lang}"],
+                "formula": definition["formula"],
+                "formula_tex": definition["formula_tex"],
+                "rationale": definition[f"rationale_{lang}"],
+                "caveat": definition[f"caveat_{lang}"],
+                "available": (
+                    "在本次运行中计算" if lang == "zh" else "Computed in this run"
+                )
+                if available
+                else (
+                    "本次运行未提供；定义用于论文级扩展"
+                    if lang == "zh"
+                    else "Not provided in this run; definition retained for paper-grade extension"
+                ),
+                "available_bool": available,
+            }
+        )
+    return rows
 
 
 def parse_args() -> argparse.Namespace:
@@ -1407,6 +1646,27 @@ def markdown_report(
             f"- {s['temporal_offsets']}: {experiment.get('temporal_offsets', na)}",
             f"- {s['blinding']}: {blind_value}",
             "",
+            f"## {s['metric_definitions']}",
+            "",
+        ]
+    )
+    for definition in metric_definition_rows(metrics, lang):
+        lines.extend(
+            [
+                f"### {definition['name']}",
+                "",
+                f"**{'可用性' if lang == 'zh' else 'Availability'}:** {definition['available']}",
+                "",
+                f"$${definition['formula']}$$",
+                "",
+                f"**{s['motivation']}:** {definition['rationale']}",
+                "",
+                f"**{s['implementation']}:** {definition['caveat']}",
+                "",
+            ]
+        )
+    lines.extend(
+        [
             f"## {s['dataset']}",
             "",
             f"| {s['case']} | {s['content']} | {s['style']} | {s['split']} | "
@@ -1721,6 +1981,16 @@ def html_report(
             )
             + "</section>"
         )
+    metric_defs_html = "".join(
+        "<article class='metric-definition'>"
+        f"<h3>{html.escape(definition['name'])}</h3>"
+        f"<p class='availability'>{html.escape(definition['available'])}</p>"
+        f"<div class='formula'>{html.escape(definition['formula'])}</div>"
+        f"<p><b>{html.escape(s['motivation'])}:</b> {html.escape(definition['rationale'])}</p>"
+        f"<p><b>{html.escape(s['implementation'])}:</b> {html.escape(definition['caveat'])}</p>"
+        "</article>"
+        for definition in metric_definition_rows(metrics, lang)
+    )
     return f"""<!doctype html>
 <html lang="{lang}">
 <head>
@@ -1752,6 +2022,10 @@ th,td {{ padding:10px 12px; border-bottom:1px solid var(--line); vertical-align:
 .table-note {{ color:var(--muted); font-size:12px; margin:10px 0 0; }}
 .analysis-block {{ border-top:1px solid var(--line); padding-top:12px; margin-top:14px; }}
 .analysis-block:first-of-type {{ border-top:0; padding-top:0; }} .analysis-block p {{ margin:0; }}
+.metric-definition {{ border-top:1px solid var(--line); padding-top:16px; margin-top:16px; }}
+.metric-definition:first-of-type {{ border-top:0; padding-top:0; }}
+.availability {{ display:inline-block; color:var(--accent); background:#eef6f5; border-radius:999px; padding:2px 9px; font-size:12px; font-weight:700; }}
+.formula {{ margin:10px 0; padding:20px 18px; border-radius:10px; background:#f0f4f5; text-align:center; font:15px/1.6 "Cambria Math","Times New Roman",serif; overflow-x:auto; }}
 @media (max-width:700px) {{ main {{ padding:20px 12px 50px; }} header {{ padding:30px 22px; }} header h1 {{ font-size:31px; }} section,.case-card {{ padding:20px; }} .bar-row {{ grid-template-columns:110px 1fr 36px; font-size:12px; }} }}
 </style>
 </head>
@@ -1765,6 +2039,7 @@ th,td {{ padding:10px 12px; border-bottom:1px solid var(--line); vertical-align:
 <section><h2>{html.escape(s['executive'])}</h2><div class="grid">{''.join(f'<div class="finding">{html.escape(item)}</div>' for item in findings)}</div></section>
 <section><h2>{html.escape(s['evidence_gates'])}</h2><div class="table-wrap"><table><thead><tr><th>{html.escape(s['gate'])}</th><th>{html.escape(s['value'])}</th><th>{html.escape(s['status'])}</th></tr></thead><tbody>{evidence_html}</tbody></table></div>
 <p class="small">{html.escape(s['diagnostic_caveat'])}</p></section>
+<section><h2>{html.escape(s['metric_definitions'])}</h2>{metric_defs_html}</section>
 <section><h2>{html.escape(s['quantitative'])}</h2>{''.join(table_html)}{paired_html}<p class="small">{html.escape(s['metrics_note'])}</p></section>
 <section><h2>{html.escape(s['blind_review'])}</h2><div class="grid">{''.join(review_cards)}</div></section>
 {analysis_html}
@@ -2030,6 +2305,21 @@ def pdf_report(
     )
     styles.add(
         ParagraphStyle(
+            "Formula",
+            parent=styles["BodyText"],
+            fontName=font_regular,
+            fontSize=8.1,
+            leading=11.5,
+            leftIndent=5,
+            rightIndent=5,
+            borderWidth=0,
+            backColor=colors.HexColor("#F0F4F5"),
+            borderPadding=7,
+            spaceAfter=6,
+        )
+    )
+    styles.add(
+        ParagraphStyle(
             "Finding",
             parent=styles["BodyText"],
             fontName=font_regular,
@@ -2083,6 +2373,36 @@ def pdf_report(
             styles["BodySmall"],
         )
     )
+
+    story.append(Paragraph(html.escape(s["metric_definitions"]), styles["Section"]))
+    for definition in metric_definition_rows(metrics, lang):
+        story.append(
+            Paragraph(html.escape(definition["name"]), styles["Subsection"])
+        )
+        story.append(
+            Paragraph(
+                f"<b>{html.escape('可用性' if lang == 'zh' else 'Availability')}:</b> "
+                f"{html.escape(definition['available'])}",
+                styles["BodySmall"],
+            )
+        )
+        story.append(
+            Paragraph(html.escape(definition["formula"]), styles["Formula"])
+        )
+        story.append(
+            Paragraph(
+                f"<b>{html.escape(s['motivation'])}:</b> "
+                f"{html.escape(definition['rationale'])}",
+                styles["BodyCJK"],
+            )
+        )
+        story.append(
+            Paragraph(
+                f"<b>{html.escape(s['implementation'])}:</b> "
+                f"{html.escape(definition['caveat'])}",
+                styles["BodySmall"],
+            )
+        )
 
     story.append(Paragraph(html.escape(s["quantitative"]), styles["Section"]))
     for table_data in metric_tables(metrics, labels, lang):
@@ -2340,6 +2660,9 @@ def latex_report(
         labels_text = {
             "abstract": "摘要",
             "setup": "评估设置与可复现性",
+            "metric_definitions": "指标定义与设计动机",
+            "motivation": "设计动机",
+            "implementation": "解释与报告注意事项",
             "dataset": "数据与配对设计",
             "results": "实验结果",
             "review": "盲评视觉分析",
@@ -2360,6 +2683,9 @@ def latex_report(
         labels_text = {
             "abstract": "Abstract",
             "setup": "Evaluation Setup and Reproducibility",
+            "metric_definitions": "Metric Definitions and Motivation",
+            "motivation": "Motivation",
+            "implementation": "Interpretation and reporting caveat",
             "dataset": "Data and Paired Design",
             "results": "Experimental Results",
             "review": "Blinded Visual Analysis",
@@ -2430,6 +2756,22 @@ def latex_report(
             rf"\item {latex_escape(s['temporal_offsets'])}: {latex_escape(experiment.get('temporal_offsets', '--'))}",
             rf"\item {latex_escape(s['blinding'])}: {latex_escape(experiment.get('blind', False))}",
             r"\end{itemize}",
+            rf"\section*{{{latex_escape(labels_text['metric_definitions'])}}}",
+        ]
+    )
+    for definition in metric_definition_rows(metrics, lang):
+        lines.extend(
+            [
+                rf"\subsection*{{{latex_escape(definition['name'])}}}",
+                rf"\textit{{{latex_escape(definition['available'])}}}",
+                r"\begin{equation*}",
+                definition["formula_tex"],
+                r"\end{equation*}",
+                rf"\textbf{{{latex_escape(labels_text['motivation'])}.}} {latex_escape(definition['rationale'])}",
+                rf"\textbf{{{latex_escape(labels_text['implementation'])}.}} {latex_escape(definition['caveat'])}",
+            ]
+        )
+    lines += [
             rf"\section*{{{latex_escape(labels_text['dataset'])}}}",
             r"\begin{table}[H]",
             r"\centering",
@@ -2447,7 +2789,6 @@ def latex_report(
             rf"{latex_escape(s['case'])} & {latex_escape(s['content'])} / {latex_escape(s['style'])} & {latex_escape(s['split'])} & {latex_escape(s['valid_methods'])} \\",
             r"\midrule",
         ]
-    )
     for case in metrics.get("cases", []):
         valid = [
             labels.get(method_id, method_id)

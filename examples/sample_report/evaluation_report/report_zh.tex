@@ -47,6 +47,119 @@
 \item 时序偏移: [1, 5]
 \item 盲评: True
 \end{itemize}
+\section*{指标定义与设计动机}
+\subsection*{SSIM 结构相似度}
+\textit{在本次运行中计算}
+\begin{equation*}
+\mathrm{SSIM}(x,y)=\frac{(2\mu_x\mu_y+C_1)(2\sigma_{xy}+C_2)}{(\mu_x^2+\mu_y^2+C_1)(\sigma_x^2+\sigma_y^2+C_2)}
+\end{equation*}
+\textbf{设计动机.} SSIM 比较局部亮度、对比度和结构，而不是原始像素误差。它适合检测几何和结构变化，但强风格化本身也会改变对比度与纹理。
+\textbf{解释与报告注意事项.} 应将其视为内容诊断，而不是感知风格分数。
+\subsection*{PSNR 峰值信噪比}
+\textit{在本次运行中计算}
+\begin{equation*}
+\mathrm{PSNR}=10\log_{10}\!\left(\frac{\mathrm{MAX}^2}{\mathrm{MSE}}\right)
+\end{equation*}
+\textbf{设计动机.} PSNR 将均方误差转换为对数尺度，提供快速、确定性的保真度诊断。它对全局颜色变化、压缩和分辨率差异较敏感。
+\textbf{解释与报告注意事项.} 不能把 PSNR 的小幅变化直接解释为感知质量的等比例变化。
+\subsection*{LPIPS 感知距离}
+\textit{本次运行未提供；定义用于论文级扩展}
+\begin{equation*}
+\mathrm{LPIPS}(x,y)=\sum_l\frac{1}{H_lW_l}\sum_{h,w}\left\|w_l\odot(\hat\phi_l(x)_{h,w}-\hat\phi_l(y)_{h,w})\right\|_2^2
+\end{equation*}
+\textbf{设计动机.} LPIPS 比较归一化深层特征，通常比像素指标更符合人类感知相似性。在有固定 LPIPS 实现时，应优先作为内容保持证据。
+\textbf{解释与报告注意事项.} 所有比较方法必须使用相同的网络、预处理和权重。
+\subsection*{CLIP-F 内容语义相似度}
+\textit{本次运行未提供；定义用于论文级扩展}
+\begin{equation*}
+\mathrm{CLIP\text{-}F}(R,I)=100\cos\!\left(\phi_I(R),\phi_I(I)\right)
+\end{equation*}
+\textbf{设计动机.} CLIP-F 衡量风格化帧与源帧是否保留相同的图像级语义。当外观变化较大时，它可以补充结构指标。
+\textbf{解释与报告注意事项.} 图像级嵌入可能遗漏局部身份、边界和遮挡错误。
+\subsection*{CLIP-I 风格图像相似度}
+\textit{本次运行未提供；定义用于论文级扩展}
+\begin{equation*}
+\mathrm{CLIP\text{-}I}(R,S)=100\cos\!\left(\phi_I(R),\phi_I(S)\right)
+\end{equation*}
+\textbf{设计动机.} CLIP-I 提供对内容变化较稳健的全局信号，用于判断生成帧与风格参考是否位于相近的语义视觉空间。它只是风格证据的一部分，不能单独证明纹理迁移成功。
+\textbf{解释与报告注意事项.} 应进行相对比较，并结合纹理特征或盲评审查。
+\subsection*{FID 分布距离}
+\textit{本次运行未提供；定义用于论文级扩展}
+\begin{equation*}
+\mathrm{FID}=\left\|\mu_s-\mu_g\right\|_2^2+\operatorname{Tr}\!\left(\Sigma_s+\Sigma_g-2(\Sigma_s\Sigma_g)^{1/2}\right)
+\end{equation*}
+\textbf{设计动机.} FID 比较 Inception 特征分布，因此能捕捉超出单图颜色统计的风格集合差异。它需要足够数量的参考和生成帧来估计分布。
+\textbf{解释与报告注意事项.} 单张风格图不能构成有效的 FID 风格分布。必须记录图像数量、分辨率和预处理。
+\subsection*{ArtFID 联合风格-内容距离}
+\textit{本次运行未提供；定义用于论文级扩展}
+\begin{equation*}
+\mathrm{ArtFID}=\left(1+\frac{1}{N}\sum_i\mathrm{LPIPS}(I_i,R_i)\right)\left(1+\mathrm{FID}(R,S)\right)
+\end{equation*}
+\textbf{设计动机.} ArtFID 将感知内容保持和风格分布距离结合为一个数值。乘积形式会让“一个因素改善、另一个因素退化”的方法暴露出来。
+\textbf{解释与报告注意事项.} 除非 LPIPS 和 FID 分量遵循固定的引用实现，否则不要使用该指标。
+\subsection*{LAB 调色板 W1}
+\textit{在本次运行中计算}
+\begin{equation*}
+W_{1,c}=\frac{1}{255}\sum_{k=0}^{255}\left|F^{\mathrm{frame}}_c(k)-F^{\mathrm{style}}_c(k)\right|,\qquad \mathrm{PaletteW1}=100\cdot\frac{1}{|C|}\sum_{c\in C}W_{1,c}
+\end{equation*}
+\textbf{设计动机.} 该低成本的诊断指标概括 LAB 颜色边缘分布的一致性，可在运行昂贵感知指标前发现全局着色和调色板不匹配。
+\textbf{解释与报告注意事项.} 它不衡量笔触、纹理附着、构图或风格语义。
+\subsection*{源光流重映射 RMSE}
+\textit{在本次运行中计算}
+\begin{equation*}
+\mathrm{WarpRMSE}_{\Delta}=\sqrt{\frac{\sum_x M_t(x)\left\|R_t(x)-W(R_{t+\Delta})(x)\right\|_2^2}{\sum_x M_t(x)}}
+\end{equation*}
+\textbf{设计动机.} 源视频光流提供预期运动。使用该光流将后续输出帧重映射回当前帧，可以将漂移和闪烁与正常场景运动分开，并屏蔽遮挡像素。
+\textbf{解释与报告注意事项.} 结果会继承光流估计器的误差；Farneback 是诊断代理，不是 RAFT。
+\subsection*{光流端点误差}
+\textit{在本次运行中计算}
+\begin{equation*}
+\mathrm{EPE}_{\Delta}=\frac{1}{|\Omega|}\sum_{x\in\Omega}\left\|F^R_t(x)-F^I_t(x)\right\|_2
+\end{equation*}
+\textbf{设计动机.} EPE 衡量风格化是否改变帧间估计位移，可揭示静态图像难以发现的运动改变和传播失败。
+\textbf{解释与报告注意事项.} 纹理变化可能产生虚假光流；所有方法必须使用相同估计器和遮挡处理。
+\subsection*{光流场相关性}
+\textit{在本次运行中计算}
+\begin{equation*}
+\rho_{\Delta}=\operatorname{corr}\!\left(\operatorname{vec}(F^R_t),\operatorname{vec}(F^I_t)\right)
+\end{equation*}
+\textbf{设计动机.} 相关性衡量运动方向的一致性，相比 EPE 更少受幅度影响。两者结合可以区分方向错误和位移尺度变化。
+\textbf{解释与报告注意事项.} 这是一个全局概括，可能掩盖局部运动错误。
+\subsection*{时序 LPIPS（tLP）}
+\textit{本次运行未提供；定义用于论文级扩展}
+\begin{equation*}
+\mathrm{tLP}=\frac{1}{T-\Delta}\sum_t\mathrm{LPIPS}\!\left(R_t,W(R_{t+\Delta})\right)
+\end{equation*}
+\textbf{设计动机.} tLP 在重映射分析中用深层特征感知误差替代像素误差，使纹理和结构不稳定性比原始 L2 差值更容易被检测。
+\textbf{解释与报告注意事项.} 必须使用固定的 LPIPS 网络并报告时间偏移。
+\subsection*{CLIP 时序一致性}
+\textit{本次运行未提供；定义用于论文级扩展}
+\begin{equation*}
+\mathrm{CLIP\text{-}CONS}=100\cos\!\left(\phi(R_{t+1})-\phi(R_t),\phi(I_{t+1})-\phi(I_t)\right)
+\end{equation*}
+\textbf{设计动机.} CLIP-CONS 检查相邻风格化帧的语义变化是否与源视频一致。当内容被强风格化时，它可以补充像素重映射指标。
+\textbf{解释与报告注意事项.} 它衡量语义变化一致性，而不是空间对齐或闪烁。
+\subsection*{去趋势亮度闪烁}
+\textit{在本次运行中计算}
+\begin{equation*}
+F=\sqrt{\frac{1}{T}\sum_t\left(l_t-(at+b)\right)^2},\quad l_t=\operatorname{mean}(\operatorname{luma}(R_t))
+\end{equation*}
+\textbf{设计动机.} 去除线性亮度趋势可以区分合理的曝光变化和突发全局闪烁。该指标成本低，直接针对常见的视频风格迁移伪影。
+\textbf{解释与报告注意事项.} 它忽略局部闪烁和纹理粘连，这些需要运动感知指标或视觉审查。
+\subsection*{盲评 VLM 分数}
+\textit{在本次运行中计算}
+\begin{equation*}
+\bar S_{d,m}=\frac{1}{R}\sum_{r=1}^{R}\frac{1}{|C_{\mathrm{valid}}|}\sum_{c\in C_{\mathrm{valid}}}s_{r,c,m,d},\quad s\in\{1,\ldots,5\}
+\end{equation*}
+\textbf{设计动机.} 该评分标准覆盖风格一致性、内容保持、时序稳定性、伪影控制和整体质量，能补充自动指标难以区分的纹理与运动故障。逐案例盲化方法标签可降低方法身份偏差。
+\textbf{解释与报告注意事项.} VLM 判断是感知证据而非真实标签；应记录模型版本，并使用多个独立审查者支持论文级结论。
+\subsection*{运行时间与峰值显存}
+\textit{在本次运行中计算}
+\begin{equation*}
+\mathrm{Runtime}_m=\frac{1}{|C|}\sum_c t_{c,m},\qquad \mathrm{PeakMem}_m=\max_c p_{c,m}
+\end{equation*}
+\textbf{设计动机.} 如果缺少部署成本，质量比较并不完整。平均运行时间反映预期延迟，最大峰值显存反映最差观测资源需求。
+\textbf{解释与报告注意事项.} 必须在相同硬件、精度、分辨率和批设置下测量，并同时报告均值和峰值。
 \section*{数据与配对设计}
 \begin{table}[H]
 \centering

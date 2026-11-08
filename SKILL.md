@@ -48,7 +48,7 @@ Before choosing metrics or interpreting scores, read [references/evaluation-prot
 
    Replace `METHOD_ID` and `BASELINE_ID` with manifest IDs. Omit those flags only when there is no meaningful primary comparison. `--language both` generates English and Chinese Markdown, HTML, PDF, and LaTeX reports. Use `--title-zh` and `--claim-zh` when the Chinese report needs project-specific wording. Chinese PDFs auto-detect common CJK fonts; pass `--cjk-font PATH` or set `VST_EVAL_CJK_FONT` in minimal environments.
 
-8. Inspect both language versions of the Markdown, HTML, PDF, and LaTeX. Check the evidence-completeness table before making a comparative or paper-ready claim. Include representative success and failure examples, with timestamps and the corresponding source/style pair.
+8. Inspect both language versions of the Markdown, HTML, PDF, and LaTeX. Confirm the metric-definition section states each formula, motivation, availability, and reporting caveat. Check the evidence-completeness table before making a comparative or paper-ready claim. Include representative success and failure examples, with timestamps and the corresponding source/style pair.
 
 ## Evidence Rules
 

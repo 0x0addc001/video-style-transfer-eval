@@ -17,6 +17,19 @@ XeLaTeX 报告。
 
 `examples/sample_report` 中的示例为合成数据，仅用于演示评估流程，不代表任何模型的性能。
 
+## 示例报告
+
+以下截图来自编译后的中文示例报告。完整示例位于
+[`examples/sample_report`](examples/sample_report/)。
+
+![指标定义、公式与设计动机](docs/images/report-zh-metrics.png)
+
+*每个指标均给出公式、设计动机、可用性和解释注意事项。*
+
+![论文式定量结果表](docs/images/report-zh-tables.png)
+
+*报告标出最优和次优均值，并将单指标结果与配对比较分开呈现。*
+
 ## 功能
 
 - 成对的源视频、风格图与输出视频清单。
