@@ -2,7 +2,7 @@
 
 **Languages:** [English](README.md) | [简体中文](README.zh-CN.md)
 
-A Codex skill for evaluating video style transfer outputs with paired
+A portable agent skill for evaluating video style transfer outputs with paired
 style-content-motion diagnostics, blinded visual-language-model review, and
 evidence-gated reports.
 
@@ -60,12 +60,25 @@ Install the Python dependencies:
 python -m pip install -r requirements.txt
 ```
 
-Install the skill for Codex by copying this directory into
-`$CODEX_HOME/skills` or `~/.codex/skills`:
+The skill uses the portable `SKILL.md` convention. Install it by copying this
+directory into the skills directory used by your agent runtime.
 
-```powershell
-Copy-Item -Recurse . "$env:USERPROFILE\.codex\skills\video-style-transfer-eval"
+For Claude Code, install it at user scope:
+
+```bash
+mkdir -p ~/.claude/skills
+cp -R video-style-transfer-eval ~/.claude/skills/
 ```
+
+For project-scoped Claude Code use:
+
+```bash
+mkdir -p /path/to/project/.claude/skills
+cp -R video-style-transfer-eval /path/to/project/.claude/skills/
+```
+
+Other agent runtimes can use the equivalent local skill directory documented
+by that runtime.
 
 Chinese PDF rendering requires a CJK font with TrueType outlines. The script
 auto-detects common Windows, Linux, and macOS fonts. On Linux, install
@@ -163,9 +176,8 @@ tests/
 examples/sample_report/
 ```
 
-The skill follows Codex's progressive-disclosure convention: `SKILL.md` contains
-the operating workflow, while detailed protocols and schemas live in
-`references/`.
+The skill follows progressive disclosure: `SKILL.md` contains the operating
+workflow, while detailed protocols and schemas live in `references/`.
 
 ## License
 
