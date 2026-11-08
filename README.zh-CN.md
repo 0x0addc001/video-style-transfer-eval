@@ -22,6 +22,10 @@ XeLaTeX 报告。
 以下截图来自编译后的中文示例报告。完整示例位于
 [`examples/sample_report`](examples/sample_report/)。
 
+![独立 HTML 报告](docs/images/report-zh-html.png)
+
+*独立 HTML 报告包含执行摘要、证据完整性检查、格式化指标定义、定量结果表、分析、结论和单案例证据。*
+
 ![指标定义、公式与设计动机](docs/images/report-zh-metrics.png)
 
 *每个指标均给出公式、设计动机、可用性和解释注意事项。*

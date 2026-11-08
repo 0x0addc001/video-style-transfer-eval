@@ -25,6 +25,10 @@ The screenshots below are rendered from the compiled English sample report.
 The full example is available in
 [`examples/sample_report`](examples/sample_report/).
 
+![Standalone HTML report](docs/images/report-en-html.png)
+
+*The standalone HTML report includes the executive verdict, evidence gates, formatted metric definitions, quantitative tables, analysis, conclusions, and per-case evidence.*
+
 ![Metric definitions, formulas, and motivation](docs/images/report-en-metrics.png)
 
 *Each metric is reported with its formula, motivation, availability, and interpretation caveat.*
