@@ -20,12 +20,12 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -r requirements-dev.txt
           sudo apt-get update
-          sudo apt-get install -y fonts-noto-cjk
+          sudo apt-get install -y fonts-wqy-zenhei
       - name: Compile scripts
         run: |
           python -m py_compile scripts/*.py
       - name: Run smoke tests
         env:
-          VST_EVAL_CJK_FONT: /usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+          VST_EVAL_CJK_FONT: /usr/share/fonts/truetype/wqy/wqy-zenhei.ttc
         run: |
           python -m unittest discover -s tests -v

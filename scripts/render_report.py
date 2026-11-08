@@ -1184,6 +1184,8 @@ def resolve_cjk_fonts(
         Path(r"C:\Windows\Fonts\Deng.ttf"),
         Path(r"C:\Windows\Fonts\simhei.ttf"),
         Path(r"C:\Windows\Fonts\msyh.ttc"),
+        Path("/usr/share/fonts/truetype/wqy/wqy-zenhei.ttc"),
+        Path("/usr/share/fonts/truetype/wqy/wqy-zenhei.ttf"),
         Path("/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc"),
         Path("/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc"),
         Path("/usr/share/fonts/opentype/noto/NotoSansSC-Regular.otf"),
@@ -1198,7 +1200,8 @@ def resolve_cjk_fonts(
     if regular_path is None or not regular_path.is_file():
         raise FileNotFoundError(
             "Chinese PDF output requires a CJK font. Pass --cjk-font PATH or set "
-            "VST_EVAL_CJK_FONT. Recommended: Noto Sans CJK SC."
+            "VST_EVAL_CJK_FONT. The font must use TrueType outlines; "
+            "WenQuanYi Zen Hei is a portable Linux choice."
         )
     regular_path = regular_path.resolve()
 
@@ -1216,10 +1219,17 @@ def resolve_cjk_fonts(
 def register_cjk_fonts(regular: Path, bold: Path) -> tuple[str, str]:
     regular_name = "VSTCJK"
     bold_name = "VSTCJK-Bold"
-    if regular_name not in pdfmetrics.getRegisteredFontNames():
-        pdfmetrics.registerFont(TTFont(regular_name, str(regular), subfontIndex=0))
-    if bold_name not in pdfmetrics.getRegisteredFontNames():
-        pdfmetrics.registerFont(TTFont(bold_name, str(bold), subfontIndex=0))
+    try:
+        if regular_name not in pdfmetrics.getRegisteredFontNames():
+            pdfmetrics.registerFont(TTFont(regular_name, str(regular), subfontIndex=0))
+        if bold_name not in pdfmetrics.getRegisteredFontNames():
+            pdfmetrics.registerFont(TTFont(bold_name, str(bold), subfontIndex=0))
+    except Exception as error:
+        raise ValueError(
+            f"Cannot embed CJK font '{regular}'. ReportLab requires TrueType outlines; "
+            "use WenQuanYi Zen Hei or another TrueType-flavored TTF/TTC. "
+            f"Original error: {error}"
+        ) from error
     pdfmetrics.registerFontFamily(
         regular_name,
         normal=regular_name,

@@ -48,12 +48,13 @@ Install the skill for Codex by copying this directory into
 Copy-Item -Recurse . "$env:USERPROFILE\.codex\skills\video-style-transfer-eval"
 ```
 
-Chinese PDF rendering requires a CJK font. The script auto-detects common
-Windows, Linux, and macOS fonts. On Linux, install `fonts-noto-cjk` or pass:
+Chinese PDF rendering requires a CJK font with TrueType outlines. The script
+auto-detects common Windows, Linux, and macOS fonts. On Linux, install
+`fonts-wqy-zenhei` or pass a compatible font:
 
 ```bash
 python scripts/render_report.py ... \
-  --cjk-font /usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+  --cjk-font /usr/share/fonts/truetype/wqy/wqy-zenhei.ttc
 ```
 
 ## Quick Start
