@@ -97,6 +97,10 @@ class BilingualRenderTest(unittest.TestCase):
                     str(output_dir),
                     "--language",
                     "both",
+                    "--primary",
+                    "ours",
+                    "--baseline",
+                    "baseline",
                     "--status",
                     "Exploratory",
                 ],
@@ -105,7 +109,7 @@ class BilingualRenderTest(unittest.TestCase):
                 text=True,
             )
             self.assertEqual(result.returncode, 0, result.stderr)
-            for suffix in ("md", "html", "pdf"):
+            for suffix in ("md", "html", "pdf", "tex"):
                 for lang in ("en", "zh"):
                     path = output_dir / f"report_{lang}.{suffix}"
                     self.assertTrue(path.is_file(), path)
@@ -113,8 +117,14 @@ class BilingualRenderTest(unittest.TestCase):
             english_html = (output_dir / "report_en.html").read_text(encoding="utf-8")
             chinese_html = (output_dir / "report_zh.html").read_text(encoding="utf-8")
             self.assertIn("Quantitative results", english_html)
+            self.assertIn("Analysis and discussion", english_html)
             self.assertIn("定量结果", chinese_html)
             self.assertIn("本文方法", chinese_html)
+            english_tex = (output_dir / "report_en.tex").read_text(encoding="utf-8")
+            chinese_tex = (output_dir / "report_zh.tex").read_text(encoding="utf-8")
+            self.assertIn(r"\usepackage{booktabs}", english_tex)
+            self.assertIn(r"\begin{table}[H]", english_tex)
+            self.assertIn(r"\documentclass[UTF8,10pt]{ctexart}", chinese_tex)
 
 
 if __name__ == "__main__":

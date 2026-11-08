@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Render a validated VST evaluation as Markdown, standalone HTML, and PDF."""
+"""Render a validated VST evaluation as Markdown, HTML, PDF, and XeLaTeX."""
 
 from __future__ import annotations
 
@@ -179,8 +179,18 @@ TEXT = {
         "temporal_heading": "Temporal and motion",
         "cost_heading": "Cost",
         "method": "Method",
-        "metrics_note": "Arrows indicate preferred direction. Values are macro mean ± sample standard deviation across valid clips; the clip is the statistical unit. OpenCV Farneback values are diagnostic proxies, not RAFT-comparable results.",
+        "metric": "Metric",
+        "metrics_note": "Mean ± sample standard deviation over valid paired clips; the clip is the statistical unit. Bold and underlined values denote the best and second-best means. Arrows show preferred direction. n is listed in the evidence notes.",
         "diagnostic_caveat": "Farneback flow and LAB palette distance are diagnostic proxies. They are not RAFT, LPIPS, CLIP, FID, or ArtFID.",
+        "discussion": "Analysis and discussion",
+        "style_analysis": "Style fidelity",
+        "content_analysis": "Content preservation",
+        "temporal_analysis": "Motion and temporal stability",
+        "perceptual_analysis": "Perceptual review and failure modes",
+        "cost_analysis": "Computational cost",
+        "synthesis": "Synthesis",
+        "paired_effects": "Paired comparison against the primary baseline",
+        "best_second_note": "Best and second-best mean values are shown in bold and underlined, respectively.",
         "blind_review": "Blinded visual review",
         "artifacts": "Artifacts",
         "overall": "Overall",
@@ -251,8 +261,18 @@ TEXT = {
         "temporal_heading": "时序与运动",
         "cost_heading": "计算成本",
         "method": "方法",
-        "metrics_note": "箭头表示指标偏好方向。数值为有效片段上的宏平均 ± 样本标准差，统计单位为片段。OpenCV Farneback 是诊断代理，不能与 RAFT 论文数值直接比较。",
+        "metric": "指标",
+        "metrics_note": "表中为有效配对片段上的平均值 ± 样本标准差，统计单位为片段。粗体和下划线分别表示最优和次优均值，箭头表示指标偏好方向。",
         "diagnostic_caveat": "Farneback 光流与 LAB 调色板距离是诊断代理，不能替代 RAFT、LPIPS、CLIP、FID 或 ArtFID。",
+        "discussion": "分析与讨论",
+        "style_analysis": "风格保真度",
+        "content_analysis": "内容保持",
+        "temporal_analysis": "运动与时序稳定性",
+        "perceptual_analysis": "感知审查与失败模式",
+        "cost_analysis": "计算成本",
+        "synthesis": "综合判断",
+        "paired_effects": "相对主基线的配对比较",
+        "best_second_note": "最优和次优均值分别以粗体和下划线标出。",
         "blind_review": "盲评视觉审查",
         "artifacts": "伪影",
         "overall": "整体",
@@ -836,26 +856,500 @@ def metric_tables(
         if not selected:
             continue
         rows = []
-        for method_id in method_order:
-            row = [labels.get(method_id, method_id)]
-            for metric, _, _ in selected:
-                row.append(
-                    format_stat(metrics.get("aggregates", {}).get(method_id, {}).get(metric))
-                )
-            rows.append(row)
-        headers = [tr(lang, "method")] + [
-            f"{metric_label(lang, metric, info_by_metric[metric])} "
-            f"{direction_symbol(metric, info_by_metric)}"
-            for metric, label, _ in selected
-        ]
+        for metric, _, info in selected:
+            summaries = {
+                method_id: metrics.get("aggregates", {})
+                .get(method_id, {})
+                .get(metric)
+                for method_id in method_order
+            }
+            available = [
+                (method_id, float(summary["mean"]))
+                for method_id, summary in summaries.items()
+                if summary and summary.get("mean") is not None
+            ]
+            higher = bool(info.get("higher_is_better"))
+            available.sort(key=lambda item: item[1], reverse=higher)
+            distinct_values = sorted(
+                {round(value, 12) for _, value in available},
+                reverse=higher,
+            )
+            best_value = distinct_values[0] if distinct_values else None
+            second_value = distinct_values[1] if len(distinct_values) > 1 else None
+            best_ids = [
+                method_id
+                for method_id, value in available
+                if best_value is not None and abs(value - best_value) < 1e-12
+            ]
+            second_ids = [
+                method_id
+                for method_id, value in available
+                if second_value is not None and abs(value - second_value) < 1e-12
+            ]
+            rows.append(
+                {
+                    "metric": metric,
+                    "label": metric_label(lang, metric, info),
+                    "higher_is_better": higher,
+                    "summaries": summaries,
+                    "best_ids": best_ids,
+                    "second_ids": second_ids,
+                }
+            )
         tables.append(
             {
                 "heading": heading,
-                "headers": headers,
+                "headers": [tr(lang, "metric")]
+                + [labels.get(method_id, method_id) for method_id in method_order],
+                "method_ids": method_order,
                 "rows": rows,
             }
         )
     return tables
+
+
+def stat_without_n(summary: dict[str, Any] | None, digits: int = 4) -> str:
+    if not summary:
+        return "—"
+    return (
+        f"{format_number(summary.get('mean'), digits)} ± "
+        f"{format_number(summary.get('std'), digits)}"
+    )
+
+
+def table_sample_note(table: dict[str, Any]) -> str:
+    notes = []
+    for method_id in table["method_ids"]:
+        n_values = {
+            row["summaries"].get(method_id, {}).get("n")
+            for row in table["rows"]
+            if row["summaries"].get(method_id)
+        }
+        n_text = ", ".join(str(value) for value in sorted(n_values) if value is not None)
+        if n_text:
+            notes.append(f"{method_id}: {n_text}")
+    return "; ".join(notes)
+
+
+def comparison_vote(
+    metrics: dict[str, Any],
+    primary: str,
+    baseline: str,
+    metric: str,
+) -> int:
+    info = metrics.get("metric_info", {}).get(metric, {})
+    primary_summary = metrics.get("aggregates", {}).get(primary, {}).get(metric)
+    baseline_summary = metrics.get("aggregates", {}).get(baseline, {}).get(metric)
+    if not primary_summary or not baseline_summary:
+        return 0
+    difference = float(primary_summary["mean"]) - float(baseline_summary["mean"])
+    if abs(difference) < 1e-12:
+        return 0
+    return 1 if (difference > 0) == bool(info.get("higher_is_better")) else -1
+
+
+def review_vote(
+    review_agg: dict[str, Any],
+    primary: str,
+    baseline: str,
+    dimension: str,
+) -> int:
+    primary_value = (
+        review_agg.get("method_dimension", {})
+        .get(primary, {})
+        .get(dimension, {})
+        .get("mean")
+    )
+    baseline_value = (
+        review_agg.get("method_dimension", {})
+        .get(baseline, {})
+        .get(dimension, {})
+        .get("mean")
+    )
+    if primary_value is None or baseline_value is None:
+        return 0
+    difference = float(primary_value) - float(baseline_value)
+    if abs(difference) < 1e-12:
+        return 0
+    return 1 if difference > 0 else -1
+
+
+def category_verdict(votes: list[int], primary_name: str, baseline_name: str, lang: str) -> str:
+    available = [vote for vote in votes if vote != 0]
+    if not available:
+        return (
+            "现有证据不足以判断差异。"
+            if lang == "zh"
+            else "The available evidence is insufficient to distinguish the methods."
+        )
+    score = sum(available)
+    if score > 0:
+        return (
+            f"现有指标总体上更支持 {primary_name}。"
+            if lang == "zh"
+            else f"The available indicators collectively favor {primary_name}."
+        )
+    if score < 0:
+        return (
+            f"现有指标总体上更支持 {baseline_name}。"
+            if lang == "zh"
+            else f"The available indicators collectively favor {baseline_name}."
+        )
+    return (
+        "现有指标意见不一致或方向抵消。"
+        if lang == "zh"
+        else "The available indicators disagree or cancel in aggregate."
+    )
+
+
+def make_analysis_sections(
+    metrics: dict[str, Any],
+    labels: dict[str, str],
+    review_agg: dict[str, Any],
+    primary: str | None,
+    baseline: str | None,
+    lang: str,
+) -> list[dict[str, str]]:
+    if not primary or not baseline or primary not in labels or baseline not in labels:
+        return []
+    s = TEXT[lang]
+    primary_name = labels[primary]
+    baseline_name = labels[baseline]
+    aggregates = metrics.get("aggregates", {})
+
+    style_metrics = ["clip_i", "lab_palette_w1", "lab_ab_palette_w1"]
+    style_votes = [
+        comparison_vote(metrics, primary, baseline, metric)
+        for metric in style_metrics
+        if metric in metrics.get("metric_info", {})
+    ]
+    style_votes.append(
+        review_vote(review_agg, primary, baseline, "style_adherence")
+    )
+    style_values = []
+    for metric in style_metrics:
+        summary = aggregates.get(primary, {}).get(metric)
+        if summary:
+            info = metrics["metric_info"][metric]
+            style_values.append(
+                f"{metric_label(lang, metric, info)} "
+                f"{stat_without_n(summary)}"
+            )
+    style_review = (
+        review_agg.get("method_dimension", {})
+        .get(primary, {})
+        .get("style_adherence", {})
+        .get("mean")
+    )
+    style_text = category_verdict(style_votes, primary_name, baseline_name, lang)
+    if style_values:
+        style_text += (
+            " 已报告的诊断值为："
+            + "；".join(style_values)
+            + "。"
+            if lang == "zh"
+            else " Reported diagnostics: "
+            + "; ".join(style_values)
+            + "."
+        )
+    if style_review is not None:
+        style_text += (
+            f" 盲评风格一致性为 {style_review:.2f}/5。"
+            if lang == "zh"
+            else f" The blinded style-adherence score is {style_review:.2f}/5."
+        )
+
+    content_metrics = ["lpips", "clip_f", "ssim", "psnr"]
+    content_votes = [
+        comparison_vote(metrics, primary, baseline, metric)
+        for metric in content_metrics
+        if metric in metrics.get("metric_info", {})
+    ]
+    content_votes.append(
+        review_vote(review_agg, primary, baseline, "content_preservation")
+    )
+    content_values = []
+    for metric in content_metrics:
+        summary = aggregates.get(primary, {}).get(metric)
+        if summary:
+            info = metrics["metric_info"][metric]
+            content_values.append(
+                f"{metric_label(lang, metric, info)} "
+                f"{stat_without_n(summary)}"
+            )
+    content_text = category_verdict(
+        content_votes, primary_name, baseline_name, lang
+    )
+    if content_values:
+        content_text += (
+            " 已报告的诊断值为："
+            + "；".join(content_values)
+            + "。"
+            if lang == "zh"
+            else " Reported diagnostics: "
+            + "; ".join(content_values)
+            + "."
+        )
+
+    temporal_metric_candidates = [
+        "offset_1_warp_rmse",
+        "offset_5_warp_rmse",
+        "offset_1_flow_epe",
+        "luminance_flicker",
+        "tlp",
+        "clip_cons",
+    ]
+    temporal_metrics = [
+        metric
+        for metric in temporal_metric_candidates
+        if metric in metrics.get("metric_info", {})
+    ]
+    temporal_votes = [
+        comparison_vote(metrics, primary, baseline, metric)
+        for metric in temporal_metrics
+    ]
+    temporal_votes.append(
+        review_vote(review_agg, primary, baseline, "temporal_stability")
+    )
+    temporal_values = []
+    for metric in temporal_metrics:
+        summary = aggregates.get(primary, {}).get(metric)
+        if summary:
+            info = metrics["metric_info"][metric]
+            temporal_values.append(
+                f"{metric_label(lang, metric, info)} "
+                f"{stat_without_n(summary)}"
+            )
+    temporal_text = category_verdict(
+        temporal_votes, primary_name, baseline_name, lang
+    )
+    if temporal_values:
+        temporal_text += (
+            " 已报告的诊断值为："
+            + "；".join(temporal_values)
+            + "。"
+            if lang == "zh"
+            else " Reported diagnostics: "
+            + "; ".join(temporal_values)
+            + "."
+        )
+
+    perceptual_text = (
+        "当前没有经过校验的盲评记录，因此不将伪影或文本纹理质量纳入模型优劣判断。"
+        if lang == "zh"
+        else "No validated blinded review is available, so artifact and texture quality are not used to rank the methods."
+    )
+    if review_agg.get("scored_count"):
+        best_method = max(
+            review_agg["method_dimension"],
+            key=lambda method_id: (
+                review_agg["method_dimension"][method_id][
+                    "overall_visual_quality"
+                ]["mean"]
+                if review_agg["method_dimension"][method_id][
+                    "overall_visual_quality"
+                ]["mean"]
+                is not None
+                else -1
+            ),
+        )
+        best_score = review_agg["method_dimension"][best_method][
+            "overall_visual_quality"
+        ]["mean"]
+        top_tags = review_agg["failure_counts"].most_common(3)
+        if lang == "zh":
+            perceptual_text = (
+                f"盲评中整体视觉质量最高的是 {labels.get(best_method, best_method)}"
+                f"（{best_score:.2f}/5，{review_agg['reviewer_count']} 位审查者）。"
+                "该结果仅代表当前审查样本中的感知偏好，不等同于真实标签。"
+            )
+            if top_tags:
+                perceptual_text += " 主要失败模式为" + "、".join(
+                    f"{FAILURE_LABELS['zh'].get(tag, tag)}（{count}）"
+                    for tag, count in top_tags
+                ) + "。"
+        else:
+            perceptual_text = (
+                f"The blinded review gives the highest overall visual quality to "
+                f"{labels.get(best_method, best_method)} ({best_score:.2f}/5 across "
+                f"{review_agg['reviewer_count']} reviewer(s)). This reflects preference "
+                "on the reviewed sample rather than ground-truth quality."
+            )
+            if top_tags:
+                perceptual_text += " The leading failure modes are " + ", ".join(
+                    f"{tag.replace('_', ' ')} ({count})"
+                    for tag, count in top_tags
+                ) + "."
+
+    cost_votes = [
+        comparison_vote(metrics, primary, baseline, metric)
+        for metric in ("runtime_s", "peak_memory_gb")
+        if metric in metrics.get("metric_info", {})
+    ]
+    cost_text = category_verdict(cost_votes, primary_name, baseline_name, lang)
+    if lang == "zh":
+        runtime = aggregates.get(primary, {}).get("runtime_s")
+        memory = aggregates.get(primary, {}).get("peak_memory_gb")
+        details = []
+        if runtime:
+            details.append(f"运行时间 {stat_without_n(runtime)} 秒")
+        if memory:
+            details.append(f"峰值显存 {stat_without_n(memory)} GB")
+        if details:
+            cost_text += " 主方法的" + "、".join(details) + "。"
+    else:
+        runtime = aggregates.get(primary, {}).get("runtime_s")
+        memory = aggregates.get(primary, {}).get("peak_memory_gb")
+        details = []
+        if runtime:
+            details.append(f"runtime {stat_without_n(runtime)} s")
+        if memory:
+            details.append(f"peak memory {stat_without_n(memory)} GB")
+        if details:
+            cost_text += " The primary method uses " + " and ".join(details) + "."
+
+    category_votes = [sum(style_votes), sum(content_votes), sum(temporal_votes), sum(cost_votes)]
+    wins = sum(vote > 0 for vote in category_votes)
+    losses = sum(vote < 0 for vote in category_votes)
+    if wins >= 3 and losses == 0:
+        synthesis_text = (
+            f"在可用指标上，{primary_name} 在多数评估维度中占优，但不同维度和样本间仍存在差异。"
+            if lang == "zh"
+            else f"Across the available evidence, {primary_name} has an advantage in most dimensions, although variation remains across cases."
+        )
+    elif losses >= 3 and wins == 0:
+        synthesis_text = (
+            f"在可用指标上，{baseline_name} 在多数评估维度中占优。"
+            if lang == "zh"
+            else f"Across the available evidence, {baseline_name} has an advantage in most dimensions."
+        )
+    else:
+        synthesis_text = (
+            "结果呈现明显的多维权衡，没有方法在所有维度上占优；因此不能据此声称单一方法的普遍优越性。"
+            if lang == "zh"
+            else "The results show a multidimensional trade-off rather than universal dominance; the current evidence does not support a claim that one method is uniformly superior."
+        )
+
+    return [
+        {"heading": s["style_analysis"], "text": style_text},
+        {"heading": s["content_analysis"], "text": content_text},
+        {"heading": s["temporal_analysis"], "text": temporal_text},
+        {"heading": s["perceptual_analysis"], "text": perceptual_text},
+        {"heading": s["cost_analysis"], "text": cost_text},
+        {"heading": s["synthesis"], "text": synthesis_text},
+    ]
+
+
+def make_conclusion(
+    metrics: dict[str, Any],
+    labels: dict[str, str],
+    review_agg: dict[str, Any],
+    primary: str | None,
+    baseline: str | None,
+    status: str,
+    lang: str,
+) -> str:
+    valid_cases = sum(
+        1
+        for case in metrics.get("cases", [])
+        if any(result.get("valid") for result in case.get("methods", {}).values())
+    )
+    if lang == "zh":
+        if status == "Exploratory":
+            return (
+                f"本报告用 {valid_cases} 个合成案例验证了评估流程，未提供真实模型性能证据。"
+                "结果表、感知分析和结论仍保留多维证据，不应被解释为 EchoStyle 或本文方法的基准排名。"
+            )
+        suffix = (
+            "由于独立片段数量少于五个，当前差异未配套稳定置信区间，应视为探索性比较。"
+            if valid_cases < 5
+            else "应结合配对差值的置信区间判断差异稳定性和实际意义。"
+        )
+        return (
+            "评估显示风格、内容、运动和成本目标之间可能存在权衡；"
+            "只有在替代方案取得相近风格强度后才可解释保持性差异。"
+            + suffix
+        )
+    if status == "Exploratory":
+        return (
+            f"This report uses {valid_cases} synthetic cases to validate the evaluation "
+            "pipeline and does not provide evidence of real model performance. The "
+            "tables, perceptual analysis, and conclusions preserve multidimensional "
+            "evidence and should not be interpreted as a benchmark ranking of EchoStyle "
+            "or the proposed method."
+        )
+    suffix = (
+        "With fewer than five independent clips, the observed differences lack stable "
+        "confidence intervals and should be treated as exploratory."
+        if valid_cases < 5
+        else "Paired confidence intervals should be used to judge the stability and practical relevance of the differences."
+    )
+    return (
+        "The evaluation indicates that style, content, motion, and cost objectives may "
+        "trade off. Preservation differences are interpretable only after methods are "
+        "compared at similar achieved style strength. "
+        + suffix
+    )
+
+
+def paired_effect_rows(
+    metrics: dict[str, Any],
+    primary: str,
+    baseline: str,
+    labels: dict[str, str],
+    lang: str,
+) -> list[dict[str, Any]]:
+    rows = []
+    for metric in (
+        "ssim",
+        "lab_palette_w1",
+        "offset_1_warp_rmse",
+        "offset_1_flow_epe",
+        "runtime_s",
+    ):
+        info = metrics.get("metric_info", {}).get(metric)
+        if not info:
+            continue
+        raw_differences = []
+        for case in metrics.get("cases", []):
+            first = case.get("methods", {}).get(primary)
+            second = case.get("methods", {}).get(baseline)
+            if not first or not second or not first.get("valid") or not second.get("valid"):
+                continue
+            first_value = first.get("metrics", {}).get(metric)
+            second_value = second.get("metrics", {}).get(metric)
+            if first_value is None or second_value is None:
+                continue
+            difference = float(first_value) - float(second_value)
+            raw_differences.append(
+                difference if info.get("higher_is_better") else -difference
+            )
+        if not raw_differences:
+            continue
+        mean_difference = float(np.mean(raw_differences))
+        std_difference = (
+            float(np.std(raw_differences, ddof=1))
+            if len(raw_differences) > 1
+            else 0.0
+        )
+        effect_size = (
+            mean_difference / std_difference if std_difference > 1e-12 else None
+        )
+        paired = get_pairwise(metrics, primary, baseline, metric)
+        rows.append(
+            {
+                "metric": metric,
+                "label": metric_label(lang, metric, info),
+                "higher_is_better": bool(info.get("higher_is_better")),
+                "n": len(raw_differences),
+                "mean_difference_favors_primary": mean_difference,
+                "effect_size_dz": effect_size,
+                "ci": paired.get("ci95_diff") if paired else None,
+                "primary_label": labels.get(primary, primary),
+                "baseline_label": labels.get(baseline, baseline),
+            }
+        )
+    return rows
 
 
 def markdown_report(
@@ -865,6 +1359,9 @@ def markdown_report(
     status: str,
     findings: list[str],
     recommendation: str,
+    analysis_sections: list[dict[str, str]],
+    conclusion: str,
+    paired_rows: list[dict[str, Any]],
     args: argparse.Namespace,
     lang: str,
 ) -> str:
@@ -937,7 +1434,43 @@ def markdown_report(
         lines.append("| " + " | ".join(table["headers"]) + " |")
         lines.append("|" + "---|" * len(table["headers"]))
         for row in table["rows"]:
-            lines.append("| " + " | ".join(row) + " |")
+            cells = [f"{row['label']} {'↑' if row['higher_is_better'] else '↓'}"]
+            for method_id in table["method_ids"]:
+                value = stat_without_n(row["summaries"].get(method_id))
+                if method_id in row["best_ids"] and value != "—":
+                    value = f"**{value}**"
+                elif method_id in row["second_ids"] and value != "—":
+                    value = f"<u>{value}</u>"
+                cells.append(value)
+            lines.append("| " + " | ".join(cells) + " |")
+        lines.append("")
+        sample_note = table_sample_note(table)
+        lines.append(
+            f"{s['best_second_note']} "
+            + (f"Valid clips: {sample_note}." if lang == "en" else f"有效片段数：{sample_note}。")
+        )
+        lines.append("")
+    if paired_rows:
+        lines.extend(
+            [
+                f"### {s['paired_effects']}",
+                "",
+                "| "
+                + (s["method"] if lang == "zh" else "Metric")
+                + " | Δ (positive favors primary) | dz | 95% CI | n |",
+                "|---|---|---|---|---|",
+            ]
+        )
+        for row in paired_rows:
+            ci = (
+                f"[{format_number(row['ci'][0])}, {format_number(row['ci'][1])}]"
+                if row["ci"]
+                else "—"
+            )
+            lines.append(
+                f"| {row['label']} | {format_number(row['mean_difference_favors_primary'])} "
+                f"| {format_number(row['effect_size_dz'])} | {ci} | {row['n']} |"
+            )
         lines.append("")
     lines.extend(
         [
@@ -973,6 +1506,13 @@ def markdown_report(
         )
     else:
         lines.append(s["no_review"])
+
+    if analysis_sections:
+        lines.extend(["", f"## {s['discussion']}", ""])
+        for section in analysis_sections:
+            lines.extend(
+                [f"### {section['heading']}", "", section["text"], ""]
+            )
 
     lines.extend(["", f"## {s['per_case']}", ""])
     for case in metrics.get("cases", []):
@@ -1018,7 +1558,19 @@ def markdown_report(
     )
     lines.extend(["", f"## {s['threats']}", ""])
     lines.extend(f"- {threat}" for threat in s["threats_list"])
-    lines.extend(["", f"## {s['conclusion']}", "", recommendation, ""])
+    lines.extend(
+        [
+            "",
+            f"## {s['conclusion']}",
+            "",
+            conclusion,
+            "",
+            f"### {s['recommendation']}",
+            "",
+            recommendation,
+            "",
+        ]
+    )
     return "\n".join(lines)
 
 
@@ -1031,6 +1583,9 @@ def html_report(
     status: str,
     findings: list[str],
     recommendation: str,
+    analysis_sections: list[dict[str, str]],
+    conclusion: str,
+    paired_rows: list[dict[str, Any]],
     args: argparse.Namespace,
     lang: str,
 ) -> str:
@@ -1042,12 +1597,56 @@ def html_report(
         header_cells = "".join(f"<th>{html.escape(cell)}</th>" for cell in table["headers"])
         body_rows = []
         for row in table["rows"]:
-            cells = "".join(f"<td>{html.escape(cell)}</td>" for cell in row)
-            body_rows.append(f"<tr>{cells}</tr>")
+            cells = [
+                f"{html.escape(row['label'])} {'↑' if row['higher_is_better'] else '↓'}"
+            ]
+            for method_id in table["method_ids"]:
+                value = stat_without_n(row["summaries"].get(method_id))
+                if method_id in row["best_ids"] and value != "—":
+                    value = f"<strong>{html.escape(value)}</strong>"
+                elif method_id in row["second_ids"] and value != "—":
+                    value = f"<u>{html.escape(value)}</u>"
+                else:
+                    value = html.escape(value)
+                cells.append(value)
+            cell_html = "".join(f"<td>{cell}</td>" for cell in cells)
+            body_rows.append(f"<tr>{cell_html}</tr>")
+        sample_note = table_sample_note(table)
         table_html.append(
             f"<section><h3>{html.escape(table['heading'])}</h3>"
             f"<div class='table-wrap'><table><thead><tr>{header_cells}</tr></thead>"
-            f"<tbody>{''.join(body_rows)}</tbody></table></div></section>"
+            f"<tbody>{''.join(body_rows)}</tbody></table></div>"
+            f"<p class='table-note'>{html.escape(s['best_second_note'])} "
+            f"{html.escape('有效片段数' if lang == 'zh' else 'Valid clips')}: "
+            f"{html.escape(sample_note)}.</p></section>"
+        )
+
+    paired_html = ""
+    if paired_rows:
+        paired_body = []
+        for row in paired_rows:
+            ci = (
+                f"[{format_number(row['ci'][0])}, {format_number(row['ci'][1])}]"
+                if row["ci"]
+                else "—"
+            )
+            paired_body.append(
+                "<tr>"
+                f"<td>{html.escape(row['label'])}</td>"
+                f"<td>{html.escape(format_number(row['mean_difference_favors_primary']))}</td>"
+                f"<td>{html.escape(format_number(row['effect_size_dz']))}</td>"
+                f"<td>{html.escape(ci)}</td>"
+                f"<td>{row['n']}</td>"
+                "</tr>"
+            )
+        paired_html = (
+            f"<section><h3>{html.escape(s['paired_effects'])}</h3>"
+            "<div class='table-wrap'><table><thead><tr>"
+            f"<th>{html.escape('指标' if lang == 'zh' else 'Metric')}</th>"
+            f"<th>{html.escape('Δ（正差值支持主方法）' if lang == 'zh' else 'Δ (positive favors primary)')}</th>"
+            "<th>dz</th><th>95% CI</th><th>n</th></tr></thead><tbody>"
+            + "".join(paired_body)
+            + "</tbody></table></div></section>"
         )
 
     review_cards = []
@@ -1111,6 +1710,17 @@ def html_report(
         f"<td><span class='gate'>{html.escape(gate)}</span></td></tr>"
         for item, value, gate in evidence_rows(metrics, review_agg, status, lang)
     )
+    analysis_html = ""
+    if analysis_sections:
+        analysis_html = (
+            f"<section><h2>{html.escape(s['discussion'])}</h2>"
+            + "".join(
+                f"<div class='analysis-block'><h3>{html.escape(section['heading'])}</h3>"
+                f"<p>{html.escape(section['text'])}</p></div>"
+                for section in analysis_sections
+            )
+            + "</section>"
+        )
     return f"""<!doctype html>
 <html lang="{lang}">
 <head>
@@ -1139,6 +1749,9 @@ th,td {{ padding:10px 12px; border-bottom:1px solid var(--line); vertical-align:
 .case-card h3 {{ margin-top:0; }} .case-card img {{ width:100%; display:block; margin-top:18px; border-radius:9px; border:1px solid var(--line); }}
 .pending {{ color:var(--muted); font-style:italic; }} .recommendation {{ background:#fff8ef; border-color:#ecd3b4; }}
 .small {{ color:var(--muted); font-size:13px; }}
+.table-note {{ color:var(--muted); font-size:12px; margin:10px 0 0; }}
+.analysis-block {{ border-top:1px solid var(--line); padding-top:12px; margin-top:14px; }}
+.analysis-block:first-of-type {{ border-top:0; padding-top:0; }} .analysis-block p {{ margin:0; }}
 @media (max-width:700px) {{ main {{ padding:20px 12px 50px; }} header {{ padding:30px 22px; }} header h1 {{ font-size:31px; }} section,.case-card {{ padding:20px; }} .bar-row {{ grid-template-columns:110px 1fr 36px; font-size:12px; }} }}
 </style>
 </head>
@@ -1152,11 +1765,12 @@ th,td {{ padding:10px 12px; border-bottom:1px solid var(--line); vertical-align:
 <section><h2>{html.escape(s['executive'])}</h2><div class="grid">{''.join(f'<div class="finding">{html.escape(item)}</div>' for item in findings)}</div></section>
 <section><h2>{html.escape(s['evidence_gates'])}</h2><div class="table-wrap"><table><thead><tr><th>{html.escape(s['gate'])}</th><th>{html.escape(s['value'])}</th><th>{html.escape(s['status'])}</th></tr></thead><tbody>{evidence_html}</tbody></table></div>
 <p class="small">{html.escape(s['diagnostic_caveat'])}</p></section>
-<section><h2>{html.escape(s['quantitative'])}</h2>{''.join(table_html)}<p class="small">{html.escape(s['metrics_note'])}</p></section>
+<section><h2>{html.escape(s['quantitative'])}</h2>{''.join(table_html)}{paired_html}<p class="small">{html.escape(s['metrics_note'])}</p></section>
 <section><h2>{html.escape(s['blind_review'])}</h2><div class="grid">{''.join(review_cards)}</div></section>
+{analysis_html}
 <section><h2>{html.escape(s['per_case'])}</h2><p class="small">{html.escape(s['per_case_note'])}</p>{''.join(case_sections)}</section>
 <section><h2>{html.escape(s['threats'])}</h2><ul>{''.join(f'<li>{html.escape(item)}</li>' for item in s['threats_list'])}</ul></section>
-<section class="recommendation"><h2>{html.escape(s['recommendation'])}</h2><p>{html.escape(recommendation)}</p></section>
+<section class="recommendation"><h2>{html.escape(s['conclusion'])}</h2><p>{html.escape(conclusion)}</p><h3>{html.escape(s['recommendation'])}</h3><p>{html.escape(recommendation)}</p></section>
 <p class="small">{html.escape(s['generated'])}</p>
 </main></body></html>
 """
@@ -1253,6 +1867,16 @@ def pdf_safe_text(value: Any, lang: str = "en") -> str:
     )
 
 
+def pdf_rich_text(value: Any, lang: str = "en") -> str:
+    escaped = html.escape(pdf_safe_text(value, lang))
+    return (
+        escaped.replace("[[B]]", "<b>")
+        .replace("[[/B]]", "</b>")
+        .replace("[[U]]", "<u>")
+        .replace("[[/U]]", "</u>")
+    )
+
+
 def pdf_table(
     headers: list[str],
     rows: list[list[str]],
@@ -1277,12 +1901,12 @@ def pdf_table(
         textColor=colors.HexColor("#17212B"),
     )
     wrapped_headers = [
-        Paragraph(html.escape(pdf_safe_text(cell, lang)), header_style)
+        Paragraph(pdf_rich_text(cell, lang), header_style)
         for cell in headers
     ]
     wrapped_rows = [
         [
-            Paragraph(html.escape(pdf_safe_text(cell, lang)), body_style)
+            Paragraph(pdf_rich_text(cell, lang), body_style)
             for cell in row
         ]
         for row in rows
@@ -1324,6 +1948,9 @@ def pdf_report(
     status: str,
     findings: list[str],
     recommendation: str,
+    analysis_sections: list[dict[str, str]],
+    conclusion: str,
+    paired_rows: list[dict[str, Any]],
     args: argparse.Namespace,
     lang: str,
     font_regular: str,
@@ -1460,17 +2087,78 @@ def pdf_report(
     story.append(Paragraph(html.escape(s["quantitative"]), styles["Section"]))
     for table_data in metric_tables(metrics, labels, lang):
         story.append(Paragraph(html.escape(table_data["heading"]), styles["Subsection"]))
+        rows = []
+        for row in table_data["rows"]:
+            values = [f"{row['label']} {'↑' if row['higher_is_better'] else '↓'}"]
+            for method_id in table_data["method_ids"]:
+                value = stat_without_n(row["summaries"].get(method_id))
+                if method_id in row["best_ids"] and value != "—":
+                    value = f"[[B]]{value}[[/B]]"
+                elif method_id in row["second_ids"] and value != "—":
+                    value = f"[[U]]{value}[[/U]]"
+                values.append(value)
+            rows.append(values)
         story.append(
             pdf_table(
                 table_data["headers"],
-                table_data["rows"],
+                rows,
                 178 * mm,
                 font_regular=font_regular,
                 font_bold=font_bold,
                 lang=lang,
             )
         )
+        story.append(
+            Paragraph(
+                html.escape(
+                    s["best_second_note"]
+                    + " "
+                    + ("有效片段数" if lang == "zh" else "Valid clips")
+                    + ": "
+                    + table_sample_note(table_data)
+                    + "."
+                ),
+                styles["BodySmall"],
+            )
+        )
         story.append(Spacer(1, 4 * mm))
+
+    if paired_rows:
+        story.append(Paragraph(html.escape(s["paired_effects"]), styles["Subsection"]))
+        paired_data = []
+        for row in paired_rows:
+            ci = (
+                f"[{format_number(row['ci'][0])}, {format_number(row['ci'][1])}]"
+                if row["ci"]
+                else "—"
+            )
+            paired_data.append(
+                [
+                    row["label"],
+                    format_number(row["mean_difference_favors_primary"]),
+                    format_number(row["effect_size_dz"]),
+                    ci,
+                    str(row["n"]),
+                ]
+            )
+        story.append(
+            pdf_table(
+                [
+                    "Metric" if lang == "en" else "指标",
+                    "Δ (positive favors primary)"
+                    if lang == "en"
+                    else "Δ（正差值支持主方法）",
+                    "dz",
+                    "95% CI",
+                    "n",
+                ],
+                paired_data,
+                178 * mm,
+                font_regular=font_regular,
+                font_bold=font_bold,
+                lang=lang,
+            )
+        )
 
     story.append(PageBreak())
     story.append(Paragraph(html.escape(s["blind_review"]), styles["Section"]))
@@ -1521,6 +2209,16 @@ def pdf_report(
             )
         )
 
+    if analysis_sections:
+        story.append(Paragraph(html.escape(s["discussion"]), styles["Section"]))
+        for section in analysis_sections:
+            story.append(
+                Paragraph(html.escape(section["heading"]), styles["Subsection"])
+            )
+            story.append(
+                Paragraph(html.escape(section["text"]), styles["BodyCJK"])
+            )
+
     story.append(Paragraph(html.escape(s["per_case"]), styles["Section"]))
     for case in metrics.get("cases", []):
         story.append(Paragraph(html.escape(str(case.get("id"))), styles["Subsection"]))
@@ -1559,6 +2257,8 @@ def pdf_report(
         closing_block.append(
             Paragraph(f"- {html.escape(threat)}", styles["BodySmall"])
         )
+    closing_block.append(Paragraph(html.escape(s["conclusion"]), styles["Section"]))
+    closing_block.append(Paragraph(html.escape(conclusion), styles["BodyCJK"]))
     closing_block.append(Paragraph(html.escape(s["recommendation"]), styles["Section"]))
     closing_block.append(Paragraph(html.escape(recommendation), styles["BodyCJK"]))
     story.append(KeepTogether(closing_block))
@@ -1580,6 +2280,395 @@ def pdf_report(
         canvas.restoreState()
 
     doc.build(story, onFirstPage=add_page_number, onLaterPages=add_page_number)
+
+
+def latex_escape(value: Any) -> str:
+    replacements = {
+        "\\": r"\textbackslash{}",
+        "&": r"\&",
+        "%": r"\%",
+        "$": r"\$",
+        "#": r"\#",
+        "_": r"\_",
+        "{": r"\{",
+        "}": r"\}",
+        "~": r"\textasciitilde{}",
+        "^": r"\textasciicircum{}",
+        "—": "--",
+        "–": "--",
+    }
+    text = str(value)
+    return "".join(replacements.get(character, character) for character in text)
+
+
+def latex_stat(summary: dict[str, Any] | None) -> str:
+    if not summary:
+        return "--"
+    return (
+        f"${format_number(summary.get('mean'))} \\pm "
+        f"{format_number(summary.get('std'))}$"
+    )
+
+
+def latex_ranked_stat(row: dict[str, Any], method_id: str) -> str:
+    value = latex_stat(row["summaries"].get(method_id))
+    if method_id in row["best_ids"] and value != "--":
+        return rf"\textbf{{{value}}}"
+    if method_id in row["second_ids"] and value != "--":
+        return rf"\underline{{{value}}}"
+    return value
+
+
+def latex_report(
+    metrics: dict[str, Any],
+    labels: dict[str, str],
+    review_agg: dict[str, Any],
+    status: str,
+    findings: list[str],
+    recommendation: str,
+    analysis_sections: list[dict[str, str]],
+    conclusion: str,
+    paired_rows: list[dict[str, Any]],
+    args: argparse.Namespace,
+    lang: str,
+) -> str:
+    s = TEXT[lang]
+    status_display = STATUS_ZH[status] if lang == "zh" else status
+    if lang == "zh":
+        document_class = r"\documentclass[UTF8,10pt]{ctexart}"
+        default_font = r"\usepackage{lmodern}"
+        labels_text = {
+            "abstract": "摘要",
+            "setup": "评估设置与可复现性",
+            "dataset": "数据与配对设计",
+            "results": "实验结果",
+            "review": "盲评视觉分析",
+            "analysis": "分析与讨论",
+            "limitations": "局限性与有效性威胁",
+            "conclusion": "结论",
+            "recommendation": "建议",
+            "appendix": "附录：单案例证据",
+            "generated": "本报告由 video-style-transfer-eval 自动生成。",
+            "metric": "评价指标",
+            "direction": "方向",
+            "method": "方法",
+            "automated_report": "自动生成评估报告",
+        }
+    else:
+        document_class = r"\documentclass[10pt]{article}"
+        default_font = r"\usepackage{lmodern}"
+        labels_text = {
+            "abstract": "Abstract",
+            "setup": "Evaluation Setup and Reproducibility",
+            "dataset": "Data and Paired Design",
+            "results": "Experimental Results",
+            "review": "Blinded Visual Analysis",
+            "analysis": "Analysis and Discussion",
+            "limitations": "Limitations and Threats to Validity",
+            "conclusion": "Conclusion",
+            "recommendation": "Recommendation",
+            "appendix": "Appendix: Per-Case Evidence",
+            "generated": "Generated by video-style-transfer-eval.",
+            "metric": "Metric",
+            "direction": "Direction",
+            "method": "Method",
+            "automated_report": "Automated Evaluation Report",
+        }
+
+    lines = [
+        "% !TEX program = xelatex",
+        document_class,
+        r"\usepackage[margin=1in]{geometry}",
+        r"\usepackage{amsmath,amssymb}",
+        r"\usepackage{booktabs}",
+        r"\usepackage{tabularx}",
+        r"\usepackage{graphicx}",
+        r"\usepackage{float}",
+        r"\usepackage{caption}",
+        r"\usepackage{hyperref}",
+        r"\usepackage{xcolor}",
+        default_font,
+        r"\captionsetup{font=small,labelfont=bf}",
+        r"\setlength{\parindent}{0pt}",
+        r"\setlength{\parskip}{0.5em}",
+        r"\newcommand{\best}[1]{\textbf{#1}}",
+        r"\newcommand{\second}[1]{\underline{#1}}",
+        r"\begin{document}",
+        rf"\title{{{latex_escape(args.title)}}}",
+        rf"\author{{{latex_escape(labels_text['automated_report'])}}}",
+        rf"\date{{{latex_escape(args.report_date)} \quad \textbf{{{latex_escape(s['claim_status'])}: {latex_escape(status_display)}}}}}",
+        r"\maketitle",
+        r"\begin{abstract}",
+        latex_escape(args.claim),
+        r"\par",
+        latex_escape(conclusion),
+        r"\end{abstract}",
+        rf"\section*{{{latex_escape(labels_text['setup'])}}}",
+        rf"\textbf{{{latex_escape(s['evidence_gates'])}}}",
+        r"\begin{center}",
+        r"\small",
+        r"\begin{tabular}{@{}lll@{}}",
+        r"\toprule",
+        rf"{latex_escape(s['gate'])} & {latex_escape(s['value'])} & {latex_escape(s['status'])} \\",
+        r"\midrule",
+    ]
+    for item, value, gate in evidence_rows(metrics, review_agg, status, lang):
+        lines.append(
+            f"{latex_escape(item)} & {latex_escape(value)} & {latex_escape(gate)} \\\\"
+        )
+    lines += [
+        r"\bottomrule",
+        r"\end{tabular}",
+        r"\end{center}",
+        r"\begin{itemize}",
+    ]
+    experiment = metrics.get("experiment", {})
+    lines.extend(
+        [
+            rf"\item {latex_escape(s['flow_implementation'])}: {latex_escape(experiment.get('flow_implementation', '--'))}",
+            rf"\item {latex_escape(s['sample_frames'])}: {latex_escape(experiment.get('frame_limit', '--'))}",
+            rf"\item {latex_escape(s['temporal_offsets'])}: {latex_escape(experiment.get('temporal_offsets', '--'))}",
+            rf"\item {latex_escape(s['blinding'])}: {latex_escape(experiment.get('blind', False))}",
+            r"\end{itemize}",
+            rf"\section*{{{latex_escape(labels_text['dataset'])}}}",
+            r"\begin{table}[H]",
+            r"\centering",
+            r"\caption{"
+            + latex_escape(
+                "配对评估案例及有效方法子集。"
+                if lang == "zh"
+                else "Paired evaluation cases and valid method subset."
+            )
+            + "}",
+            r"\label{tab:dataset}",
+            r"\small",
+            r"\begin{tabularx}{\linewidth}{@{}lXlX@{}}",
+            r"\toprule",
+            rf"{latex_escape(s['case'])} & {latex_escape(s['content'])} / {latex_escape(s['style'])} & {latex_escape(s['split'])} & {latex_escape(s['valid_methods'])} \\",
+            r"\midrule",
+        ]
+    )
+    for case in metrics.get("cases", []):
+        valid = [
+            labels.get(method_id, method_id)
+            for method_id, result in case.get("methods", {}).items()
+            if result.get("valid")
+        ]
+        lines.append(
+            f"{latex_escape(case.get('id'))} & "
+            f"{latex_escape(case.get('content_id') or '--')} / {latex_escape(case.get('style_id') or '--')} & "
+            f"{latex_escape(case.get('split'))} & {latex_escape(', '.join(valid))} \\\\"
+        )
+    lines += [
+        r"\bottomrule",
+        r"\end{tabularx}",
+        r"\end{table}",
+        rf"\section*{{{latex_escape(labels_text['results'])}}}",
+    ]
+
+    for table_index, table in enumerate(metric_tables(metrics, labels, lang), start=1):
+        columns = "l" + "c" * len(table["method_ids"])
+        if lang == "zh":
+            caption = (
+                f"{table['heading']}结果。表中为有效配对片段上的均值和样本标准差。"
+                f"{s['best_second_note']}箭头表示指标偏好方向。"
+                f"有效片段数：{table_sample_note(table)}。"
+            )
+        else:
+            caption = (
+                f"{table['heading']} comparison. Mean and sample standard deviation "
+                f"across valid paired clips. {s['best_second_note']} "
+                f"Arrows denote preferred direction. Valid clips: {table_sample_note(table)}."
+            )
+        lines += [
+            r"\begin{table}[H]",
+            r"\centering",
+            rf"\caption{{{latex_escape(caption)}}}",
+            rf"\label{{tab:metrics-{table_index}}}",
+            r"\small",
+            r"\resizebox{\linewidth}{!}{%",
+            rf"\begin{{tabular}}{{@{{}}{columns}@{{}}}}",
+            r"\toprule",
+            " & ".join(latex_escape(header) for header in table["headers"]) + r" \\",
+            r"\midrule",
+        ]
+        for row in table["rows"]:
+            cells = [
+                f"{latex_escape(row['label'])} {'$\\uparrow$' if row['higher_is_better'] else '$\\downarrow$'}"
+            ]
+            cells.extend(
+                latex_ranked_stat(row, method_id)
+                for method_id in table["method_ids"]
+            )
+            lines.append(" & ".join(cells) + r" \\")
+        lines += [
+            r"\bottomrule",
+            r"\end{tabular}%",
+            r"}",
+            r"\end{table}",
+        ]
+
+    if paired_rows:
+        lines += [
+            r"\begin{table}[H]",
+            r"\centering",
+            r"\caption{"
+            + latex_escape(
+                f"{s['paired_effects']}。差值为方向校正后的结果，正值支持主方法。"
+                "dz 为描述性配对标准化效应量；当 n 小于五时不报告置信区间。"
+                if lang == "zh"
+                else
+                f"{s['paired_effects']}. Differences are direction-adjusted so positive "
+                "values favor the primary method. dz is the descriptive paired "
+                "standardized effect; confidence intervals are omitted when n is less than five."
+            )
+            + "}",
+            r"\label{tab:paired-effects}",
+            r"\small",
+            r"\begin{tabular}{@{}lrrrr@{}}",
+            r"\toprule",
+            f"{latex_escape(labels_text['metric'])} & $\\Delta$ & $d_z$ & 95\\% CI & $n$ \\\\",
+            r"\midrule",
+        ]
+        for row in paired_rows:
+            ci = (
+                f"[{format_number(row['ci'][0])}, {format_number(row['ci'][1])}]"
+                if row["ci"]
+                else "--"
+            )
+            lines.append(
+                f"{latex_escape(row['label'])} & "
+                f"{format_number(row['mean_difference_favors_primary'])} & "
+                f"{format_number(row['effect_size_dz'])} & {latex_escape(ci)} & {row['n']} \\\\"
+            )
+        lines += [r"\bottomrule", r"\end{tabular}", r"\end{table}"]
+
+    lines.append(rf"\section*{{{latex_escape(labels_text['review'])}}}")
+    if review_agg["scored_count"]:
+        review_columns = "l" + "c" * len(REVIEW_DIMENSIONS)
+        lines += [
+            r"\begin{table}[H]",
+            r"\centering",
+            r"\caption{"
+            + latex_escape(
+                "盲评视觉评分（1--5），所有维度均为越高越好。"
+                if lang == "zh"
+                else "Blinded visual scores (1--5). Higher is better for all dimensions."
+            )
+            + "}",
+            r"\label{tab:vlm}",
+            r"\small",
+            r"\resizebox{\linewidth}{!}{%",
+            rf"\begin{{tabular}}{{@{{}}{review_columns}@{{}}}}",
+            r"\toprule",
+            labels_text["method"]
+            + " & "
+            + " & ".join(
+                latex_escape(DIMENSION_LABELS[lang][dimension])
+                for dimension in REVIEW_DIMENSIONS
+            )
+            + r" \\",
+            r"\midrule",
+        ]
+        for method in metrics.get("methods", []):
+            method_id = method["id"]
+            cells = [latex_escape(labels.get(method_id, method_id))]
+            for dimension in REVIEW_DIMENSIONS:
+                value = review_agg["method_dimension"][method_id][dimension]["mean"]
+                cells.append("--" if value is None else f"{value:.2f}")
+            lines.append(" & ".join(cells) + r" \\")
+        lines += [r"\bottomrule", r"\end{tabular}%", r"}", r"\end{table}"]
+        if review_agg["failure_counts"]:
+            lines.append(
+                r"\noindent\textbf{"
+                + latex_escape(s["failure_tags"])
+                + ":} "
+                + latex_escape(
+                    ", ".join(
+                        f"{FAILURE_LABELS[lang].get(tag, tag)} ({count})"
+                        for tag, count in review_agg["failure_counts"].most_common()
+                    )
+                )
+                + r"\par"
+            )
+    else:
+        lines.append(latex_escape(s["no_review"]))
+
+    lines.append(rf"\section*{{{latex_escape(labels_text['analysis'])}}}")
+    for section in analysis_sections:
+        lines.extend(
+            [
+                rf"\subsection*{{{latex_escape(section['heading'])}}}",
+                latex_escape(section["text"]),
+            ]
+        )
+
+    lines += [
+        rf"\section*{{{latex_escape(labels_text['limitations'])}}}",
+        r"\begin{itemize}",
+    ]
+    lines.extend(rf"\item {latex_escape(threat)}" for threat in s["threats_list"])
+    lines += [
+        r"\end{itemize}",
+        rf"\section*{{{latex_escape(labels_text['conclusion'])}}}",
+        latex_escape(conclusion),
+        rf"\subsection*{{{latex_escape(labels_text['recommendation'])}}}",
+        latex_escape(recommendation),
+        r"\clearpage",
+        rf"\section*{{{latex_escape(labels_text['appendix'])}}}",
+    ]
+    for case in metrics.get("cases", []):
+        lines += [
+            rf"\subsection*{{{latex_escape(case.get('id'))}}}",
+            r"\begin{table}[H]",
+            r"\centering",
+            rf"\caption{{"
+            + latex_escape(
+                f"{case.get('id')} 的代表性指标。"
+                if lang == "zh"
+                else f"Selected metrics for {case.get('id')}."
+            )
+            + "}",
+            r"\small",
+            r"\begin{tabular}{@{}lcccc@{}}",
+            r"\toprule",
+            " & ".join(latex_escape(header) for header in s["per_case_headers"]) + r" \\",
+            r"\midrule",
+        ]
+        for method_id, result in case.get("methods", {}).items():
+            values = result.get("metrics", {}) if result.get("valid") else {}
+            cells = [
+                latex_escape(labels.get(method_id, method_id)),
+                format_number(values.get("ssim")),
+                format_number(values.get("lab_palette_w1")),
+                format_number(values.get("offset_1_warp_rmse")),
+                format_number(values.get("offset_1_flow_epe")),
+            ]
+            lines.append(" & ".join(cells) + r" \\")
+        lines += [r"\bottomrule", r"\end{tabular}", r"\end{table}"]
+        if case.get("contact_sheet"):
+            asset_name = Path(case["contact_sheet"]).name
+            lines += [
+                r"\begin{figure}[H]",
+                r"\centering",
+                rf"\includegraphics[width=\linewidth]{{assets/{latex_escape(asset_name)}}}",
+                rf"\caption{{"
+                + latex_escape(
+                    f"{case.get('id')} 的盲评源视频、风格参考与候选结果比较。"
+                    if lang == "zh"
+                    else
+                    f"Blinded source, style, and candidate comparison for {case.get('id')}."
+                )
+                + "}",
+                r"\end{figure}",
+            ]
+
+    lines += [
+        rf"\textit{{{latex_escape(labels_text['generated'])}}}",
+        r"\end{document}",
+        "",
+    ]
+    return "\n".join(lines)
 
 
 def copy_contact_sheets(
@@ -1645,10 +2734,39 @@ def main() -> None:
             status,
             lang,
         )
+        analysis_sections = make_analysis_sections(
+            metrics,
+            labels,
+            review_agg,
+            args.primary,
+            args.baseline,
+            lang,
+        )
+        conclusion = make_conclusion(
+            metrics,
+            labels,
+            review_agg,
+            args.primary,
+            args.baseline,
+            status,
+            lang,
+        )
+        paired_rows = (
+            paired_effect_rows(
+                metrics,
+                args.primary,
+                args.baseline,
+                labels,
+                lang,
+            )
+            if args.primary and args.baseline
+            else []
+        )
         suffix = f"_{lang}" if args.language == "both" else ""
         markdown_path = args.output_dir / f"report{suffix}.md"
         html_path = args.output_dir / f"report{suffix}.html"
         pdf_path = args.output_dir / f"report{suffix}.pdf"
+        latex_path = args.output_dir / f"report{suffix}.tex"
         markdown = markdown_report(
             metrics,
             labels,
@@ -1656,6 +2774,9 @@ def main() -> None:
             status,
             findings,
             recommendation,
+            analysis_sections,
+            conclusion,
+            paired_rows,
             render_args,
             lang,
         )
@@ -1669,6 +2790,9 @@ def main() -> None:
             status,
             findings,
             recommendation,
+            analysis_sections,
+            conclusion,
+            paired_rows,
             render_args,
             lang,
         )
@@ -1681,14 +2805,32 @@ def main() -> None:
             status,
             findings,
             recommendation,
+            analysis_sections,
+            conclusion,
+            paired_rows,
             render_args,
             lang,
             cjk_regular if lang == "zh" else "Helvetica",
             cjk_bold if lang == "zh" else "Helvetica-Bold",
         )
+        latex_content = latex_report(
+            metrics,
+            labels,
+            review_agg,
+            status,
+            findings,
+            recommendation,
+            analysis_sections,
+            conclusion,
+            paired_rows,
+            render_args,
+            lang,
+        )
+        latex_path.write_text(latex_content, encoding="utf-8")
         print(f"Wrote {markdown_path}")
         print(f"Wrote {html_path}")
         print(f"Wrote {pdf_path}")
+        print(f"Wrote {latex_path}")
 
 
 if __name__ == "__main__":

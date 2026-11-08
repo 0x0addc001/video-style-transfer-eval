@@ -1,0 +1,260 @@
+% !TEX program = xelatex
+\documentclass[10pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{lmodern}
+\captionsetup{font=small,labelfont=bf}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.5em}
+\newcommand{\best}[1]{\textbf{#1}}
+\newcommand{\second}[1]{\underline{#1}}
+\begin{document}
+\title{Video Style Transfer Evaluation - Synthetic Workflow Demonstration}
+\author{Automated Evaluation Report}
+\date{2026-11-08 \quad \textbf{Claim status: Exploratory}}
+\maketitle
+\begin{abstract}
+Demonstrate a reproducible style-content-motion evaluation workflow without presenting synthetic clips as model benchmark evidence.
+\par
+This report uses 3 synthetic cases to validate the evaluation pipeline and does not provide evidence of real model performance. The tables, perceptual analysis, and conclusions preserve multidimensional evidence and should not be interpreted as a benchmark ranking of EchoStyle or the proposed method.
+\end{abstract}
+\section*{Evaluation Setup and Reproducibility}
+\textbf{Evidence gates}
+\begin{center}
+\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+Gate & Value & Status \\
+\midrule
+Paired valid cases & 3 & Pass \\
+Methods & 3 & Pass \\
+Blinded VLM review & Present & Pass \\
+Paper-grade perceptual metrics & Not detected & Not established \\
+Claim status & Exploratory & Caveat \\
+\bottomrule
+\end{tabular}
+\end{center}
+\begin{itemize}
+\item Flow implementation: OpenCV Farneback (diagnostic proxy)
+\item Sampled frames per video: 30
+\item Temporal offsets: [1, 5]
+\item Blinding: True
+\end{itemize}
+\section*{Data and Paired Design}
+\begin{table}[H]
+\centering
+\caption{Paired evaluation cases and valid method subset.}
+\label{tab:dataset}
+\small
+\begin{tabularx}{\linewidth}{@{}lXlX@{}}
+\toprule
+Case & Content / Style & Split & Valid methods \\
+\midrule
+demo\_case\_01 & content\_01 / style\_01 & synthetic\_demo & Simulated balanced, Simulated flicker, Simulated overlay \\
+demo\_case\_02 & content\_02 / style\_02 & synthetic\_demo & Simulated balanced, Simulated flicker, Simulated overlay \\
+demo\_case\_03 & content\_03 / style\_03 & synthetic\_demo & Simulated balanced, Simulated flicker, Simulated overlay \\
+\bottomrule
+\end{tabularx}
+\end{table}
+\section*{Experimental Results}
+\begin{table}[H]
+\centering
+\caption{Style comparison. Mean and sample standard deviation across valid paired clips. Best and second-best mean values are shown in bold and underlined, respectively. Arrows denote preferred direction. Valid clips: balanced: 3; flicker: 3; overlay: 3.}
+\label{tab:metrics-1}
+\small
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Metric & Simulated balanced & Simulated flicker & Simulated overlay \\
+\midrule
+LAB palette W1 $\downarrow$ & $9.0208 \pm 0.5445$ & \textbf{$7.4201 \pm 0.5347$} & \underline{$8.0416 \pm 0.9411$} \\
+LAB chroma palette W1 $\downarrow$ & \underline{$3.1765 \pm 1.3380$} & \textbf{$1.8824 \pm 1.0178$} & $4.6879 \pm 0.4238$ \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+\begin{table}[H]
+\centering
+\caption{Content comparison. Mean and sample standard deviation across valid paired clips. Best and second-best mean values are shown in bold and underlined, respectively. Arrows denote preferred direction. Valid clips: balanced: 3; flicker: 3; overlay: 3.}
+\label{tab:metrics-2}
+\small
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Metric & Simulated balanced & Simulated flicker & Simulated overlay \\
+\midrule
+SSIM $\uparrow$ & \textbf{$0.9290 \pm 0.0165$} & \underline{$0.8111 \pm 0.0326$} & $0.7153 \pm 0.0149$ \\
+PSNR $\uparrow$ & \textbf{$22.58 \pm 0.9018$} & \underline{$17.54 \pm 0.3337$} & $14.90 \pm 0.3931$ \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+\begin{table}[H]
+\centering
+\caption{Temporal and motion comparison. Mean and sample standard deviation across valid paired clips. Best and second-best mean values are shown in bold and underlined, respectively. Arrows denote preferred direction. Valid clips: balanced: 3; flicker: 3; overlay: 3.}
+\label{tab:metrics-3}
+\small
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Metric & Simulated balanced & Simulated flicker & Simulated overlay \\
+\midrule
+OFFSET 1 WARP RMSE $\downarrow$ & \textbf{$31.70 \pm 6.7038$} & \underline{$47.77 \pm 10.70$} & $63.87 \pm 6.8744$ \\
+OFFSET 5 WARP RMSE $\downarrow$ & \textbf{$33.20 \pm 5.2688$} & \underline{$46.18 \pm 10.55$} & $63.70 \pm 7.5960$ \\
+OFFSET 1 FLOW EPE $\downarrow$ & \underline{$0.2438 \pm 0.0558$} & $0.5426 \pm 0.3239$ & \textbf{$0.1874 \pm 0.0547$} \\
+OFFSET 1 FLOW CORRELATION $\uparrow$ & \textbf{$0.4268 \pm 0.2381$} & $0.2267 \pm 0.0923$ & \underline{$0.2662 \pm 0.1339$} \\
+Detrended luminance flicker $\downarrow$ & \underline{$0.1035 \pm 0.0619$} & $12.43 \pm 0.4689$ & \textbf{$0.0822 \pm 0.0217$} \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+\begin{table}[H]
+\centering
+\caption{Cost comparison. Mean and sample standard deviation across valid paired clips. Best and second-best mean values are shown in bold and underlined, respectively. Arrows denote preferred direction. Valid clips: balanced: 3; flicker: 3; overlay: 3.}
+\label{tab:metrics-4}
+\small
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Metric & Simulated balanced & Simulated flicker & Simulated overlay \\
+\midrule
+Runtime $\downarrow$ & $18.80 \pm 0.4000$ & \textbf{$15.00 \pm 0.4000$} & \underline{$16.50 \pm 0.4000$} \\
+Peak GPU memory $\downarrow$ & $12.70 \pm 0.0000$ & \textbf{$9.8000 \pm 0.0000$} & \underline{$10.40 \pm 0.0000$} \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+\begin{table}[H]
+\centering
+\caption{Paired comparison against the primary baseline. Differences are direction-adjusted so positive values favor the primary method. dz is the descriptive paired standardized effect; confidence intervals are omitted when n is less than five.}
+\label{tab:paired-effects}
+\small
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+Metric & $\Delta$ & $d_z$ & 95\% CI & $n$ \\
+\midrule
+SSIM & 0.1180 & 7.1536 & -- & 3 \\
+LAB palette W1 & -1.6007 & -15.05 & -- & 3 \\
+OFFSET 1 WARP RMSE & 16.08 & 3.9236 & -- & 3 \\
+OFFSET 1 FLOW EPE & 0.2988 & 1.0159 & -- & 3 \\
+Runtime & -3.8000 & n/a & -- & 3 \\
+\bottomrule
+\end{tabular}
+\end{table}
+\section*{Blinded Visual Analysis}
+\begin{table}[H]
+\centering
+\caption{Blinded visual scores (1--5). Higher is better for all dimensions.}
+\label{tab:vlm}
+\small
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+Method & Style adherence & Content preservation & Temporal stability & Artifact control & Overall visual quality \\
+\midrule
+Simulated balanced & 4.00 & 4.67 & 3.67 & 3.33 & 4.00 \\
+Simulated flicker & 4.67 & 3.67 & 2.00 & 2.00 & 2.33 \\
+Simulated overlay & 3.33 & 3.00 & 3.00 & 2.00 & 2.00 \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+\noindent\textbf{Failure tags:} detail loss (3), texture sticking (3), flicker (3), edge ghosting (2), temporal jump (2), texture drift (1), geometry melting (1)\par
+\section*{Analysis and Discussion}
+\subsection*{Style fidelity}
+The available indicators collectively favor Simulated flicker. Reported diagnostics: LAB palette W1 9.0208 ± 0.5445; LAB chroma palette W1 3.1765 ± 1.3380. The blinded style-adherence score is 4.00/5.
+\subsection*{Content preservation}
+The available indicators collectively favor Simulated balanced. Reported diagnostics: SSIM 0.9290 ± 0.0165; PSNR 22.58 ± 0.9018.
+\subsection*{Motion and temporal stability}
+The available indicators collectively favor Simulated balanced. Reported diagnostics: OFFSET 1 WARP RMSE 31.70 ± 6.7038; OFFSET 5 WARP RMSE 33.20 ± 5.2688; OFFSET 1 FLOW EPE 0.2438 ± 0.0558; Detrended luminance flicker 0.1035 ± 0.0619.
+\subsection*{Perceptual review and failure modes}
+The blinded review gives the highest overall visual quality to Simulated balanced (4.00/5 across 1 reviewer(s)). This reflects preference on the reviewed sample rather than ground-truth quality. The leading failure modes are detail loss (3), texture sticking (3), flicker (3).
+\subsection*{Computational cost}
+The available indicators collectively favor Simulated flicker. The primary method uses runtime 18.80 ± 0.4000 s and peak memory 12.70 ± 0.0000 GB.
+\subsection*{Synthesis}
+The results show a multidimensional trade-off rather than universal dominance; the current evidence does not support a claim that one method is uniformly superior.
+\section*{Limitations and Threats to Validity}
+\begin{itemize}
+\item Content and style distributions may not represent the intended use.
+\item Low-level metrics are sensitive to colorization and compression.
+\item Farneback flow is not RAFT and can fail on large motion or occlusions.
+\item A single style image does not define a valid FID style distribution.
+\item VLM review can have position, content, and prompt bias.
+\item External baseline numbers copied from papers may not use the same settings.
+\item Fewer than five clips do not support a stable comparative confidence interval.
+\end{itemize}
+\section*{Conclusion}
+This report uses 3 synthetic cases to validate the evaluation pipeline and does not provide evidence of real model performance. The tables, perceptual analysis, and conclusions preserve multidimensional evidence and should not be interpreted as a benchmark ranking of EchoStyle or the proposed method.
+\subsection*{Recommendation}
+Use these results to validate the evaluation pipeline and choose the next experiment. Do not treat the synthetic run as model evidence.
+\clearpage
+\section*{Appendix: Per-Case Evidence}
+\subsection*{demo\_case\_01}
+\begin{table}[H]
+\centering
+\caption{Selected metrics for demo\_case\_01.}
+\small
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+Method & SSIM ↑ & Palette W1 ↓ & Warp RMSE Δ1 ↓ & Flow EPE Δ1 ↓ \\
+\midrule
+Simulated balanced & 0.9395 & 8.8136 & 28.61 & 0.2963 \\
+Simulated flicker & 0.8270 & 7.3344 & 44.06 & 0.5494 \\
+Simulated overlay & 0.7122 & 8.1708 & 65.43 & 0.1389 \\
+\bottomrule
+\end{tabular}
+\end{table}
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{assets/demo\_case\_01.jpg}
+\caption{Blinded source, style, and candidate comparison for demo\_case\_01.}
+\end{figure}
+\subsection*{demo\_case\_02}
+\begin{table}[H]
+\centering
+\caption{Selected metrics for demo\_case\_02.}
+\small
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+Method & SSIM ↑ & Palette W1 ↓ & Warp RMSE Δ1 ↓ & Flow EPE Δ1 ↓ \\
+\midrule
+Simulated balanced & 0.9101 & 8.6103 & 39.39 & 0.2500 \\
+Simulated flicker & 0.7736 & 6.9334 & 59.84 & 0.8630 \\
+Simulated overlay & 0.7315 & 7.0425 & 69.83 & 0.2467 \\
+\bottomrule
+\end{tabular}
+\end{table}
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{assets/demo\_case\_02.jpg}
+\caption{Blinded source, style, and candidate comparison for demo\_case\_02.}
+\end{figure}
+\subsection*{demo\_case\_03}
+\begin{table}[H]
+\centering
+\caption{Selected metrics for demo\_case\_03.}
+\small
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+Method & SSIM ↑ & Palette W1 ↓ & Warp RMSE Δ1 ↓ & Flow EPE Δ1 ↓ \\
+\midrule
+Simulated balanced & 0.9376 & 9.6385 & 27.09 & 0.1852 \\
+Simulated flicker & 0.8327 & 7.9925 & 39.42 & 0.2154 \\
+Simulated overlay & 0.7022 & 8.9114 & 56.35 & 0.1766 \\
+\bottomrule
+\end{tabular}
+\end{table}
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{assets/demo\_case\_03.jpg}
+\caption{Blinded source, style, and candidate comparison for demo\_case\_03.}
+\end{figure}
+\textit{Generated by video-style-transfer-eval.}
+\end{document}

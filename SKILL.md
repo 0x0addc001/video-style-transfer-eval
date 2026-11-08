@@ -46,9 +46,9 @@ Before choosing metrics or interpreting scores, read [references/evaluation-prot
      --baseline BASELINE_ID
    ```
 
-   Replace `METHOD_ID` and `BASELINE_ID` with manifest IDs. Omit those flags only when there is no meaningful primary comparison. `--language both` generates English and Chinese Markdown, HTML, and PDF reports. Use `--title-zh` and `--claim-zh` when the Chinese report needs project-specific wording. Chinese PDFs auto-detect common CJK fonts; pass `--cjk-font PATH` or set `VST_EVAL_CJK_FONT` in minimal environments.
+   Replace `METHOD_ID` and `BASELINE_ID` with manifest IDs. Omit those flags only when there is no meaningful primary comparison. `--language both` generates English and Chinese Markdown, HTML, PDF, and LaTeX reports. Use `--title-zh` and `--claim-zh` when the Chinese report needs project-specific wording. Chinese PDFs auto-detect common CJK fonts; pass `--cjk-font PATH` or set `VST_EVAL_CJK_FONT` in minimal environments.
 
-8. Inspect both language versions of the Markdown, HTML, and PDF. Check the evidence-completeness table before making a comparative or paper-ready claim. Include representative success and failure examples, with timestamps and the corresponding source/style pair.
+8. Inspect both language versions of the Markdown, HTML, PDF, and LaTeX. Check the evidence-completeness table before making a comparative or paper-ready claim. Include representative success and failure examples, with timestamps and the corresponding source/style pair.
 
 ## Evidence Rules
 
@@ -76,10 +76,12 @@ evaluation_report/
   report_en.md
   report_en.html
   report_en.pdf
+  report_en.tex
   report_zh.md
   report_zh.html
   report_zh.pdf
+  report_zh.tex
   assets/
 ```
 
-Single-language mode writes `report.md`, `report.html`, and `report.pdf`. The report sections, evidence gates, bilingual parity, and claim language are fixed by [references/report-spec.md](references/report-spec.md).
+Single-language mode writes `report.md`, `report.html`, `report.pdf`, and `report.tex`. The report uses publication-style tables with mean and dispersion, best and second-best means, direction-adjusted paired effects, evidence-gated analysis, and copyable `booktabs` LaTeX tables. The report sections, evidence gates, bilingual parity, and claim language are fixed by [references/report-spec.md](references/report-spec.md).

@@ -44,37 +44,54 @@
 
 ### Style
 
-| Method | LAB palette W1 ↓ | LAB chroma palette W1 ↓ |
-|---|---|---|
-| Simulated balanced | 9.0208 ± 0.5445 (n=3) | 3.1765 ± 1.3380 (n=3) |
-| Simulated flicker | 7.4201 ± 0.5347 (n=3) | 1.8824 ± 1.0178 (n=3) |
-| Simulated overlay | 8.0416 ± 0.9411 (n=3) | 4.6879 ± 0.4238 (n=3) |
+| Metric | Simulated balanced | Simulated flicker | Simulated overlay |
+|---|---|---|---|
+| LAB palette W1 ↓ | 9.0208 ± 0.5445 | **7.4201 ± 0.5347** | <u>8.0416 ± 0.9411</u> |
+| LAB chroma palette W1 ↓ | <u>3.1765 ± 1.3380</u> | **1.8824 ± 1.0178** | 4.6879 ± 0.4238 |
+
+Best and second-best mean values are shown in bold and underlined, respectively. Valid clips: balanced: 3; flicker: 3; overlay: 3.
 
 ### Content
 
-| Method | SSIM ↑ | PSNR ↑ |
-|---|---|---|
-| Simulated balanced | 0.9290 ± 0.0165 (n=3) | 22.58 ± 0.9018 (n=3) |
-| Simulated flicker | 0.8111 ± 0.0326 (n=3) | 17.54 ± 0.3337 (n=3) |
-| Simulated overlay | 0.7153 ± 0.0149 (n=3) | 14.90 ± 0.3931 (n=3) |
+| Metric | Simulated balanced | Simulated flicker | Simulated overlay |
+|---|---|---|---|
+| SSIM ↑ | **0.9290 ± 0.0165** | <u>0.8111 ± 0.0326</u> | 0.7153 ± 0.0149 |
+| PSNR ↑ | **22.58 ± 0.9018** | <u>17.54 ± 0.3337</u> | 14.90 ± 0.3931 |
+
+Best and second-best mean values are shown in bold and underlined, respectively. Valid clips: balanced: 3; flicker: 3; overlay: 3.
 
 ### Temporal and motion
 
-| Method | OFFSET 1 WARP RMSE ↓ | OFFSET 5 WARP RMSE ↓ | OFFSET 1 FLOW EPE ↓ | OFFSET 1 FLOW CORRELATION ↑ | Detrended luminance flicker ↓ |
-|---|---|---|---|---|---|
-| Simulated balanced | 31.70 ± 6.7038 (n=3) | 33.20 ± 5.2688 (n=3) | 0.2438 ± 0.0558 (n=3) | 0.4268 ± 0.2381 (n=3) | 0.1035 ± 0.0619 (n=3) |
-| Simulated flicker | 47.77 ± 10.70 (n=3) | 46.18 ± 10.55 (n=3) | 0.5426 ± 0.3239 (n=3) | 0.2267 ± 0.0923 (n=3) | 12.43 ± 0.4689 (n=3) |
-| Simulated overlay | 63.87 ± 6.8744 (n=3) | 63.70 ± 7.5960 (n=3) | 0.1874 ± 0.0547 (n=3) | 0.2662 ± 0.1339 (n=3) | 0.0822 ± 0.0217 (n=3) |
+| Metric | Simulated balanced | Simulated flicker | Simulated overlay |
+|---|---|---|---|
+| OFFSET 1 WARP RMSE ↓ | **31.70 ± 6.7038** | <u>47.77 ± 10.70</u> | 63.87 ± 6.8744 |
+| OFFSET 5 WARP RMSE ↓ | **33.20 ± 5.2688** | <u>46.18 ± 10.55</u> | 63.70 ± 7.5960 |
+| OFFSET 1 FLOW EPE ↓ | <u>0.2438 ± 0.0558</u> | 0.5426 ± 0.3239 | **0.1874 ± 0.0547** |
+| OFFSET 1 FLOW CORRELATION ↑ | **0.4268 ± 0.2381** | 0.2267 ± 0.0923 | <u>0.2662 ± 0.1339</u> |
+| Detrended luminance flicker ↓ | <u>0.1035 ± 0.0619</u> | 12.43 ± 0.4689 | **0.0822 ± 0.0217** |
+
+Best and second-best mean values are shown in bold and underlined, respectively. Valid clips: balanced: 3; flicker: 3; overlay: 3.
 
 ### Cost
 
-| Method | Runtime ↓ | Peak GPU memory ↓ |
-|---|---|---|
-| Simulated balanced | 18.80 ± 0.4000 (n=3) | 12.70 ± 0.0000 (n=3) |
-| Simulated flicker | 15.00 ± 0.4000 (n=3) | 9.8000 ± 0.0000 (n=3) |
-| Simulated overlay | 16.50 ± 0.4000 (n=3) | 10.40 ± 0.0000 (n=3) |
+| Metric | Simulated balanced | Simulated flicker | Simulated overlay |
+|---|---|---|---|
+| Runtime ↓ | 18.80 ± 0.4000 | **15.00 ± 0.4000** | <u>16.50 ± 0.4000</u> |
+| Peak GPU memory ↓ | 12.70 ± 0.0000 | **9.8000 ± 0.0000** | <u>10.40 ± 0.0000</u> |
 
-Arrows indicate preferred direction. Values are macro mean ± sample standard deviation across valid clips; the clip is the statistical unit. OpenCV Farneback values are diagnostic proxies, not RAFT-comparable results.
+Best and second-best mean values are shown in bold and underlined, respectively. Valid clips: balanced: 3; flicker: 3; overlay: 3.
+
+### Paired comparison against the primary baseline
+
+| Metric | Δ (positive favors primary) | dz | 95% CI | n |
+|---|---|---|---|---|
+| SSIM | 0.1180 | 7.1536 | — | 3 |
+| LAB palette W1 | -1.6007 | -15.05 | — | 3 |
+| OFFSET 1 WARP RMSE | 16.08 | 3.9236 | — | 3 |
+| OFFSET 1 FLOW EPE | 0.2988 | 1.0159 | — | 3 |
+| Runtime | -3.8000 | n/a | — | 3 |
+
+Mean ± sample standard deviation over valid paired clips; the clip is the statistical unit. Bold and underlined values denote the best and second-best means. Arrows show preferred direction. n is listed in the evidence notes.
 
 ## Blinded visual review
 
@@ -87,6 +104,33 @@ Arrows indicate preferred direction. Values are macro mean ± sample standard de
 Failure tags: detail loss (3), texture sticking (3), flicker (3), edge ghosting (2), temporal jump (2), texture drift (1), geometry melting (1).
 
 Reviewer records: 1. Scored case/method records: 9. VLM scores are perceptual evidence, not ground truth.
+
+## Analysis and discussion
+
+### Style fidelity
+
+The available indicators collectively favor Simulated flicker. Reported diagnostics: LAB palette W1 9.0208 ± 0.5445; LAB chroma palette W1 3.1765 ± 1.3380. The blinded style-adherence score is 4.00/5.
+
+### Content preservation
+
+The available indicators collectively favor Simulated balanced. Reported diagnostics: SSIM 0.9290 ± 0.0165; PSNR 22.58 ± 0.9018.
+
+### Motion and temporal stability
+
+The available indicators collectively favor Simulated balanced. Reported diagnostics: OFFSET 1 WARP RMSE 31.70 ± 6.7038; OFFSET 5 WARP RMSE 33.20 ± 5.2688; OFFSET 1 FLOW EPE 0.2438 ± 0.0558; Detrended luminance flicker 0.1035 ± 0.0619.
+
+### Perceptual review and failure modes
+
+The blinded review gives the highest overall visual quality to Simulated balanced (4.00/5 across 1 reviewer(s)). This reflects preference on the reviewed sample rather than ground-truth quality. The leading failure modes are detail loss (3), texture sticking (3), flicker (3).
+
+### Computational cost
+
+The available indicators collectively favor Simulated flicker. The primary method uses runtime 18.80 ± 0.4000 s and peak memory 12.70 ± 0.0000 GB.
+
+### Synthesis
+
+The results show a multidimensional trade-off rather than universal dominance; the current evidence does not support a claim that one method is uniformly superior.
+
 
 ## Per-case outcomes
 
@@ -139,5 +183,9 @@ The contact sheets above are the visual evidence packet. Failures should be read
 - Fewer than five clips do not support a stable comparative confidence interval.
 
 ## Conclusion and recommendation
+
+This report uses 3 synthetic cases to validate the evaluation pipeline and does not provide evidence of real model performance. The tables, perceptual analysis, and conclusions preserve multidimensional evidence and should not be interpreted as a benchmark ranking of EchoStyle or the proposed method.
+
+### Recommendation
 
 Use these results to validate the evaluation pipeline and choose the next experiment. Do not treat the synthetic run as model evidence.

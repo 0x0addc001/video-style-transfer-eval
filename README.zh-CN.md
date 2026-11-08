@@ -12,10 +12,10 @@
 3. 输出是否保持源视频运动，并在时间维度上保持稳定？
 4. 运行时间和显存成本是多少？
 
-工具使用同一份机器可读证据，分别生成英文和中文的 PDF、HTML 与 Markdown 报告。
+工具使用同一份机器可读证据，分别生成英文和中文的 PDF、HTML、Markdown 与
+XeLaTeX 报告。
 
-`examples/sample_report` 中的示例为合成数据，仅用于演示评估流程，不代表
-EchoStyle、UniVST 或其他实际生产模型的性能。
+`examples/sample_report` 中的示例为合成数据，仅用于演示评估流程，不代表任何模型的性能。
 
 ## 功能
 
@@ -26,7 +26,7 @@ EchoStyle、UniVST 或其他实际生产模型的性能。
 - 面向风格、内容、时序稳定性、伪影和整体质量的 1-5 分 VLM/人工评分标准。
 - 严格的审查 JSON 校验和失败标签。
 - 合并固定外部实现计算的 LPIPS、CLIP-I/F、FID、ArtFID、tLP 和 CLIP-CONS。
-- 英文和中文的 Markdown、独立 HTML 与 PDF 报告。
+- 英文和中文的 Markdown、独立 HTML、PDF 与 XeLaTeX 报告。
 - 单案例证据、不确定度说明、失败分析和结论状态检查。
 
 ## 安装
@@ -92,13 +92,18 @@ evaluation_report/
   report_en.pdf
   report_en.html
   report_en.md
+  report_en.tex
   report_zh.pdf
   report_zh.html
   report_zh.md
+  report_zh.tex
   assets/
 ```
 
 如果只需要一种语言，可使用 `--language en` 或 `--language zh`。
+LaTeX 文件是可直接使用 XeLaTeX 编译的独立文档，包含 `booktabs` 三线表、
+论文式表注、最优/次优标记、配对效应量、数据驱动分析和单案例证据，
+便于迁移到 CVPR 或其他计算机视觉论文中。
 
 ## 指标范围
 

@@ -7,6 +7,12 @@ __pycache__/
 venv/
 /evaluation_run/
 /evaluation_report/
+*.aux
+*.log
+*.out
+*.toc
+*.xdv
+*.synctex.gz
 *.egg-info/
 .DS_Store
 Thumbs.db

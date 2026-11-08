@@ -13,12 +13,11 @@ The tool keeps four questions separate:
 3. Does it preserve motion and remain stable over time?
 4. What runtime and memory cost does it require?
 
-It produces separate English and Chinese PDF/HTML/Markdown reports from the same
-machine-readable evidence.
+It produces separate English and Chinese PDF/HTML/Markdown/XeLaTeX reports from
+the same machine-readable evidence.
 
 The bundled example under `examples/sample_report` is synthetic. It demonstrates
-the evaluation workflow and is not a benchmark of EchoStyle, UniVST, or another
-production model.
+the evaluation workflow and is not a benchmark of any model.
 
 ## Features
 
@@ -31,7 +30,7 @@ production model.
 - A strict review validator and evidence tags.
 - Merge support for fixed external metrics such as LPIPS, CLIP-I/F, FID,
   ArtFID, tLP, and CLIP-CONS.
-- English and Chinese Markdown, standalone HTML, and PDF reports.
+- English and Chinese Markdown, standalone HTML, PDF, and XeLaTeX reports.
 - Per-case evidence, uncertainty caveats, failure analysis, and claim-status
   gates.
 
@@ -99,13 +98,19 @@ evaluation_report/
   report_en.pdf
   report_en.html
   report_en.md
+  report_en.tex
   report_zh.pdf
   report_zh.html
   report_zh.md
+  report_zh.tex
   assets/
 ```
 
 Use `--language en` or `--language zh` when only one report is needed.
+The LaTeX files are standalone XeLaTeX documents with `booktabs` tables,
+publication-style captions, best/second-best marking, paired effect sizes,
+data-driven discussion, and per-case evidence for direct adaptation into a CVPR
+or other computer-vision manuscript.
 
 ## Metric Scope
 

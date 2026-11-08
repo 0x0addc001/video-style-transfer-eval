@@ -4,6 +4,8 @@ The report must make the evidence behind each conclusion inspectable. Use the fo
 
 Generate Chinese and English variants from the same metrics and review export. The translations must preserve section order, numbers, sample counts, evidence gates, method identities, and limitations. Use manifest `label_zh` values for method names when Chinese wording would otherwise remain ambiguous; never retranslate or silently alter technical metric names.
 
+Every language variant must also have a standalone XeLaTeX source. Use `booktabs` rules, captions above tables, units and preferred directions, mean and dispersion, best/second-best marking, and appendix-level per-case evidence. Keep tables copyable into a CVPR-style paper; avoid dashboard-only visual encodings that disappear in print.
+
 ## 1. Header and Claim Status
 
 Include project, run name, date, evaluator, schema version, split, and one status:
@@ -46,6 +48,8 @@ Separate tables:
 
 Use arrows to show preferred direction. Show `n`, mean, dispersion, and missing cases. For comparisons, show paired difference and confidence interval once `n >= 5`.
 
+For paper-facing tables, mark the best and second-best means, explain the marking in the caption, and distinguish a direction-adjusted paired difference from the raw metric difference. Report standardized paired effect size only as descriptive evidence when the sample is small.
+
 ## 6. Blinded Visual Review
 
 Report reviewer identity/model, blinding, input type, and agreement across reviewers. Keep the five dimensions separate. Show failure-tag counts and pairwise preferences with supporting frame ranges. Label contact sheets as evidence, not ground truth.
@@ -69,6 +73,8 @@ At minimum discuss content/style leakage, single-reference FID misuse, pixel met
 ## 11. Conclusion and Recommendation
 
 Repeat only claims supported by the earlier tables. Distinguish observed evidence, practical recommendation, and unverified hypothesis.
+
+The conclusion must state whether any method dominates across style, content, motion, and cost. If dimensions disagree, report a trade-off and avoid a universal superiority claim. Explicitly identify when the sample size does not support stable confidence intervals.
 
 ## Evidence Gates
 

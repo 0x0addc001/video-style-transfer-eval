@@ -18,6 +18,11 @@ Open the polished samples:
 - [Chinese PDF](evaluation_report/report_zh.pdf)
 - [English HTML](evaluation_report/report_en.html)
 - [Chinese HTML](evaluation_report/report_zh.html)
+- [English LaTeX](evaluation_report/report_en.tex)
+- [Chinese LaTeX](evaluation_report/report_zh.tex)
+
+The LaTeX sources are standalone XeLaTeX documents and were compile-checked
+with Tectonic 0.17.0.
 
 The machine-readable evidence is in
 [demo_evaluation/metrics.json](demo_evaluation/metrics.json), and the review export is
