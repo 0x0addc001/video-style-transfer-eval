@@ -1,0 +1,323 @@
+{
+  "schema_version": "1.0",
+  "blind_map": "D:\\_Engineering\\PG\\2026-2027-PG-21\\ARIN5201-CV\\Project_CV\\sample_report\\demo_evaluation\\review_packet\\blind_map.json",
+  "reviewer_count": 1,
+  "reviews": [
+    {
+      "schema_version": "1.0",
+      "source_review": "D:\\_Engineering\\PG\\2026-2027-PG-21\\ARIN5201-CV\\Project_CV\\sample_report\\demo_review\\codex_sample_review.json",
+      "reviewer": {
+        "id": "codex-visual-sample",
+        "type": "vlm",
+        "model": "Codex multimodal visual inspection",
+        "review_date": "2026-11-08",
+        "blind": true,
+        "input_scope": "contact_sheets_only"
+      },
+      "scores": [
+        {
+          "case_id": "demo_case_01",
+          "method_blind_id": "M1",
+          "insufficient": false,
+          "style_adherence": 4,
+          "content_preservation": 4,
+          "temporal_stability": 3,
+          "artifact_control": 3,
+          "overall_visual_quality": 4,
+          "confidence": "medium",
+          "failure_tags": [
+            "edge_ghosting"
+          ],
+          "evidence": "At t=0.71s and t=2.24s, the moving ellipse shows a translucent secondary edge consistent with temporal blending.",
+          "comments": "Palette and scene structure are coherent, but moving edges require closer inspection.",
+          "method_id": "balanced"
+        },
+        {
+          "case_id": "demo_case_01",
+          "method_blind_id": "M2",
+          "insufficient": false,
+          "style_adherence": 3,
+          "content_preservation": 3,
+          "temporal_stability": 3,
+          "artifact_control": 2,
+          "overall_visual_quality": 2,
+          "confidence": "medium",
+          "failure_tags": [
+            "detail_loss",
+            "texture_sticking"
+          ],
+          "evidence": "Across t=0.00s to 2.95s the stripe texture dominates the scene and blurs the ellipse boundary and thin foreground line.",
+          "comments": "Strong texture is visible, but low-level target style fidelity is not established.",
+          "method_id": "overlay"
+        },
+        {
+          "case_id": "demo_case_01",
+          "method_blind_id": "M3",
+          "insufficient": false,
+          "style_adherence": 5,
+          "content_preservation": 4,
+          "temporal_stability": 2,
+          "artifact_control": 2,
+          "overall_visual_quality": 3,
+          "confidence": "medium",
+          "failure_tags": [
+            "flicker",
+            "temporal_jump"
+          ],
+          "evidence": "The green and warm-thread palette matches the reference, while object position and luminance visibly jump between sampled frames.",
+          "comments": "Best palette match in this case, with weak temporal evidence.",
+          "method_id": "flicker"
+        },
+        {
+          "case_id": "demo_case_02",
+          "method_blind_id": "M1",
+          "insufficient": false,
+          "style_adherence": 4,
+          "content_preservation": 3,
+          "temporal_stability": 2,
+          "artifact_control": 2,
+          "overall_visual_quality": 2,
+          "confidence": "medium",
+          "failure_tags": [
+            "flicker",
+            "temporal_jump"
+          ],
+          "evidence": "The foreground blocks and orb shift position between consecutive samples, and the strong luminance alternation indicates flicker.",
+          "comments": "Style is salient, but temporal instability affects the main content.",
+          "method_id": "flicker"
+        },
+        {
+          "case_id": "demo_case_02",
+          "method_blind_id": "M2",
+          "insufficient": false,
+          "style_adherence": 4,
+          "content_preservation": 3,
+          "temporal_stability": 3,
+          "artifact_control": 2,
+          "overall_visual_quality": 2,
+          "confidence": "medium",
+          "failure_tags": [
+            "detail_loss",
+            "texture_sticking"
+          ],
+          "evidence": "The diagonal texture obscures low-contrast wall details and softens the orb and foreground-block boundaries.",
+          "comments": "Texture transfer is obvious but harms structure.",
+          "method_id": "overlay"
+        },
+        {
+          "case_id": "demo_case_02",
+          "method_blind_id": "M3",
+          "insufficient": false,
+          "style_adherence": 4,
+          "content_preservation": 5,
+          "temporal_stability": 4,
+          "artifact_control": 4,
+          "overall_visual_quality": 4,
+          "confidence": "high",
+          "failure_tags": [
+            "texture_drift"
+          ],
+          "evidence": "The orb, wall line, and foreground blocks retain their positions across all sampled frames with only mild local texture drift.",
+          "comments": "Balanced result in this case.",
+          "method_id": "balanced"
+        },
+        {
+          "case_id": "demo_case_03",
+          "method_blind_id": "M1",
+          "insufficient": false,
+          "style_adherence": 3,
+          "content_preservation": 3,
+          "temporal_stability": 3,
+          "artifact_control": 2,
+          "overall_visual_quality": 2,
+          "confidence": "medium",
+          "failure_tags": [
+            "detail_loss",
+            "texture_sticking"
+          ],
+          "evidence": "The panel texture softens the rotating shape and plant silhouettes; its purple-blue palette only partly matches the green-gold reference.",
+          "comments": "Texture is visually dominant rather than style-coherent.",
+          "method_id": "overlay"
+        },
+        {
+          "case_id": "demo_case_03",
+          "method_blind_id": "M2",
+          "insufficient": false,
+          "style_adherence": 5,
+          "content_preservation": 4,
+          "temporal_stability": 2,
+          "artifact_control": 2,
+          "overall_visual_quality": 2,
+          "confidence": "medium",
+          "failure_tags": [
+            "flicker",
+            "geometry_melting"
+          ],
+          "evidence": "The green-gold reference palette is strong, but the rotating panel changes apparent edge position and brightness across adjacent samples.",
+          "comments": "Style strength trades against temporal reliability.",
+          "method_id": "flicker"
+        },
+        {
+          "case_id": "demo_case_03",
+          "method_blind_id": "M3",
+          "insufficient": false,
+          "style_adherence": 4,
+          "content_preservation": 5,
+          "temporal_stability": 4,
+          "artifact_control": 3,
+          "overall_visual_quality": 4,
+          "confidence": "high",
+          "failure_tags": [
+            "edge_ghosting"
+          ],
+          "evidence": "The rotating panel and foreground plants stay recognizable, with a local soft edge visible at t=0.71s and t=2.24s.",
+          "comments": "Best compromise in this case.",
+          "method_id": "balanced"
+        }
+      ],
+      "preferences": [
+        {
+          "case_id": "demo_case_01",
+          "dimension": "style_adherence",
+          "winner_blind_id": "M3",
+          "tie": false,
+          "confidence": "medium",
+          "evidence": "M3 most clearly carries the reference green and warm-thread palette.",
+          "winner_method_id": "flicker"
+        },
+        {
+          "case_id": "demo_case_01",
+          "dimension": "content_preservation",
+          "winner_blind_id": "M1",
+          "tie": false,
+          "confidence": "medium",
+          "evidence": "M1 keeps the ellipse and line more legible than M2 and less displaced than M3.",
+          "winner_method_id": "balanced"
+        },
+        {
+          "case_id": "demo_case_01",
+          "dimension": "temporal_stability",
+          "winner_blind_id": "M1",
+          "tie": false,
+          "confidence": "low",
+          "evidence": "M1 has less apparent displacement than M3, although ghosting remains visible.",
+          "winner_method_id": "balanced"
+        },
+        {
+          "case_id": "demo_case_01",
+          "dimension": "artifact_control",
+          "winner_blind_id": "M1",
+          "tie": false,
+          "confidence": "medium",
+          "evidence": "M1 retains more scene detail and fewer global jumps than M2 or M3.",
+          "winner_method_id": "balanced"
+        },
+        {
+          "case_id": "demo_case_01",
+          "dimension": "overall_visual_quality",
+          "winner_blind_id": "M1",
+          "tie": false,
+          "confidence": "medium",
+          "evidence": "M1 is the most usable compromise between style and content.",
+          "winner_method_id": "balanced"
+        },
+        {
+          "case_id": "demo_case_02",
+          "dimension": "style_adherence",
+          "winner_blind_id": "M1",
+          "tie": false,
+          "confidence": "low",
+          "evidence": "M1 carries the strongest magenta-teal contrast, with M3 close behind.",
+          "winner_method_id": "flicker"
+        },
+        {
+          "case_id": "demo_case_02",
+          "dimension": "content_preservation",
+          "winner_blind_id": "M3",
+          "tie": false,
+          "confidence": "high",
+          "evidence": "M3 preserves the orb, wall line, and foreground blocks most clearly.",
+          "winner_method_id": "balanced"
+        },
+        {
+          "case_id": "demo_case_02",
+          "dimension": "temporal_stability",
+          "winner_blind_id": "M3",
+          "tie": false,
+          "confidence": "medium",
+          "evidence": "M3 changes smoothly across the five sampled positions.",
+          "winner_method_id": "balanced"
+        },
+        {
+          "case_id": "demo_case_02",
+          "dimension": "artifact_control",
+          "winner_blind_id": "M3",
+          "tie": false,
+          "confidence": "medium",
+          "evidence": "M3 has the least edge softening and positional discontinuity.",
+          "winner_method_id": "balanced"
+        },
+        {
+          "case_id": "demo_case_02",
+          "dimension": "overall_visual_quality",
+          "winner_blind_id": "M3",
+          "tie": false,
+          "confidence": "high",
+          "evidence": "M3 is the clearest and most usable result.",
+          "winner_method_id": "balanced"
+        },
+        {
+          "case_id": "demo_case_03",
+          "dimension": "style_adherence",
+          "winner_blind_id": "M2",
+          "tie": false,
+          "confidence": "high",
+          "evidence": "M2 most strongly matches the green-gold reference visual language.",
+          "winner_method_id": "flicker"
+        },
+        {
+          "case_id": "demo_case_03",
+          "dimension": "content_preservation",
+          "winner_blind_id": "M3",
+          "tie": false,
+          "confidence": "high",
+          "evidence": "M3 retains the strongest rotating-panel and plant boundaries.",
+          "winner_method_id": "balanced"
+        },
+        {
+          "case_id": "demo_case_03",
+          "dimension": "temporal_stability",
+          "winner_blind_id": "M3",
+          "tie": false,
+          "confidence": "medium",
+          "evidence": "M3 shows the least positional and luminance change across samples.",
+          "winner_method_id": "balanced"
+        },
+        {
+          "case_id": "demo_case_03",
+          "dimension": "artifact_control",
+          "winner_blind_id": "M3",
+          "tie": false,
+          "confidence": "medium",
+          "evidence": "M3 has the least severe local distortion among the three candidates.",
+          "winner_method_id": "balanced"
+        },
+        {
+          "case_id": "demo_case_03",
+          "dimension": "overall_visual_quality",
+          "winner_blind_id": "M3",
+          "tie": false,
+          "confidence": "high",
+          "evidence": "M3 best balances a visible style change with recognizable content.",
+          "winner_method_id": "balanced"
+        }
+      ],
+      "completeness": {
+        "expected_scores": 9,
+        "provided_scores": 9,
+        "missing_scores": []
+      }
+    }
+  ],
+  "warnings": []
+}

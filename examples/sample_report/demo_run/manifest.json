@@ -1,0 +1,115 @@
+{
+  "schema_version": "1.0",
+  "experiment": {
+    "title": "Synthetic demonstration of video style transfer evaluation",
+    "split": "synthetic_demo",
+    "frame_limit": 30,
+    "max_side": 320,
+    "temporal_offsets": [
+      1,
+      5
+    ],
+    "hardware": "Synthetic data generation only",
+    "notes": "All clips and methods are synthetic. This run demonstrates the evaluation workflow and is not a benchmark of EchoStyle or a model."
+  },
+  "methods": [
+    {
+      "id": "balanced",
+      "label": "Simulated balanced",
+      "label_zh": "模拟平衡方法",
+      "seed": 42,
+      "checkpoint": "synthetic"
+    },
+    {
+      "id": "flicker",
+      "label": "Simulated flicker",
+      "label_zh": "模拟闪烁方法",
+      "seed": 42,
+      "checkpoint": "synthetic"
+    },
+    {
+      "id": "overlay",
+      "label": "Simulated overlay",
+      "label_zh": "模拟覆盖方法",
+      "seed": 42,
+      "checkpoint": "synthetic"
+    }
+  ],
+  "cases": [
+    {
+      "id": "demo_case_01",
+      "content_id": "content_01",
+      "style_id": "style_01",
+      "split": "synthetic_demo",
+      "source_video": "data/source/demo_case_01.mp4",
+      "style_image": "data/style/style_01.jpg",
+      "outputs": {
+        "balanced": {
+          "video": "data/outputs/balanced/demo_case_01.mp4",
+          "runtime_s": 18.4,
+          "peak_memory_gb": 12.7
+        },
+        "flicker": {
+          "video": "data/outputs/flicker/demo_case_01.mp4",
+          "runtime_s": 14.6,
+          "peak_memory_gb": 9.8
+        },
+        "overlay": {
+          "video": "data/outputs/overlay/demo_case_01.mp4",
+          "runtime_s": 16.1,
+          "peak_memory_gb": 10.4
+        }
+      }
+    },
+    {
+      "id": "demo_case_02",
+      "content_id": "content_02",
+      "style_id": "style_02",
+      "split": "synthetic_demo",
+      "source_video": "data/source/demo_case_02.mp4",
+      "style_image": "data/style/style_02.jpg",
+      "outputs": {
+        "balanced": {
+          "video": "data/outputs/balanced/demo_case_02.mp4",
+          "runtime_s": 18.799999999999997,
+          "peak_memory_gb": 12.7
+        },
+        "flicker": {
+          "video": "data/outputs/flicker/demo_case_02.mp4",
+          "runtime_s": 15.0,
+          "peak_memory_gb": 9.8
+        },
+        "overlay": {
+          "video": "data/outputs/overlay/demo_case_02.mp4",
+          "runtime_s": 16.5,
+          "peak_memory_gb": 10.4
+        }
+      }
+    },
+    {
+      "id": "demo_case_03",
+      "content_id": "content_03",
+      "style_id": "style_03",
+      "split": "synthetic_demo",
+      "source_video": "data/source/demo_case_03.mp4",
+      "style_image": "data/style/style_03.jpg",
+      "outputs": {
+        "balanced": {
+          "video": "data/outputs/balanced/demo_case_03.mp4",
+          "runtime_s": 19.2,
+          "peak_memory_gb": 12.7
+        },
+        "flicker": {
+          "video": "data/outputs/flicker/demo_case_03.mp4",
+          "runtime_s": 15.4,
+          "peak_memory_gb": 9.8
+        },
+        "overlay": {
+          "video": "data/outputs/overlay/demo_case_03.mp4",
+          "runtime_s": 16.900000000000002,
+          "peak_memory_gb": 10.4
+        }
+      }
+    }
+  ]
+}

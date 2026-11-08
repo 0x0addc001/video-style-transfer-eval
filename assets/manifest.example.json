@@ -1,0 +1,50 @@
+{
+  "schema_version": "1.0",
+  "experiment": {
+    "title": "Held-out video style transfer comparison",
+    "split": "test",
+    "frame_limit": 48,
+    "max_side": 384,
+    "temporal_offsets": [1, 5],
+    "hardware": "Record GPU model and precision",
+    "notes": "Pair every method on identical source/style cases."
+  },
+  "methods": [
+    {
+      "id": "ours",
+      "label": "Ours",
+      "label_zh": "本文方法",
+      "seed": 42,
+      "checkpoint": "record commit or checkpoint"
+    },
+    {
+      "id": "echostyle",
+      "label": "EchoStyle baseline",
+      "label_zh": "EchoStyle 基线",
+      "seed": 42,
+      "checkpoint": "record commit or checkpoint"
+    }
+  ],
+  "cases": [
+    {
+      "id": "case_001",
+      "content_id": "content_01",
+      "style_id": "style_01",
+      "split": "test",
+      "source_video": "data/source/case_001.mp4",
+      "style_image": "data/style/style_01.jpg",
+      "outputs": {
+        "ours": {
+          "video": "outputs/ours/case_001.mp4",
+          "runtime_s": 18.4,
+          "peak_memory_gb": 12.7
+        },
+        "echostyle": {
+          "video": "outputs/echostyle/case_001.mp4",
+          "runtime_s": 17.9,
+          "peak_memory_gb": 12.1
+        }
+      }
+    }
+  ]
+}

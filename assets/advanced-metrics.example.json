@@ -1,0 +1,42 @@
+{
+  "schema_version": "1.0",
+  "metric_implementation": {
+    "name": "Replace with the fixed external evaluation implementation",
+    "version_or_commit": "record version or commit",
+    "device": "cuda or cpu",
+    "resolution": "record input resolution",
+    "notes": "Use identical preprocessing for every compared method."
+  },
+  "metric_info": {
+    "lpips": {
+      "label": "LPIPS",
+      "dimension": "content",
+      "higher_is_better": false,
+      "unit": ""
+    },
+    "clip_i": {
+      "label": "CLIP-I",
+      "dimension": "style",
+      "higher_is_better": true,
+      "unit": ""
+    }
+  },
+  "cases": [
+    {
+      "case_id": "case_001",
+      "method_id": "ours",
+      "metrics": {
+        "lpips": 0.31,
+        "clip_i": 0.84
+      }
+    },
+    {
+      "case_id": "case_001",
+      "method_id": "echostyle",
+      "metrics": {
+        "lpips": 0.36,
+        "clip_i": 0.86
+      }
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "schema_version": "1.0",
+  "review_protocol": "references/vlm-rubric.md",
+  "score_dimensions": [
+    "style_adherence",
+    "content_preservation",
+    "temporal_stability",
+    "artifact_control",
+    "overall_visual_quality"
+  ],
+  "cases": [
+    {
+      "case_id": "demo_case_01",
+      "style_id": "style_01",
+      "content_id": "content_01",
+      "contact_sheet": "D:\\_Engineering\\PG\\2026-2027-PG-21\\ARIN5201-CV\\Project_CV\\sample_report\\demo_evaluation\\contact_sheets\\demo_case_01.jpg",
+      "method_blind_ids": [
+        "M1",
+        "M2",
+        "M3"
+      ]
+    },
+    {
+      "case_id": "demo_case_02",
+      "style_id": "style_02",
+      "content_id": "content_02",
+      "contact_sheet": "D:\\_Engineering\\PG\\2026-2027-PG-21\\ARIN5201-CV\\Project_CV\\sample_report\\demo_evaluation\\contact_sheets\\demo_case_02.jpg",
+      "method_blind_ids": [
+        "M1",
+        "M2",
+        "M3"
+      ]
+    },
+    {
+      "case_id": "demo_case_03",
+      "style_id": "style_03",
+      "content_id": "content_03",
+      "contact_sheet": "D:\\_Engineering\\PG\\2026-2027-PG-21\\ARIN5201-CV\\Project_CV\\sample_report\\demo_evaluation\\contact_sheets\\demo_case_03.jpg",
+      "method_blind_ids": [
+        "M1",
+        "M2",
+        "M3"
+      ]
+    }
+  ]
+}

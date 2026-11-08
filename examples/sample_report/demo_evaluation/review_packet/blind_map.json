@@ -1,0 +1,17 @@
+{
+  "demo_case_01": {
+    "M1": "balanced",
+    "M2": "overlay",
+    "M3": "flicker"
+  },
+  "demo_case_02": {
+    "M1": "flicker",
+    "M2": "overlay",
+    "M3": "balanced"
+  },
+  "demo_case_03": {
+    "M1": "overlay",
+    "M2": "flicker",
+    "M3": "balanced"
+  }
+}

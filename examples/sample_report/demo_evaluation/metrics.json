@@ -1,0 +1,1495 @@
+{
+  "schema_version": "1.0",
+  "generated_by": "video-style-transfer-eval/evaluate.py",
+  "manifest": "D:\\_Engineering\\PG\\2026-2027-PG-21\\ARIN5201-CV\\Project_CV\\sample_report\\demo_run\\manifest.json",
+  "manifest_sha256": "8c45376dabc97d2fa9e622d26ee8aad963bf4fb802fed099fd52ad8de1c6fa47",
+  "experiment": {
+    "title": "Synthetic demonstration of video style transfer evaluation",
+    "split": "synthetic_demo",
+    "frame_limit": 30,
+    "max_side": 320,
+    "temporal_offsets": [
+      1,
+      5
+    ],
+    "hardware": "Synthetic data generation only",
+    "notes": "All clips and methods are synthetic. This run demonstrates the evaluation workflow and is not a benchmark of EchoStyle or a model.",
+    "blind": true,
+    "blind_seed": 2026,
+    "flow_implementation": "OpenCV Farneback (diagnostic proxy)"
+  },
+  "methods": [
+    {
+      "id": "balanced",
+      "label": "Simulated balanced",
+      "label_zh": "模拟平衡方法",
+      "seed": 42,
+      "checkpoint": "synthetic"
+    },
+    {
+      "id": "flicker",
+      "label": "Simulated flicker",
+      "label_zh": "模拟闪烁方法",
+      "seed": 42,
+      "checkpoint": "synthetic"
+    },
+    {
+      "id": "overlay",
+      "label": "Simulated overlay",
+      "label_zh": "模拟覆盖方法",
+      "seed": 42,
+      "checkpoint": "synthetic"
+    }
+  ],
+  "metric_info": {
+    "ssim": {
+      "label": "SSIM",
+      "dimension": "content",
+      "higher_is_better": true,
+      "unit": ""
+    },
+    "psnr": {
+      "label": "PSNR",
+      "dimension": "content",
+      "higher_is_better": true,
+      "unit": "dB"
+    },
+    "lab_palette_w1": {
+      "label": "LAB palette W1",
+      "dimension": "style",
+      "higher_is_better": false,
+      "unit": "normalized x100"
+    },
+    "lab_ab_palette_w1": {
+      "label": "LAB chroma palette W1",
+      "dimension": "style",
+      "higher_is_better": false,
+      "unit": "normalized x100"
+    },
+    "luminance_flicker": {
+      "label": "Detrended luminance flicker",
+      "dimension": "temporal",
+      "higher_is_better": false,
+      "unit": "gray levels"
+    },
+    "runtime_s": {
+      "label": "Runtime",
+      "dimension": "cost",
+      "higher_is_better": false,
+      "unit": "s"
+    },
+    "peak_memory_gb": {
+      "label": "Peak GPU memory",
+      "dimension": "cost",
+      "higher_is_better": false,
+      "unit": "GB"
+    },
+    "offset_1_warp_rmse": {
+      "label": "OFFSET 1 WARP RMSE",
+      "dimension": "temporal",
+      "higher_is_better": false,
+      "unit": "RGB levels"
+    },
+    "offset_1_warp_mae": {
+      "label": "OFFSET 1 WARP MAE",
+      "dimension": "temporal",
+      "higher_is_better": false,
+      "unit": "RGB levels"
+    },
+    "offset_1_flow_epe": {
+      "label": "OFFSET 1 FLOW EPE",
+      "dimension": "motion",
+      "higher_is_better": false,
+      "unit": "px"
+    },
+    "offset_1_flow_correlation": {
+      "label": "OFFSET 1 FLOW CORRELATION",
+      "dimension": "motion",
+      "higher_is_better": true,
+      "unit": ""
+    },
+    "offset_1_occlusion_ratio": {
+      "label": "OFFSET 1 OCCLUSION RATIO",
+      "dimension": "diagnostic",
+      "higher_is_better": false,
+      "unit": "ratio"
+    },
+    "offset_5_warp_rmse": {
+      "label": "OFFSET 5 WARP RMSE",
+      "dimension": "temporal",
+      "higher_is_better": false,
+      "unit": "RGB levels"
+    },
+    "offset_5_warp_mae": {
+      "label": "OFFSET 5 WARP MAE",
+      "dimension": "temporal",
+      "higher_is_better": false,
+      "unit": "RGB levels"
+    },
+    "offset_5_flow_epe": {
+      "label": "OFFSET 5 FLOW EPE",
+      "dimension": "motion",
+      "higher_is_better": false,
+      "unit": "px"
+    },
+    "offset_5_flow_correlation": {
+      "label": "OFFSET 5 FLOW CORRELATION",
+      "dimension": "motion",
+      "higher_is_better": true,
+      "unit": ""
+    },
+    "offset_5_occlusion_ratio": {
+      "label": "OFFSET 5 OCCLUSION RATIO",
+      "dimension": "diagnostic",
+      "higher_is_better": false,
+      "unit": "ratio"
+    }
+  },
+  "review_dimensions": [
+    "style_adherence",
+    "content_preservation",
+    "temporal_stability",
+    "artifact_control",
+    "overall_visual_quality"
+  ],
+  "cases": [
+    {
+      "id": "demo_case_01",
+      "content_id": "content_01",
+      "style_id": "style_01",
+      "split": "synthetic_demo",
+      "source_video": "D:\\_Engineering\\PG\\2026-2027-PG-21\\ARIN5201-CV\\Project_CV\\sample_report\\demo_run\\data\\source\\demo_case_01.mp4",
+      "source_sha256": "87d23d5d95c4ee02f1dacd82e8f81e2523e10d2af6da3791f7e0e448e4ff8f64",
+      "source_metadata": {
+        "fps": 20.0,
+        "frame_count": 60,
+        "duration_s": 3.0,
+        "width": 384,
+        "height": 216,
+        "aspect_ratio": 1.7777777777777777
+      },
+      "style_image": "D:\\_Engineering\\PG\\2026-2027-PG-21\\ARIN5201-CV\\Project_CV\\sample_report\\demo_run\\data\\style\\style_01.jpg",
+      "style_sha256": "fe98ea10b6cd55408556a5ce75dfa92510042528fdca7711eea698e59e280514",
+      "sample_times_s": [
+        0.0,
+        0.10172413793103448,
+        0.20344827586206896,
+        0.30517241379310345,
+        0.4068965517241379,
+        0.5086206896551724,
+        0.6103448275862069,
+        0.7120689655172413,
+        0.8137931034482758,
+        0.9155172413793103,
+        1.0172413793103448,
+        1.1189655172413793,
+        1.2206896551724138,
+        1.3224137931034483,
+        1.4241379310344826,
+        1.5258620689655171,
+        1.6275862068965516,
+        1.7293103448275862,
+        1.8310344827586207,
+        1.9327586206896552,
+        2.0344827586206895,
+        2.136206896551724,
+        2.2379310344827585,
+        2.339655172413793,
+        2.4413793103448276,
+        2.543103448275862,
+        2.6448275862068966,
+        2.746551724137931,
+        2.848275862068965,
+        2.95
+      ],
+      "methods": {
+        "balanced": {
+          "valid": true,
+          "method_id": "balanced",
+          "video": "D:\\_Engineering\\PG\\2026-2027-PG-21\\ARIN5201-CV\\Project_CV\\sample_report\\demo_run\\data\\outputs\\balanced\\demo_case_01.mp4",
+          "output_metadata": {
+            "fps": 20.0,
+            "frame_count": 60,
+            "duration_s": 3.0,
+            "width": 384,
+            "height": 216,
+            "aspect_ratio": 1.7777777777777777
+          },
+          "video_sha256": "e944ea9294061ca215c2f442f3cd37fe08bebdad1e04dba354ec2e7269f3acf5",
+          "metrics": {
+            "ssim": 0.9394546681571853,
+            "psnr": 23.370530937788015,
+            "lab_palette_w1": 8.813571074648985,
+            "lab_ab_palette_w1": 2.4538058420706292,
+            "luminance_flicker": 0.17415131028834743,
+            "offset_1_warp_rmse": 28.609975078583577,
+            "offset_1_warp_mae": 20.064489469079934,
+            "offset_1_flow_epe": 0.2962768193462799,
+            "offset_1_flow_correlation": 0.24076924306051484,
+            "offset_1_occlusion_ratio": 0.26272988505747125,
+            "offset_5_warp_rmse": 30.714834891790346,
+            "offset_5_warp_mae": 21.022848679543866,
+            "offset_5_flow_epe": 0.3372494447231293,
+            "offset_5_flow_correlation": 0.27582750022411345,
+            "offset_5_occlusion_ratio": 0.3240416666666667,
+            "runtime_s": 18.4,
+            "peak_memory_gb": 12.7
+          }
+        },
+        "flicker": {
+          "valid": true,
+          "method_id": "flicker",
+          "video": "D:\\_Engineering\\PG\\2026-2027-PG-21\\ARIN5201-CV\\Project_CV\\sample_report\\demo_run\\data\\outputs\\flicker\\demo_case_01.mp4",
+          "output_metadata": {
+            "fps": 20.0,
+            "frame_count": 60,
+            "duration_s": 3.0,
+            "width": 384,
+            "height": 216,
+            "aspect_ratio": 1.7777777777777777
+          },
+          "video_sha256": "cd22f4af54e98ea7466a2fe98ad42012887814379b54e8e8b2e4158f5d966cdb",
+          "metrics": {
+            "ssim": 0.8269752778928514,
+            "psnr": 17.7348849500623,
+            "lab_palette_w1": 7.3344211544571385,
+            "lab_ab_palette_w1": 1.3227676788307965,
+            "luminance_flicker": 12.250320237162141,
+            "offset_1_warp_rmse": 44.05854772746028,
+            "offset_1_warp_mae": 35.64729938955385,
+            "offset_1_flow_epe": 0.5493582250743076,
+            "offset_1_flow_correlation": 0.12972149009623662,
+            "offset_1_occlusion_ratio": 0.26272988505747125,
+            "offset_5_warp_rmse": 43.091715777065204,
+            "offset_5_warp_mae": 34.6158648902018,
+            "offset_5_flow_epe": 0.4954037940502167,
+            "offset_5_flow_correlation": 0.18894443958997725,
+            "offset_5_occlusion_ratio": 0.3240416666666667,
+            "runtime_s": 14.6,
+            "peak_memory_gb": 9.8
+          }
+        },
+        "overlay": {
+          "valid": true,
+          "method_id": "overlay",
+          "video": "D:\\_Engineering\\PG\\2026-2027-PG-21\\ARIN5201-CV\\Project_CV\\sample_report\\demo_run\\data\\outputs\\overlay\\demo_case_01.mp4",
+          "output_metadata": {
+            "fps": 20.0,
+            "frame_count": 60,
+            "duration_s": 3.0,
+            "width": 384,
+            "height": 216,
+            "aspect_ratio": 1.7777777777777777
+          },
+          "video_sha256": "b83bb61db3b834b76971975a5a7cb656516fcddcaaef94ed08d3c0b9d16fc078",
+          "metrics": {
+            "ssim": 0.7121672131695491,
+            "psnr": 15.155935172226028,
+            "lab_palette_w1": 8.170770451313237,
+            "lab_ab_palette_w1": 4.731127777210424,
+            "luminance_flicker": 0.059524537872340424,
+            "offset_1_warp_rmse": 65.43445951546191,
+            "offset_1_warp_mae": 54.49421500391069,
+            "offset_1_flow_epe": 0.13891541007263908,
+            "offset_1_flow_correlation": 0.17991835485886912,
+            "offset_1_occlusion_ratio": 0.26272988505747125,
+            "offset_5_warp_rmse": 65.47982554274449,
+            "offset_5_warp_mae": 54.575029705969136,
+            "offset_5_flow_epe": 0.25504253029823304,
+            "offset_5_flow_correlation": 0.14302862785756587,
+            "offset_5_occlusion_ratio": 0.3240416666666667,
+            "runtime_s": 16.1,
+            "peak_memory_gb": 10.4
+          }
+        }
+      },
+      "warnings": [],
+      "contact_sheet": "D:\\_Engineering\\PG\\2026-2027-PG-21\\ARIN5201-CV\\Project_CV\\sample_report\\demo_evaluation\\contact_sheets\\demo_case_01.jpg"
+    },
+    {
+      "id": "demo_case_02",
+      "content_id": "content_02",
+      "style_id": "style_02",
+      "split": "synthetic_demo",
+      "source_video": "D:\\_Engineering\\PG\\2026-2027-PG-21\\ARIN5201-CV\\Project_CV\\sample_report\\demo_run\\data\\source\\demo_case_02.mp4",
+      "source_sha256": "9cc0e1585ab355882bb769b1caf873d2d85c093f31784e4e313471524eaf20c5",
+      "source_metadata": {
+        "fps": 20.0,
+        "frame_count": 60,
+        "duration_s": 3.0,
+        "width": 384,
+        "height": 216,
+        "aspect_ratio": 1.7777777777777777
+      },
+      "style_image": "D:\\_Engineering\\PG\\2026-2027-PG-21\\ARIN5201-CV\\Project_CV\\sample_report\\demo_run\\data\\style\\style_02.jpg",
+      "style_sha256": "def876f5cbf75a7a01cb9ed70a4e0e366d0b1e79c7fa3ddc29159e2f4dace05f",
+      "sample_times_s": [
+        0.0,
+        0.10172413793103448,
+        0.20344827586206896,
+        0.30517241379310345,
+        0.4068965517241379,
+        0.5086206896551724,
+        0.6103448275862069,
+        0.7120689655172413,
+        0.8137931034482758,
+        0.9155172413793103,
+        1.0172413793103448,
+        1.1189655172413793,
+        1.2206896551724138,
+        1.3224137931034483,
+        1.4241379310344826,
+        1.5258620689655171,
+        1.6275862068965516,
+        1.7293103448275862,
+        1.8310344827586207,
+        1.9327586206896552,
+        2.0344827586206895,
+        2.136206896551724,
+        2.2379310344827585,
+        2.339655172413793,
+        2.4413793103448276,
+        2.543103448275862,
+        2.6448275862068966,
+        2.746551724137931,
+        2.848275862068965,
+        2.95
+      ],
+      "methods": {
+        "balanced": {
+          "valid": true,
+          "method_id": "balanced",
+          "video": "D:\\_Engineering\\PG\\2026-2027-PG-21\\ARIN5201-CV\\Project_CV\\sample_report\\demo_run\\data\\outputs\\balanced\\demo_case_02.mp4",
+          "output_metadata": {
+            "fps": 20.0,
+            "frame_count": 60,
+            "duration_s": 3.0,
+            "width": 384,
+            "height": 216,
+            "aspect_ratio": 1.7777777777777777
+          },
+          "video_sha256": "8b69de99a1eb12cd0ff6819cea00e33409426157170657b22045937e8f8a7f77",
+          "metrics": {
+            "ssim": 0.9100624021283125,
+            "psnr": 21.5977753739545,
+            "lab_palette_w1": 8.61034472585329,
+            "lab_ab_palette_w1": 4.7203875612745145,
+            "luminance_flicker": 0.07732674764918662,
+            "offset_1_warp_rmse": 39.387301752235324,
+            "offset_1_warp_mae": 32.96756366808696,
+            "offset_1_flow_epe": 0.24996898965588932,
+            "offset_1_flow_correlation": 0.695110573850829,
+            "offset_1_occlusion_ratio": 0.29338421934865905,
+            "offset_5_warp_rmse": 39.25222869035137,
+            "offset_5_warp_mae": 32.27557985152465,
+            "offset_5_flow_epe": 0.8247933959960938,
+            "offset_5_flow_correlation": 0.49011322736740115,
+            "offset_5_occlusion_ratio": 0.35841388888888887,
+            "runtime_s": 18.799999999999997,
+            "peak_memory_gb": 12.7
+          }
+        },
+        "flicker": {
+          "valid": true,
+          "method_id": "flicker",
+          "video": "D:\\_Engineering\\PG\\2026-2027-PG-21\\ARIN5201-CV\\Project_CV\\sample_report\\demo_run\\data\\outputs\\flicker\\demo_case_02.mp4",
+          "output_metadata": {
+            "fps": 20.0,
+            "frame_count": 60,
+            "duration_s": 3.0,
+            "width": 384,
+            "height": 216,
+            "aspect_ratio": 1.7777777777777777
+          },
+          "video_sha256": "73594fcc7e68d64e37a987310b5a0ecc1686d9181f611e155743193f2b7a738f",
+          "metrics": {
+            "ssim": 0.773551235822587,
+            "psnr": 17.151128713059148,
+            "lab_palette_w1": 6.933436043784783,
+            "lab_ab_palette_w1": 3.0572237966367153,
+            "luminance_flicker": 12.07314130596576,
+            "offset_1_warp_rmse": 59.83958477421768,
+            "offset_1_warp_mae": 51.49080374970343,
+            "offset_1_flow_epe": 0.8630126190596613,
+            "offset_1_flow_correlation": 0.2369280570539935,
+            "offset_1_occlusion_ratio": 0.29338421934865905,
+            "offset_5_warp_rmse": 57.93337277714634,
+            "offset_5_warp_mae": 48.86306343677792,
+            "offset_5_flow_epe": 1.4049590778350831,
+            "offset_5_flow_correlation": 0.30172461092472075,
+            "offset_5_occlusion_ratio": 0.35841388888888887,
+            "runtime_s": 15.0,
+            "peak_memory_gb": 9.8
+          }
+        },
+        "overlay": {
+          "valid": true,
+          "method_id": "overlay",
+          "video": "D:\\_Engineering\\PG\\2026-2027-PG-21\\ARIN5201-CV\\Project_CV\\sample_report\\demo_run\\data\\outputs\\overlay\\demo_case_02.mp4",
+          "output_metadata": {
+            "fps": 20.0,
+            "frame_count": 60,
+            "duration_s": 3.0,
+            "width": 384,
+            "height": 216,
+            "aspect_ratio": 1.7777777777777777
+          },
+          "video_sha256": "3fdbef45f2b8369f132345d1ceaf9c33b6495b5092850269f57a0b97aa746bc3",
+          "metrics": {
+            "ssim": 0.7315030953780195,
+            "psnr": 15.094249494527368,
+            "lab_palette_w1": 7.042500992873995,
+            "lab_ab_palette_w1": 4.244167276574987,
+            "luminance_flicker": 0.10272701880632464,
+            "offset_1_warp_rmse": 69.83028520939146,
+            "offset_1_warp_mae": 59.242542391989794,
+            "offset_1_flow_epe": 0.24670737056896605,
+            "offset_1_flow_correlation": 0.42040915119236916,
+            "offset_1_occlusion_ratio": 0.29338421934865905,
+            "offset_5_warp_rmse": 70.25106581317415,
+            "offset_5_warp_mae": 59.84495056718656,
+            "offset_5_flow_epe": 0.5425781500339508,
+            "offset_5_flow_correlation": 0.26473180651664735,
+            "offset_5_occlusion_ratio": 0.35841388888888887,
+            "runtime_s": 16.5,
+            "peak_memory_gb": 10.4
+          }
+        }
+      },
+      "warnings": [],
+      "contact_sheet": "D:\\_Engineering\\PG\\2026-2027-PG-21\\ARIN5201-CV\\Project_CV\\sample_report\\demo_evaluation\\contact_sheets\\demo_case_02.jpg"
+    },
+    {
+      "id": "demo_case_03",
+      "content_id": "content_03",
+      "style_id": "style_03",
+      "split": "synthetic_demo",
+      "source_video": "D:\\_Engineering\\PG\\2026-2027-PG-21\\ARIN5201-CV\\Project_CV\\sample_report\\demo_run\\data\\source\\demo_case_03.mp4",
+      "source_sha256": "56e2c0c117892f15e96a4b20309d7e0b73688309dea7a81bc08e6ea4bec131bb",
+      "source_metadata": {
+        "fps": 20.0,
+        "frame_count": 60,
+        "duration_s": 3.0,
+        "width": 384,
+        "height": 216,
+        "aspect_ratio": 1.7777777777777777
+      },
+      "style_image": "D:\\_Engineering\\PG\\2026-2027-PG-21\\ARIN5201-CV\\Project_CV\\sample_report\\demo_run\\data\\style\\style_03.jpg",
+      "style_sha256": "8a09d207741ffd3e0239eb3f339e2bfd41c20f42a6d65cacdfc87645cc0e52c5",
+      "sample_times_s": [
+        0.0,
+        0.10172413793103448,
+        0.20344827586206896,
+        0.30517241379310345,
+        0.4068965517241379,
+        0.5086206896551724,
+        0.6103448275862069,
+        0.7120689655172413,
+        0.8137931034482758,
+        0.9155172413793103,
+        1.0172413793103448,
+        1.1189655172413793,
+        1.2206896551724138,
+        1.3224137931034483,
+        1.4241379310344826,
+        1.5258620689655171,
+        1.6275862068965516,
+        1.7293103448275862,
+        1.8310344827586207,
+        1.9327586206896552,
+        2.0344827586206895,
+        2.136206896551724,
+        2.2379310344827585,
+        2.339655172413793,
+        2.4413793103448276,
+        2.543103448275862,
+        2.6448275862068966,
+        2.746551724137931,
+        2.848275862068965,
+        2.95
+      ],
+      "methods": {
+        "balanced": {
+          "valid": true,
+          "method_id": "balanced",
+          "video": "D:\\_Engineering\\PG\\2026-2027-PG-21\\ARIN5201-CV\\Project_CV\\sample_report\\demo_run\\data\\outputs\\balanced\\demo_case_03.mp4",
+          "output_metadata": {
+            "fps": 20.0,
+            "frame_count": 60,
+            "duration_s": 3.0,
+            "width": 384,
+            "height": 216,
+            "aspect_ratio": 1.7777777777777777
+          },
+          "video_sha256": "d4567fc25692ef6ed57028c0ffbfcf31c186e043d6cb6e643089aa4071d12fe3",
+          "metrics": {
+            "ssim": 0.937631469792414,
+            "psnr": 22.771857149054192,
+            "lab_palette_w1": 9.638453622382595,
+            "lab_ab_palette_w1": 2.3552830967456484,
+            "luminance_flicker": 0.05900085772799059,
+            "offset_1_warp_rmse": 27.091470254864337,
+            "offset_1_warp_mae": 17.88594964056608,
+            "offset_1_flow_epe": 0.18517413517010622,
+            "offset_1_flow_correlation": 0.34454763038405056,
+            "offset_1_occlusion_ratio": 0.24373323754789272,
+            "offset_5_warp_rmse": 29.6342050085948,
+            "offset_5_warp_mae": 18.93116157894066,
+            "offset_5_flow_epe": 0.3946109825372696,
+            "offset_5_flow_correlation": 0.3178247955441475,
+            "offset_5_occlusion_ratio": 0.30545694444444443,
+            "runtime_s": 19.2,
+            "peak_memory_gb": 12.7
+          }
+        },
+        "flicker": {
+          "valid": true,
+          "method_id": "flicker",
+          "video": "D:\\_Engineering\\PG\\2026-2027-PG-21\\ARIN5201-CV\\Project_CV\\sample_report\\demo_run\\data\\outputs\\flicker\\demo_case_03.mp4",
+          "output_metadata": {
+            "fps": 20.0,
+            "frame_count": 60,
+            "duration_s": 3.0,
+            "width": 384,
+            "height": 216,
+            "aspect_ratio": 1.7777777777777777
+          },
+          "video_sha256": "db1774f995c9bca09869adbc8599de0c97ae452df66a31daf47721c1fb8170df",
+          "metrics": {
+            "ssim": 0.8327004819535259,
+            "psnr": 17.7232689479877,
+            "lab_palette_w1": 7.9925252379115195,
+            "lab_ab_palette_w1": 1.2672275695579236,
+            "luminance_flicker": 12.959219326169698,
+            "offset_1_warp_rmse": 39.42132720343092,
+            "offset_1_warp_mae": 30.945741249359486,
+            "offset_1_flow_epe": 0.21535561542058812,
+            "offset_1_flow_correlation": 0.31355229277035285,
+            "offset_1_occlusion_ratio": 0.24373323754789272,
+            "offset_5_warp_rmse": 37.52830103052989,
+            "offset_5_warp_mae": 28.906036801559264,
+            "offset_5_flow_epe": 0.4811566352844238,
+            "offset_5_flow_correlation": 0.2500873878598213,
+            "offset_5_occlusion_ratio": 0.30545694444444443,
+            "runtime_s": 15.4,
+            "peak_memory_gb": 9.8
+          }
+        },
+        "overlay": {
+          "valid": true,
+          "method_id": "overlay",
+          "video": "D:\\_Engineering\\PG\\2026-2027-PG-21\\ARIN5201-CV\\Project_CV\\sample_report\\demo_run\\data\\outputs\\overlay\\demo_case_03.mp4",
+          "output_metadata": {
+            "fps": 20.0,
+            "frame_count": 60,
+            "duration_s": 3.0,
+            "width": 384,
+            "height": 216,
+            "aspect_ratio": 1.7777777777777777
+          },
+          "video_sha256": "a536895700a19ce3628dba47f9257c023228f7615294be5ae3c63161ce5fdd3d",
+          "metrics": {
+            "ssim": 0.7021985610620725,
+            "psnr": 14.44634568280528,
+            "lab_palette_w1": 8.911445321955945,
+            "lab_ab_palette_w1": 5.08840704713599,
+            "luminance_flicker": 0.08432754545964287,
+            "offset_1_warp_rmse": 56.35052740076732,
+            "offset_1_warp_mae": 45.725347458550104,
+            "offset_1_flow_epe": 0.17657025620855135,
+            "offset_1_flow_correlation": 0.19813243800709987,
+            "offset_1_occlusion_ratio": 0.24373323754789272,
+            "offset_5_warp_rmse": 55.374493035094844,
+            "offset_5_warp_mae": 44.81277285508258,
+            "offset_5_flow_epe": 0.2869810515642166,
+            "offset_5_flow_correlation": 0.2673842120170593,
+            "offset_5_occlusion_ratio": 0.30545694444444443,
+            "runtime_s": 16.900000000000002,
+            "peak_memory_gb": 10.4
+          }
+        }
+      },
+      "warnings": [],
+      "contact_sheet": "D:\\_Engineering\\PG\\2026-2027-PG-21\\ARIN5201-CV\\Project_CV\\sample_report\\demo_evaluation\\contact_sheets\\demo_case_03.jpg"
+    }
+  ],
+  "aggregates": {
+    "balanced": {
+      "ssim": {
+        "n": 3,
+        "mean": 0.9290495133593039,
+        "std": 0.01646857030051051,
+        "median": 0.937631469792414,
+        "min": 0.9100624021283125,
+        "max": 0.9394546681571853,
+        "ci95_mean": null
+      },
+      "psnr": {
+        "n": 3,
+        "mean": 22.580054486932237,
+        "std": 0.9018075006194345,
+        "median": 22.771857149054192,
+        "min": 21.5977753739545,
+        "max": 23.370530937788015,
+        "ci95_mean": null
+      },
+      "lab_palette_w1": {
+        "n": 3,
+        "mean": 9.02078980762829,
+        "std": 0.5444783542564736,
+        "median": 8.813571074648985,
+        "min": 8.61034472585329,
+        "max": 9.638453622382595,
+        "ci95_mean": null
+      },
+      "lab_ab_palette_w1": {
+        "n": 3,
+        "mean": 3.176492166696931,
+        "std": 1.3379597994278445,
+        "median": 2.4538058420706292,
+        "min": 2.3552830967456484,
+        "max": 4.7203875612745145,
+        "ci95_mean": null
+      },
+      "luminance_flicker": {
+        "n": 3,
+        "mean": 0.10349297188850821,
+        "std": 0.06187414766621512,
+        "median": 0.07732674764918662,
+        "min": 0.05900085772799059,
+        "max": 0.17415131028834743,
+        "ci95_mean": null
+      },
+      "offset_1_warp_rmse": {
+        "n": 3,
+        "mean": 31.69624902856108,
+        "std": 6.703781263113185,
+        "median": 28.609975078583577,
+        "min": 27.091470254864337,
+        "max": 39.387301752235324,
+        "ci95_mean": null
+      },
+      "offset_1_warp_mae": {
+        "n": 3,
+        "mean": 23.639334259244325,
+        "std": 8.15158922383254,
+        "median": 20.064489469079934,
+        "min": 17.88594964056608,
+        "max": 32.96756366808696,
+        "ci95_mean": null
+      },
+      "offset_1_flow_epe": {
+        "n": 3,
+        "mean": 0.24380664805742516,
+        "std": 0.055807100339202095,
+        "median": 0.24996898965588932,
+        "min": 0.18517413517010622,
+        "max": 0.2962768193462799,
+        "ci95_mean": null
+      },
+      "offset_1_flow_correlation": {
+        "n": 3,
+        "mean": 0.42680914909846485,
+        "std": 0.23807925006598088,
+        "median": 0.34454763038405056,
+        "min": 0.24076924306051484,
+        "max": 0.695110573850829,
+        "ci95_mean": null
+      },
+      "offset_1_occlusion_ratio": {
+        "n": 3,
+        "mean": 0.266615780651341,
+        "std": 0.025052547512575435,
+        "median": 0.26272988505747125,
+        "min": 0.24373323754789272,
+        "max": 0.29338421934865905,
+        "ci95_mean": null
+      },
+      "offset_5_warp_rmse": {
+        "n": 3,
+        "mean": 33.200422863578844,
+        "std": 5.268795456253003,
+        "median": 30.714834891790346,
+        "min": 29.6342050085948,
+        "max": 39.25222869035137,
+        "ci95_mean": null
+      },
+      "offset_5_warp_mae": {
+        "n": 3,
+        "mean": 24.076530036669723,
+        "std": 7.177193193133501,
+        "median": 21.022848679543866,
+        "min": 18.93116157894066,
+        "max": 32.27557985152465,
+        "ci95_mean": null
+      },
+      "offset_5_flow_epe": {
+        "n": 3,
+        "mean": 0.5188846077521643,
+        "std": 0.2664727501054334,
+        "median": 0.3946109825372696,
+        "min": 0.3372494447231293,
+        "max": 0.8247933959960938,
+        "ci95_mean": null
+      },
+      "offset_5_flow_correlation": {
+        "n": 3,
+        "mean": 0.3612551743785541,
+        "std": 0.11355281400567287,
+        "median": 0.3178247955441475,
+        "min": 0.27582750022411345,
+        "max": 0.49011322736740115,
+        "ci95_mean": null
+      },
+      "offset_5_occlusion_ratio": {
+        "n": 3,
+        "mean": 0.3293041666666667,
+        "std": 0.02686782315169008,
+        "median": 0.3240416666666667,
+        "min": 0.30545694444444443,
+        "max": 0.35841388888888887,
+        "ci95_mean": null
+      },
+      "runtime_s": {
+        "n": 3,
+        "mean": 18.799999999999997,
+        "std": 0.40000000000000036,
+        "median": 18.799999999999997,
+        "min": 18.4,
+        "max": 19.2,
+        "ci95_mean": null
+      },
+      "peak_memory_gb": {
+        "n": 3,
+        "mean": 12.699999999999998,
+        "std": 2.175583928816829e-15,
+        "median": 12.7,
+        "min": 12.7,
+        "max": 12.7,
+        "ci95_mean": null
+      }
+    },
+    "flicker": {
+      "ssim": {
+        "n": 3,
+        "mean": 0.8110756652229881,
+        "std": 0.03262294578595494,
+        "median": 0.8269752778928514,
+        "min": 0.773551235822587,
+        "max": 0.8327004819535259,
+        "ci95_mean": null
+      },
+      "psnr": {
+        "n": 3,
+        "mean": 17.536427537036385,
+        "std": 0.33372911274674466,
+        "median": 17.7232689479877,
+        "min": 17.151128713059148,
+        "max": 17.7348849500623,
+        "ci95_mean": null
+      },
+      "lab_palette_w1": {
+        "n": 3,
+        "mean": 7.420127478717814,
+        "std": 0.5347211056174161,
+        "median": 7.3344211544571385,
+        "min": 6.933436043784783,
+        "max": 7.9925252379115195,
+        "ci95_mean": null
+      },
+      "lab_ab_palette_w1": {
+        "n": 3,
+        "mean": 1.8824063483418119,
+        "std": 1.0178006698504978,
+        "median": 1.3227676788307965,
+        "min": 1.2672275695579236,
+        "max": 3.0572237966367153,
+        "ci95_mean": null
+      },
+      "luminance_flicker": {
+        "n": 3,
+        "mean": 12.427560289765866,
+        "std": 0.4688753476750095,
+        "median": 12.250320237162141,
+        "min": 12.07314130596576,
+        "max": 12.959219326169698,
+        "ci95_mean": null
+      },
+      "offset_1_warp_rmse": {
+        "n": 3,
+        "mean": 47.7731532350363,
+        "std": 10.703972679077298,
+        "median": 44.05854772746028,
+        "min": 39.42132720343092,
+        "max": 59.83958477421768,
+        "ci95_mean": null
+      },
+      "offset_1_warp_mae": {
+        "n": 3,
+        "mean": 39.361281462872256,
+        "std": 10.76429957853541,
+        "median": 35.64729938955385,
+        "min": 30.945741249359486,
+        "max": 51.49080374970343,
+        "ci95_mean": null
+      },
+      "offset_1_flow_epe": {
+        "n": 3,
+        "mean": 0.5425754865181857,
+        "std": 0.3238817727928297,
+        "median": 0.5493582250743076,
+        "min": 0.21535561542058812,
+        "max": 0.8630126190596613,
+        "ci95_mean": null
+      },
+      "offset_1_flow_correlation": {
+        "n": 3,
+        "mean": 0.2267339466401943,
+        "std": 0.09233840435213839,
+        "median": 0.2369280570539935,
+        "min": 0.12972149009623662,
+        "max": 0.31355229277035285,
+        "ci95_mean": null
+      },
+      "offset_1_occlusion_ratio": {
+        "n": 3,
+        "mean": 0.266615780651341,
+        "std": 0.025052547512575435,
+        "median": 0.26272988505747125,
+        "min": 0.24373323754789272,
+        "max": 0.29338421934865905,
+        "ci95_mean": null
+      },
+      "offset_5_warp_rmse": {
+        "n": 3,
+        "mean": 46.18446319491381,
+        "std": 10.54824882097015,
+        "median": 43.091715777065204,
+        "min": 37.52830103052989,
+        "max": 57.93337277714634,
+        "ci95_mean": null
+      },
+      "offset_5_warp_mae": {
+        "n": 3,
+        "mean": 37.461655042846324,
+        "std": 10.278356834843454,
+        "median": 34.6158648902018,
+        "min": 28.906036801559264,
+        "max": 48.86306343677792,
+        "ci95_mean": null
+      },
+      "offset_5_flow_epe": {
+        "n": 3,
+        "mean": 0.7938398357232411,
+        "std": 0.52929272755512,
+        "median": 0.4954037940502167,
+        "min": 0.4811566352844238,
+        "max": 1.4049590778350831,
+        "ci95_mean": null
+      },
+      "offset_5_flow_correlation": {
+        "n": 3,
+        "mean": 0.24691881279150643,
+        "std": 0.05645681236614572,
+        "median": 0.2500873878598213,
+        "min": 0.18894443958997725,
+        "max": 0.30172461092472075,
+        "ci95_mean": null
+      },
+      "offset_5_occlusion_ratio": {
+        "n": 3,
+        "mean": 0.3293041666666667,
+        "std": 0.02686782315169008,
+        "median": 0.3240416666666667,
+        "min": 0.30545694444444443,
+        "max": 0.35841388888888887,
+        "ci95_mean": null
+      },
+      "runtime_s": {
+        "n": 3,
+        "mean": 15.0,
+        "std": 0.40000000000000036,
+        "median": 15.0,
+        "min": 14.6,
+        "max": 15.4,
+        "ci95_mean": null
+      },
+      "peak_memory_gb": {
+        "n": 3,
+        "mean": 9.8,
+        "std": 0.0,
+        "median": 9.8,
+        "min": 9.8,
+        "max": 9.8,
+        "ci95_mean": null
+      }
+    },
+    "overlay": {
+      "ssim": {
+        "n": 3,
+        "mean": 0.7152896232032138,
+        "std": 0.01489969852656007,
+        "median": 0.7121672131695491,
+        "min": 0.7021985610620725,
+        "max": 0.7315030953780195,
+        "ci95_mean": null
+      },
+      "psnr": {
+        "n": 3,
+        "mean": 14.898843449852892,
+        "std": 0.3930864441768402,
+        "median": 15.094249494527368,
+        "min": 14.44634568280528,
+        "max": 15.155935172226028,
+        "ci95_mean": null
+      },
+      "lab_palette_w1": {
+        "n": 3,
+        "mean": 8.041572255381059,
+        "std": 0.9411468305615187,
+        "median": 8.170770451313237,
+        "min": 7.042500992873995,
+        "max": 8.911445321955945,
+        "ci95_mean": null
+      },
+      "lab_ab_palette_w1": {
+        "n": 3,
+        "mean": 4.687900700307133,
+        "std": 0.4237766306468847,
+        "median": 4.731127777210424,
+        "min": 4.244167276574987,
+        "max": 5.08840704713599,
+        "ci95_mean": null
+      },
+      "luminance_flicker": {
+        "n": 3,
+        "mean": 0.08219303404610263,
+        "std": 0.02168019128014597,
+        "median": 0.08432754545964287,
+        "min": 0.059524537872340424,
+        "max": 0.10272701880632464,
+        "ci95_mean": null
+      },
+      "offset_1_warp_rmse": {
+        "n": 3,
+        "mean": 63.87175737520689,
+        "std": 6.87440878397256,
+        "median": 65.43445951546191,
+        "min": 56.35052740076732,
+        "max": 69.83028520939146,
+        "ci95_mean": null
+      },
+      "offset_1_warp_mae": {
+        "n": 3,
+        "mean": 53.15403495148353,
+        "std": 6.8575288294577845,
+        "median": 54.49421500391069,
+        "min": 45.725347458550104,
+        "max": 59.242542391989794,
+        "ci95_mean": null
+      },
+      "offset_1_flow_epe": {
+        "n": 3,
+        "mean": 0.1873976789500522,
+        "std": 0.05470558928782145,
+        "median": 0.17657025620855135,
+        "min": 0.13891541007263908,
+        "max": 0.24670737056896605,
+        "ci95_mean": null
+      },
+      "offset_1_flow_correlation": {
+        "n": 3,
+        "mean": 0.26615331468611275,
+        "std": 0.1338995352061252,
+        "median": 0.19813243800709987,
+        "min": 0.17991835485886912,
+        "max": 0.42040915119236916,
+        "ci95_mean": null
+      },
+      "offset_1_occlusion_ratio": {
+        "n": 3,
+        "mean": 0.266615780651341,
+        "std": 0.025052547512575435,
+        "median": 0.26272988505747125,
+        "min": 0.24373323754789272,
+        "max": 0.29338421934865905,
+        "ci95_mean": null
+      },
+      "offset_5_warp_rmse": {
+        "n": 3,
+        "mean": 63.70179479700449,
+        "std": 7.595995616439633,
+        "median": 65.47982554274449,
+        "min": 55.374493035094844,
+        "max": 70.25106581317415,
+        "ci95_mean": null
+      },
+      "offset_5_warp_mae": {
+        "n": 3,
+        "mean": 53.07758437607942,
+        "std": 7.627145506614863,
+        "median": 54.575029705969136,
+        "min": 44.81277285508258,
+        "max": 59.84495056718656,
+        "ci95_mean": null
+      },
+      "offset_5_flow_epe": {
+        "n": 3,
+        "mean": 0.3615339106321335,
+        "std": 0.1576000626605248,
+        "median": 0.2869810515642166,
+        "min": 0.25504253029823304,
+        "max": 0.5425781500339508,
+        "ci95_mean": null
+      },
+      "offset_5_flow_correlation": {
+        "n": 3,
+        "mean": 0.2250482154637575,
+        "std": 0.07104342599461236,
+        "median": 0.26473180651664735,
+        "min": 0.14302862785756587,
+        "max": 0.2673842120170593,
+        "ci95_mean": null
+      },
+      "offset_5_occlusion_ratio": {
+        "n": 3,
+        "mean": 0.3293041666666667,
+        "std": 0.02686782315169008,
+        "median": 0.3240416666666667,
+        "min": 0.30545694444444443,
+        "max": 0.35841388888888887,
+        "ci95_mean": null
+      },
+      "runtime_s": {
+        "n": 3,
+        "mean": 16.5,
+        "std": 0.40000000000000036,
+        "median": 16.5,
+        "min": 16.1,
+        "max": 16.900000000000002,
+        "ci95_mean": null
+      },
+      "peak_memory_gb": {
+        "n": 3,
+        "mean": 10.4,
+        "std": 0.0,
+        "median": 10.4,
+        "min": 10.4,
+        "max": 10.4,
+        "ci95_mean": null
+      }
+    }
+  },
+  "pairwise": [
+    {
+      "method_a": "balanced",
+      "method_b": "flicker",
+      "metric": "lab_ab_palette_w1",
+      "n": 3,
+      "mean_diff_a_minus_b": 1.294085818355119,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "balanced",
+      "method_b": "flicker",
+      "metric": "lab_palette_w1",
+      "n": 3,
+      "mean_diff_a_minus_b": 1.6006623289104764,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "balanced",
+      "method_b": "flicker",
+      "metric": "luminance_flicker",
+      "n": 3,
+      "mean_diff_a_minus_b": -12.324067317877358,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "balanced",
+      "method_b": "flicker",
+      "metric": "offset_1_flow_correlation",
+      "n": 3,
+      "mean_diff_a_minus_b": 0.20007520245827046,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "balanced",
+      "method_b": "flicker",
+      "metric": "offset_1_flow_epe",
+      "n": 3,
+      "mean_diff_a_minus_b": -0.2987688384607605,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "balanced",
+      "method_b": "flicker",
+      "metric": "offset_1_occlusion_ratio",
+      "n": 3,
+      "mean_diff_a_minus_b": 0.0,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "balanced",
+      "method_b": "flicker",
+      "metric": "offset_1_warp_mae",
+      "n": 3,
+      "mean_diff_a_minus_b": -15.721947203627929,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "balanced",
+      "method_b": "flicker",
+      "metric": "offset_1_warp_rmse",
+      "n": 3,
+      "mean_diff_a_minus_b": -16.076904206475216,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "balanced",
+      "method_b": "flicker",
+      "metric": "offset_5_flow_correlation",
+      "n": 3,
+      "mean_diff_a_minus_b": 0.11433636158704759,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "balanced",
+      "method_b": "flicker",
+      "metric": "offset_5_flow_epe",
+      "n": 3,
+      "mean_diff_a_minus_b": -0.27495522797107697,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "balanced",
+      "method_b": "flicker",
+      "metric": "offset_5_occlusion_ratio",
+      "n": 3,
+      "mean_diff_a_minus_b": 0.0,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "balanced",
+      "method_b": "flicker",
+      "metric": "offset_5_warp_mae",
+      "n": 3,
+      "mean_diff_a_minus_b": -13.385125006176603,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "balanced",
+      "method_b": "flicker",
+      "metric": "offset_5_warp_rmse",
+      "n": 3,
+      "mean_diff_a_minus_b": -12.984040331334972,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "balanced",
+      "method_b": "flicker",
+      "metric": "peak_memory_gb",
+      "n": 3,
+      "mean_diff_a_minus_b": 2.8999999999999986,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "balanced",
+      "method_b": "flicker",
+      "metric": "psnr",
+      "n": 3,
+      "mean_diff_a_minus_b": 5.043626949895853,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "balanced",
+      "method_b": "flicker",
+      "metric": "runtime_s",
+      "n": 3,
+      "mean_diff_a_minus_b": 3.7999999999999985,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "balanced",
+      "method_b": "flicker",
+      "metric": "ssim",
+      "n": 3,
+      "mean_diff_a_minus_b": 0.1179738481363158,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "balanced",
+      "method_b": "overlay",
+      "metric": "lab_ab_palette_w1",
+      "n": 3,
+      "mean_diff_a_minus_b": -1.5114085336102032,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "balanced",
+      "method_b": "overlay",
+      "metric": "lab_palette_w1",
+      "n": 3,
+      "mean_diff_a_minus_b": 0.9792175522472313,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "balanced",
+      "method_b": "overlay",
+      "metric": "luminance_flicker",
+      "n": 3,
+      "mean_diff_a_minus_b": 0.02129993784240557,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "balanced",
+      "method_b": "overlay",
+      "metric": "offset_1_flow_correlation",
+      "n": 3,
+      "mean_diff_a_minus_b": 0.16065583441235207,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "balanced",
+      "method_b": "overlay",
+      "metric": "offset_1_flow_epe",
+      "n": 3,
+      "mean_diff_a_minus_b": 0.056408969107372996,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "balanced",
+      "method_b": "overlay",
+      "metric": "offset_1_occlusion_ratio",
+      "n": 3,
+      "mean_diff_a_minus_b": 0.0,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "balanced",
+      "method_b": "overlay",
+      "metric": "offset_1_warp_mae",
+      "n": 3,
+      "mean_diff_a_minus_b": -29.514700692239202,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "balanced",
+      "method_b": "overlay",
+      "metric": "offset_1_warp_rmse",
+      "n": 3,
+      "mean_diff_a_minus_b": -32.17550834664582,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "balanced",
+      "method_b": "overlay",
+      "metric": "offset_5_flow_correlation",
+      "n": 3,
+      "mean_diff_a_minus_b": 0.13620695891479653,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "balanced",
+      "method_b": "overlay",
+      "metric": "offset_5_flow_epe",
+      "n": 3,
+      "mean_diff_a_minus_b": 0.15735069712003075,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "balanced",
+      "method_b": "overlay",
+      "metric": "offset_5_occlusion_ratio",
+      "n": 3,
+      "mean_diff_a_minus_b": 0.0,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "balanced",
+      "method_b": "overlay",
+      "metric": "offset_5_warp_mae",
+      "n": 3,
+      "mean_diff_a_minus_b": -29.001054339409702,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "balanced",
+      "method_b": "overlay",
+      "metric": "offset_5_warp_rmse",
+      "n": 3,
+      "mean_diff_a_minus_b": -30.501371933425656,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "balanced",
+      "method_b": "overlay",
+      "metric": "peak_memory_gb",
+      "n": 3,
+      "mean_diff_a_minus_b": 2.299999999999999,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "balanced",
+      "method_b": "overlay",
+      "metric": "psnr",
+      "n": 3,
+      "mean_diff_a_minus_b": 7.681211037079343,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "balanced",
+      "method_b": "overlay",
+      "metric": "runtime_s",
+      "n": 3,
+      "mean_diff_a_minus_b": 2.299999999999997,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "balanced",
+      "method_b": "overlay",
+      "metric": "ssim",
+      "n": 3,
+      "mean_diff_a_minus_b": 0.2137598901560902,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "flicker",
+      "method_b": "overlay",
+      "metric": "lab_ab_palette_w1",
+      "n": 3,
+      "mean_diff_a_minus_b": -2.805494351965322,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "flicker",
+      "method_b": "overlay",
+      "metric": "lab_palette_w1",
+      "n": 3,
+      "mean_diff_a_minus_b": -0.6214447766632452,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "flicker",
+      "method_b": "overlay",
+      "metric": "luminance_flicker",
+      "n": 3,
+      "mean_diff_a_minus_b": 12.345367255719765,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "flicker",
+      "method_b": "overlay",
+      "metric": "offset_1_flow_correlation",
+      "n": 3,
+      "mean_diff_a_minus_b": -0.03941936804591839,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "flicker",
+      "method_b": "overlay",
+      "metric": "offset_1_flow_epe",
+      "n": 3,
+      "mean_diff_a_minus_b": 0.35517780756813355,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "flicker",
+      "method_b": "overlay",
+      "metric": "offset_1_occlusion_ratio",
+      "n": 3,
+      "mean_diff_a_minus_b": 0.0,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "flicker",
+      "method_b": "overlay",
+      "metric": "offset_1_warp_mae",
+      "n": 3,
+      "mean_diff_a_minus_b": -13.792753488611273,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "flicker",
+      "method_b": "overlay",
+      "metric": "offset_1_warp_rmse",
+      "n": 3,
+      "mean_diff_a_minus_b": -16.098604140170604,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "flicker",
+      "method_b": "overlay",
+      "metric": "offset_5_flow_correlation",
+      "n": 3,
+      "mean_diff_a_minus_b": 0.02187059732774893,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "flicker",
+      "method_b": "overlay",
+      "metric": "offset_5_flow_epe",
+      "n": 3,
+      "mean_diff_a_minus_b": 0.4323059250911077,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "flicker",
+      "method_b": "overlay",
+      "metric": "offset_5_occlusion_ratio",
+      "n": 3,
+      "mean_diff_a_minus_b": 0.0,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "flicker",
+      "method_b": "overlay",
+      "metric": "offset_5_warp_mae",
+      "n": 3,
+      "mean_diff_a_minus_b": -15.615929333233098,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "flicker",
+      "method_b": "overlay",
+      "metric": "offset_5_warp_rmse",
+      "n": 3,
+      "mean_diff_a_minus_b": -17.517331602090685,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "flicker",
+      "method_b": "overlay",
+      "metric": "peak_memory_gb",
+      "n": 3,
+      "mean_diff_a_minus_b": -0.5999999999999996,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "flicker",
+      "method_b": "overlay",
+      "metric": "psnr",
+      "n": 3,
+      "mean_diff_a_minus_b": 2.6375840871834906,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "flicker",
+      "method_b": "overlay",
+      "metric": "runtime_s",
+      "n": 3,
+      "mean_diff_a_minus_b": -1.500000000000001,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "flicker",
+      "method_b": "overlay",
+      "metric": "ssim",
+      "n": 3,
+      "mean_diff_a_minus_b": 0.0957860420197744,
+      "ci95_diff": null
+    }
+  ],
+  "review_packet": "D:\\_Engineering\\PG\\2026-2027-PG-21\\ARIN5201-CV\\Project_CV\\sample_report\\demo_evaluation\\review_packet\\packet.json",
+  "blind_map": "D:\\_Engineering\\PG\\2026-2027-PG-21\\ARIN5201-CV\\Project_CV\\sample_report\\demo_evaluation\\review_packet\\blind_map.json"
+}

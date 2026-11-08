@@ -1,0 +1,4 @@
+interface:
+  display_name: "Video Style Transfer Evaluation"
+  short_description: "Evaluate VST videos with metrics and VLM review"
+  default_prompt: "Use $video-style-transfer-eval to evaluate these video style transfer outputs and produce an evidence-backed report."
