@@ -386,7 +386,7 @@ def luminance_flicker(frames: list[np.ndarray]) -> float | None:
 
 def evaluate_method(
     source_frames: list[np.ndarray],
-    style_image: np.ndarray,
+    style_image: np.ndarray | None,
     output_frames: list[np.ndarray],
     temporal_offsets: list[int],
 ) -> dict[str, Any]:
@@ -398,19 +398,20 @@ def evaluate_method(
         calculate_psnr(source, output)
         for source, output in zip(source_frames, output_frames)
     ]
-    palette_values = [
-        palette_w1(output, style_image, (0, 1, 2)) for output in output_frames
-    ]
-    chroma_values = [
-        palette_w1(output, style_image, (1, 2)) for output in output_frames
-    ]
     metrics: dict[str, float | None] = {
         "ssim": float(np.mean(ssim_values)),
         "psnr": float(np.mean(psnr_values)),
-        "lab_palette_w1": float(np.mean(palette_values)),
-        "lab_ab_palette_w1": float(np.mean(chroma_values)),
         "luminance_flicker": luminance_flicker(output_frames),
     }
+    if style_image is not None:
+        palette_values = [
+            palette_w1(output, style_image, (0, 1, 2)) for output in output_frames
+        ]
+        chroma_values = [
+            palette_w1(output, style_image, (1, 2)) for output in output_frames
+        ]
+        metrics["lab_palette_w1"] = float(np.mean(palette_values))
+        metrics["lab_ab_palette_w1"] = float(np.mean(chroma_values))
     for offset in temporal_offsets:
         values = temporal_metrics(source_frames, output_frames, offset)
         prefix = f"offset_{offset}_"
@@ -604,9 +605,12 @@ def make_contact_sheet(
         font=small,
     )
 
-    style_thumb = fit_image_on_canvas(style_image, 78, 58)
-    sheet.paste(style_thumb, (20, 22))
     draw.text((20, 4), "STYLE", fill=(154, 165, 180), font=small)
+    if style_image is not None:
+        style_thumb = fit_image_on_canvas(style_image, 78, 58)
+        sheet.paste(style_thumb, (20, 22))
+    else:
+        draw.text((24, 42), "text-only", fill=(120, 132, 150), font=small)
     draw.rectangle((20, 22, 98, 80), outline=(94, 108, 128), width=1)
 
     labels_and_frames: list[tuple[str, list[np.ndarray]]] = [
@@ -748,20 +752,30 @@ def main() -> None:
     for case in manifest.get("cases", []):
         case_id = str(case["id"])
         source_path = resolve_path(case["source_video"], manifest_dir)
-        style_path = resolve_path(case["style_image"], manifest_dir)
+        style_value = case.get("style_image")
+        style_path = resolve_path(style_value, manifest_dir) if style_value else None
         warnings: list[str] = []
         if not source_path.exists():
             raise FileNotFoundError(source_path)
-        if not style_path.exists():
+        if style_path is not None and not style_path.exists():
             raise FileNotFoundError(style_path)
         source_metadata = read_video_metadata(source_path)
         times = sample_times(source_metadata, frame_limit)
         source_frames = read_frames_at_times(source_path, times, max_side)
         target_wh = (source_frames[0].shape[1], source_frames[0].shape[0])
-        style_bgr = cv2.imread(str(style_path), cv2.IMREAD_COLOR)
-        if style_bgr is None:
-            raise ValueError(f"Cannot decode style image: {style_path}")
-        style_image = resize_rgb(cv2.cvtColor(style_bgr, cv2.COLOR_BGR2RGB), max_side)
+        style_image = None
+        if style_path is not None:
+            style_bgr = cv2.imread(str(style_path), cv2.IMREAD_COLOR)
+            if style_bgr is None:
+                raise ValueError(f"Cannot decode style image: {style_path}")
+            style_image = resize_rgb(
+                cv2.cvtColor(style_bgr, cv2.COLOR_BGR2RGB), max_side
+            )
+        else:
+            warnings.append(
+                "No style_image provided (text-driven method); LAB palette "
+                "metrics and the style thumbnail are skipped."
+            )
 
         case_out: dict[str, Any] = {
             "id": case_id,
@@ -771,8 +785,10 @@ def main() -> None:
             "source_video": str(source_path),
             "source_sha256": sha256_file(source_path),
             "source_metadata": source_metadata,
-            "style_image": str(style_path),
-            "style_sha256": sha256_file(style_path),
+            "style_image": str(style_path) if style_path is not None else None,
+            "style_sha256": (
+                sha256_file(style_path) if style_path is not None else None
+            ),
             "sample_times_s": times,
             "methods": {},
             "warnings": warnings,

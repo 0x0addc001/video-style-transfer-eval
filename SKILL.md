@@ -13,7 +13,7 @@ Before choosing metrics or interpreting scores, read [references/evaluation-prot
 
 ## Workflow
 
-1. Build a manifest from [assets/manifest.example.json](assets/manifest.example.json). Make method comparisons paired on the same source clip and style image. Keep development, validation, and test splits distinct.
+1. Build a manifest from [assets/manifest.example.json](assets/manifest.example.json). Make method comparisons paired on the same source clip and style reference. Keep development, validation, and test splits distinct. `style_image` is optional: leave it out for text-driven methods such as EchoStyle, and the run records a warning while skipping the LAB palette metrics and the style thumbnail.
 2. Record reproducibility fields before running inference: checkpoint or commit, seed, resolution, frame rate, clip duration, sampling schedule, hardware, and whether the style reference was also used during training.
 3. Run the diagnostic metric pass:
 

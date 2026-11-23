@@ -14,7 +14,7 @@ The course brief requires style quality, content preservation, and temporal stab
 ## Experimental Design
 
 - Use 3-5 second source clips and a fixed frame-sampling plan across methods.
-- Pair every comparison on the same source clip and style image.
+- Pair every comparison on the same source clip and style reference. A `style_image` is optional: text-driven methods can omit it, in which case the LAB palette metrics and the style thumbnail are skipped and the case records a warning.
 - Hold out content and style combinations. Do not select intervention layers and report performance on the same pairs.
 - Use multiple contents and styles. A single visually strong example is a qualitative illustration, not evidence of generalization.
 - Run each stochastic method under a recorded seed. Report per-case means first, then macro means and confidence intervals.
