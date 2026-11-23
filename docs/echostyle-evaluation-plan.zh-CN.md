@@ -24,9 +24,9 @@ arXiv:2606.25465）的评估表，同时保留可追溯的证据链。
 ### 需要准备的三类素材
 
 1. **source 片段**：每条 3–5 秒，所有方法必须用**同一条**片段，才能做配对比较。
-2. **风格条件**：EchoStyle 是**文本驱动**（中文风格 prompt），但本 skill 的 LAB 调色板指标需要一张
-   `style_image`。最省事的做法是给 14 种内置风格各准备一张代表图，作为调色板锚点并在报告里说明
-   “风格图为该风格的参考图，不是 EchoStyle 的输入条件”。
+2. **风格条件**：EchoStyle 是**文本驱动**（中文风格 prompt）。`style_image` 现在是**可选**的：
+   不提供时，LAB 调色板指标和风格缩略图会自动跳过并记一条 warning，其余诊断指标、CSD、VBench 都照常。
+   若想保留调色板证据，可以给 14 种风格各准备一张代表图作为“调色板锚点”，并在报告里注明它只是参考图。
 3. **输出视频 + 成本**：每个方法在每个 case 下的 mp4，加上 runtime 和 peak memory。
 
 不需要的东西：VBench 官方 prompt suite（`custom_input` 模式不读它）、FID 的参考图分布（除非你确实要做 FID）。
@@ -140,6 +140,26 @@ export MODELSCOPE_CACHE=/scratch/<group>/modelscope
 
 > flash-attn 要编译，Hopper（H800）建议用 2.5 以上版本；编译前先 `module load cuda` 对应版本，
 > 并在**计算节点**上编译（`srun -p normal --gpus=1 --pty bash`），登录节点没有 CUDA。
+
+### 已在 SuperPOD 上验证通过的环境（2026-11-23）
+
+`conda` 只是 shim（会要求 `module load Anaconda3`，而该模块不存在），改用系统 `python3.10` + venv：
+
+```bash
+/usr/bin/python3 -m venv /home/<user>/envs/echostyle
+pip install torch==2.6.0 torchvision==0.21.0 --index-url https://download.pytorch.org/whl/cu124
+pip install "https://github.com/Dao-AILab/flash-attention/releases/download/v2.8.3.post2/flash_attn-2.8.3.post2%2Bcu12torch2.6cxx11abiFALSE-cp310-cp310-linux_x86_64.whl"
+pip install --no-deps "xfuser==0.4.1" "yunchang>=0.6.0" distvae sentencepiece beautifulsoup4 optimum-quanto flask
+pip install "diffusers==0.31.0" "huggingface_hub==0.26.2" "transformers==4.49.0" "tokenizers==0.21.1"
+```
+
+要点：
+
+- `torch==2.4` 装 `xfuser` 会失败（torch 的 `infer_schema` 不支持 `list[Tensor]`），**必须 torch 2.6**；
+- xfuser 用 `--no-deps` 装，避免它把 diffusers 升到要求 torch≥2.6 的版本之外再互相踩；
+- 实测 8 卡、720p、33 帧、40 步：`ulysses_size=8` 时 **2.18 s/it**（采样 1 分 27 秒），
+  不开 SP 时 **11.36 s/it**（7 分 34 秒），约 **5.2×** 差距；
+- `/scratch/<group>` 在部分账户下不可写、`/project` 可能已满，权重放 `/home` 最稳妥（本项目 200G 配额，权重 135G）。
 
 ## 3. 推理作业模板（8 GPU）
 
