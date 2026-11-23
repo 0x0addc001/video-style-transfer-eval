@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from evaluate import aggregate_results
+from metric_registry import EXTERNAL_METRIC_INFO
 
 
 DEFAULT_METRIC_INFO = {
@@ -55,6 +56,9 @@ DEFAULT_METRIC_INFO = {
         "unit": "",
     },
 }
+
+# CSD and VBench metrics share one registry with the adapters that emit them.
+DEFAULT_METRIC_INFO.update(EXTERNAL_METRIC_INFO)
 
 
 def parse_args() -> argparse.Namespace:

@@ -40,10 +40,12 @@ KEY_METRICS = [
     ("artfid", "ArtFID"),
     ("fid", "FID"),
     ("clip_i", "CLIP-I"),
+    ("csd_s", "CSD-S style consistency"),
     ("ssim", "SSIM"),
     ("psnr", "PSNR"),
     ("lpips", "LPIPS"),
     ("clip_f", "CLIP-F"),
+    ("csd_c", "CSD-C content consistency"),
     ("lab_palette_w1", "LAB palette W1"),
     ("lab_ab_palette_w1", "LAB chroma W1"),
     ("offset_1_warp_rmse", "Warp RMSE, offset 1"),
@@ -53,6 +55,13 @@ KEY_METRICS = [
     ("tlp", "tLP"),
     ("clip_cons", "CLIP-CONS"),
     ("luminance_flicker", "Luminance flicker"),
+    ("vbench_subject_consistency", "VBench subject consistency"),
+    ("vbench_background_consistency", "VBench background consistency"),
+    ("vbench_temporal_flickering", "VBench temporal flickering"),
+    ("vbench_motion_smoothness", "VBench motion smoothness"),
+    ("vbench_dynamic_degree", "VBench dynamic degree"),
+    ("vbench_aesthetic_quality", "VBench aesthetic quality"),
+    ("vbench_imaging_quality", "VBench imaging quality"),
     ("runtime_s", "Runtime"),
     ("peak_memory_gb", "Peak GPU memory"),
 ]
@@ -144,6 +153,15 @@ METRIC_LABELS_ZH = {
     "clip_f": "CLIP-F 图像内容相似度",
     "fid": "FID 分布距离",
     "artfid": "ArtFID",
+    "csd_s": "CSD-S 风格一致性",
+    "csd_c": "CSD-C 内容一致性",
+    "vbench_subject_consistency": "VBench 主体一致性",
+    "vbench_background_consistency": "VBench 背景一致性",
+    "vbench_temporal_flickering": "VBench 时序闪烁",
+    "vbench_motion_smoothness": "VBench 运动平滑度",
+    "vbench_dynamic_degree": "VBench 动态程度",
+    "vbench_aesthetic_quality": "VBench 美学质量",
+    "vbench_imaging_quality": "VBench 成像质量",
 }
 
 TEXT = {
@@ -189,6 +207,7 @@ TEXT = {
         "style_analysis": "Style fidelity",
         "content_analysis": "Content preservation",
         "temporal_analysis": "Motion and temporal stability",
+        "quality_analysis": "Video quality (VBench)",
         "perceptual_analysis": "Perceptual review and failure modes",
         "cost_analysis": "Computational cost",
         "synthesis": "Synthesis",
@@ -274,6 +293,7 @@ TEXT = {
         "style_analysis": "风格保真度",
         "content_analysis": "内容保持",
         "temporal_analysis": "运动与时序稳定性",
+        "quality_analysis": "视频质量（VBench）",
         "perceptual_analysis": "感知审查与失败模式",
         "cost_analysis": "计算成本",
         "synthesis": "综合判断",
@@ -516,6 +536,114 @@ METRIC_DEFINITIONS = [
         "rationale_zh": "如果缺少部署成本，质量比较并不完整。平均运行时间反映预期延迟，最大峰值显存反映最差观测资源需求。",
         "caveat_en": "Measure on identical hardware, precision, resolution, and batch settings; report both mean and peak.",
         "caveat_zh": "必须在相同硬件、精度、分辨率和批设置下测量，并同时报告均值和峰值。",
+    },
+    {
+        "id": "csd_s",
+        "name_en": "CSD-S style consistency",
+        "name_zh": "CSD-S 风格一致性",
+        "available_keys": ["csd_s"],
+        "formula": "CSD-S = (1/(T-1)) * sum_{t=1}^{T-1} cos(s(f_t), s(f_0))",
+        "formula_tex": r"\mathrm{CSD\text{-}S}=\frac{1}{T-1}\sum_{t=1}^{T-1}\cos\!\left(s(f_t),s(f_0)\right)",
+        "rationale_en": "CSD (contrastive style descriptor) is a CLIP ViT-L/14 image encoder with separate style and content projection heads trained for content-style disentanglement; s(.) is the style head. Comparing every later frame with the first frame measures style drift without folding in content change, which is the 'Style Consis.' column reported by EchoStyle (ECCV 2026).",
+        "rationale_zh": "CSD（对比式风格描述子）以 CLIP ViT-L/14 图像编码器为骨干，训练出彼此分离的风格头 s(·) 与内容头 c(·)。将后续每一帧与首帧比较，可以在不混入内容变化的情况下度量风格漂移，对应 EchoStyle（ECCV 2026）报告中的“Style Consis.”列。",
+        "caveat_en": "The score is image-level and does not localize drift. Fix the CSD checkpoint, the CLIP preprocessing, and the frame sampling for every method; absolute cosine values are not comparable across different CSD variants.",
+        "caveat_zh": "该分数是图像级汇总，无法定位漂移位置。所有方法必须固定 CSD checkpoint、CLIP 预处理和抽帧方式；不同 CSD 变体的绝对余弦值不可直接比较。",
+    },
+    {
+        "id": "csd_c",
+        "name_en": "CSD-C content consistency",
+        "name_zh": "CSD-C 内容一致性",
+        "available_keys": ["csd_c"],
+        "formula": "CSD-C = (1/(T-1)) * sum_{t=1}^{T-1} cos(c(f_t), c(f_0))",
+        "formula_tex": r"\mathrm{CSD\text{-}C}=\frac{1}{T-1}\sum_{t=1}^{T-1}\cos\!\left(c(f_t),c(f_0)\right)",
+        "rationale_en": "The content head of the same disentangled CSD model gives the companion drift signal. Separating CSD-S from CSD-C distinguishes a method that keeps its style but slowly melts the content from one that loses both.",
+        "rationale_zh": "同一套解耦 CSD 模型的内容头提供配套的漂移信号。将 CSD-S 与 CSD-C 分开报告，可以区分“风格保持但内容逐渐融化”与“风格和内容一起丢失”两种失效模式。",
+        "caveat_en": "The content head is a semantic embedding, not a geometric or temporal model. Pair it with source-flow warping error and CLIP-F before concluding that content was preserved.",
+        "caveat_zh": "内容头是语义嵌入，不是几何或时序模型。在得出“内容得到保持”的结论前，应结合源光流重映射误差与 CLIP-F。",
+    },
+    {
+        "id": "vbench_subject_consistency",
+        "name_en": "VBench subject consistency",
+        "name_zh": "VBench 主体一致性",
+        "available_keys": ["vbench_subject_consistency"],
+        "formula": "SubjectCons = (1/(T-1)) * sum_t cos(d(f_t), d(f_(t+1))), d = DINO ViT-S/16",
+        "formula_tex": r"\mathrm{SubjectCons}=\frac{1}{T-1}\sum_{t=1}^{T-1}\cos\!\left(d(f_t),d(f_{t+1})\right),\quad d=\mathrm{DINO\text{-}ViT\text{-}S/16}",
+        "rationale_en": "VBench uses DINO features to ask whether the same subject survives across frames. In video stylization this catches identity morphing and subject-level flicker that palette and pixel metrics miss.",
+        "rationale_zh": "VBench 使用 DINO 特征判断同一主体是否在帧间保持一致。在视频风格化中，该指标可以捕捉调色板与像素指标遗漏的主体身份变形和主体级闪烁。",
+        "caveat_en": "It rewards static clips, because an unchanged subject always scores high. Read it together with dynamic degree and motion smoothness, and remember that custom-input VBench runs are not leaderboard-comparable.",
+        "caveat_zh": "该指标偏袒静态片段：主体不变时天然得分高。应与动态程度和运动平滑度一起解读，并注意 custom_input 模式下的 VBench 结果不能与官方榜单直接比较。",
+    },
+    {
+        "id": "vbench_background_consistency",
+        "name_en": "VBench background consistency",
+        "name_zh": "VBench 背景一致性",
+        "available_keys": ["vbench_background_consistency"],
+        "formula": "BgCons = (1/(T-1)) * sum_t cos(c(f_t), c(f_(t+1))), c = CLIP ViT-B/32",
+        "formula_tex": r"\mathrm{BgCons}=\frac{1}{T-1}\sum_{t=1}^{T-1}\cos\!\left(c(f_t),c(f_{t+1})\right),\quad c=\mathrm{CLIP\text{-}ViT\text{-}B/32}",
+        "rationale_en": "Background consistency tracks whether the scene context drifts or pops between frames. It complements subject consistency: a method can hold the person while repainting the room behind them.",
+        "rationale_zh": "背景一致性衡量场景上下文在帧间是否漂移或跳变，与主体一致性互补：方法可能保持人物不变，却在重新绘制其背后的房间。",
+        "caveat_en": "CLIP features are coarse and can still mix subject and background; treat the split between subject and background as indicative, not exact.",
+        "caveat_zh": "CLIP 特征较粗糙，仍可能混合主体与背景；主体/背景的区分只能视为指示性而非精确划分。",
+    },
+    {
+        "id": "vbench_temporal_flickering",
+        "name_en": "VBench temporal flickering",
+        "name_zh": "VBench 时序闪烁",
+        "available_keys": ["vbench_temporal_flickering"],
+        "formula": "Flicker = 1 - (1/(T-1)) * sum_t mean|I_(t+1) - I_t|, I in [0,1]",
+        "formula_tex": r"\mathrm{Flicker}=1-\frac{1}{T-1}\sum_{t=1}^{T-1}\operatorname{mean}\left|I_{t+1}-I_t\right|",
+        "rationale_en": "VBench's pixel-level static consistency term penalizes sudden global changes between adjacent frames. It is a useful sanity check on the diagnostic luminance-flicker measure because it reacts to any channel, not only luma.",
+        "rationale_zh": "VBench 的像素级静态一致性项惩罚相邻帧之间的突发全局变化。它可作为诊断性亮度闪烁指标的交叉验证，因为它对全部通道敏感，而不只是亮度。",
+        "caveat_en": "Pixel differences also punish legitimate fast motion and hard cuts. Do not rank a dynamic clip against a static clip on this metric alone.",
+        "caveat_zh": "像素差异同样会惩罚合理的快速运动和硬切。不能仅凭该指标把动态片段与静态片段放在一起排名。",
+    },
+    {
+        "id": "vbench_motion_smoothness",
+        "name_en": "VBench motion smoothness",
+        "name_zh": "VBench 运动平滑度",
+        "available_keys": ["vbench_motion_smoothness"],
+        "formula": "MotionSmooth = 1 - (1/(T-2)) * sum_t ||I_t - AMT(I_(t-1), I_(t+1))||^2",
+        "formula_tex": r"\mathrm{MotionSmooth}=1-\frac{1}{T-2}\sum_{t=2}^{T-1}\left\|I_t-\mathrm{AMT}(I_{t-1},I_{t+1})\right\|_2^2",
+        "rationale_en": "VBench interpolates held-out frames with AMT and treats interpolation error as a smoothness signal. Unlike source-to-output flow metrics it does not need a paired source, so it also works when only generated videos are available.",
+        "rationale_zh": "VBench 用 AMT 对留出帧做插值，并把插值误差作为平滑度信号。与源到输出的光流指标不同，它不需要配对源视频，因此在只有生成视频时也能使用。",
+        "caveat_en": "The score depends on the AMT checkpoint and partly rewards motion blur or oversmoothing; a blurry result can look 'smooth'.",
+        "caveat_zh": "该分数依赖 AMT checkpoint，并会部分奖励运动模糊或过度平滑；模糊的结果可能显得“平滑”。",
+    },
+    {
+        "id": "vbench_dynamic_degree",
+        "name_en": "VBench dynamic degree",
+        "name_zh": "VBench 动态程度",
+        "available_keys": ["vbench_dynamic_degree"],
+        "formula": "DynDegree = (1/|V|) * sum_v 1[mean flow magnitude(v) > tau]",
+        "formula_tex": r"\mathrm{DynDegree}=\frac{1}{|V|}\sum_{v\in V}\mathbf{1}\!\left[\overline{\left|F_v\right|}>\tau\right]",
+        "rationale_en": "Dynamic degree reports the fraction of clips with enough estimated motion to be considered dynamic. It is VBench's guard against models that pass consistency metrics by generating nearly static videos.",
+        "rationale_zh": "动态程度报告被判定为具有足够运动量的片段比例，是 VBench 用来防止模型通过生成近乎静止的视频来“通过”一致性指标的护栏。",
+        "caveat_en": "Higher is not automatically better: exaggerated motion raises the score while damaging content fidelity. Compare only clips with comparable source motion.",
+        "caveat_zh": "并非越高越好：夸张运动会提高该分数，却损害内容保真度。只能在源运动量可比的片段之间比较。",
+    },
+    {
+        "id": "vbench_aesthetic_quality",
+        "name_en": "VBench aesthetic quality",
+        "name_zh": "VBench 美学质量",
+        "available_keys": ["vbench_aesthetic_quality"],
+        "formula": "Aesthetic = (1/T) * sum_t LAION-Aesthetic(I_t)",
+        "formula_tex": r"\mathrm{Aesthetic}=\frac{1}{T}\sum_{t=1}^{T}\mathrm{LAION\text{-}Aesthetic}(I_t)",
+        "rationale_en": "The LAION aesthetic predictor supplies a learned preference score per frame. It is one of the few public signals for the 'does it look good' question that pixel fidelity metrics cannot answer.",
+        "rationale_zh": "LAION 美学预测器为每帧提供学习到的偏好分数，是少数能回答“看起来是否好看”这一像素保真指标无法回答的问题的公开信号。",
+        "caveat_en": "It is trained on photographic aesthetics and can penalize deliberately painterly, ink-wash, or stylized textures. Never use it as a style-transfer score on its own.",
+        "caveat_zh": "该预测器基于摄影美学训练，可能惩罚刻意为之的绘画、水墨或强风格化纹理。绝不能单独把它当作风格迁移分数。",
+    },
+    {
+        "id": "vbench_imaging_quality",
+        "name_en": "VBench imaging quality",
+        "name_zh": "VBench 成像质量",
+        "available_keys": ["vbench_imaging_quality"],
+        "formula": "Imaging = (1/T) * sum_t MUSIQ(I_t)",
+        "formula_tex": r"\mathrm{Imaging}=\frac{1}{T}\sum_{t=1}^{T}\mathrm{MUSIQ}(I_t)",
+        "rationale_en": "MUSIQ is a no-reference image-quality model, so it can flag compression, blur, and noise artifacts without a ground-truth target. EchoStyle reports this column as 'Imaging Qual.'",
+        "rationale_zh": "MUSIQ 是无参考图像质量模型，无需真值即可标记压缩、模糊与噪声伪影。EchoStyle 将其作为“Imaging Qual.”列报告。",
+        "caveat_en": "No-reference quality models can reward oversharpening and may score a heavily textured painting style lower than a clean photo. Report the model version and input resolution.",
+        "caveat_zh": "无参考质量模型可能奖励过度锐化，并给纹理强烈的绘画风格打更低的分。必须报告模型版本与输入分辨率。",
     },
 ]
 
@@ -869,6 +997,7 @@ def make_findings(
         for metric in [
             "ssim",
             "lab_palette_w1",
+            "csd_s",
             "offset_1_warp_rmse",
             "offset_1_flow_epe",
             "runtime_s",
@@ -920,6 +1049,35 @@ def make_findings(
             if lang == "zh"
             else "Blinded VLM review is absent, so no perceptual quality conclusion is made."
         )
+    if primary:
+        vbench_values = []
+        for metric in (
+            "vbench_motion_smoothness",
+            "vbench_aesthetic_quality",
+            "vbench_imaging_quality",
+        ):
+            summary = metrics.get("aggregates", {}).get(primary, {}).get(metric)
+            if metric in metrics.get("metric_info", {}) and summary:
+                vbench_values.append(
+                    f"{metric_label(lang, metric, metrics['metric_info'][metric])} "
+                    f"{stat_without_n(summary)}"
+                )
+        if vbench_values:
+            method_label = labels.get(primary, primary)
+            findings.append(
+                (
+                    f"VBench 视频质量（{method_label}）："
+                    + "；".join(vbench_values)
+                    + "。这些分数在 custom_input 模式下计算，不能与 VBench 官方榜单直接比较。"
+                )
+                if lang == "zh"
+                else (
+                    f"VBench video quality for {method_label}: "
+                    + "; ".join(vbench_values)
+                    + ". These scores use VBench custom_input mode and are not "
+                    "leaderboard-comparable."
+                )
+            )
     findings.append(
         "诊断性风格指标只衡量调色板对齐；纹理和笔触结论需要额外的感知证据。"
         if lang == "zh"
@@ -946,7 +1104,21 @@ def evidence_rows(
     required_vlm = "已提供" if reviews else "缺失"
     paper_metrics = "未检测到"
     for method_aggregate in metrics.get("aggregates", {}).values():
-        if any(metric in method_aggregate for metric in ("lpips", "clip_i", "clip_f", "fid", "artfid")):
+        if any(
+            metric in method_aggregate
+            for metric in (
+                "lpips",
+                "clip_i",
+                "clip_f",
+                "fid",
+                "artfid",
+                "csd_s",
+                "csd_c",
+                "vbench_motion_smoothness",
+                "vbench_aesthetic_quality",
+                "vbench_imaging_quality",
+            )
+        ):
             paper_metrics = "部分提供"
             break
     if lang == "en":
@@ -1064,6 +1236,7 @@ def metric_tables(
             ("风格迁移", "style"),
             ("内容保持", "content"),
             ("时序与运动", "temporal"),
+            ("视频质量", "quality"),
             ("计算成本", "cost"),
         ]
         if lang == "zh"
@@ -1071,6 +1244,7 @@ def metric_tables(
             ("Style", "style"),
             ("Content", "content"),
             ("Temporal and motion", "temporal"),
+            ("Video quality", "quality"),
             ("Cost", "cost"),
         ]
     )
@@ -1256,7 +1430,7 @@ def make_analysis_sections(
     baseline_name = labels[baseline]
     aggregates = metrics.get("aggregates", {})
 
-    style_metrics = ["clip_i", "lab_palette_w1", "lab_ab_palette_w1"]
+    style_metrics = ["clip_i", "csd_s", "lab_palette_w1", "lab_ab_palette_w1"]
     style_votes = [
         comparison_vote(metrics, primary, baseline, metric)
         for metric in style_metrics
@@ -1298,7 +1472,7 @@ def make_analysis_sections(
             else f" The blinded style-adherence score is {style_review:.2f}/5."
         )
 
-    content_metrics = ["lpips", "clip_f", "ssim", "psnr"]
+    content_metrics = ["lpips", "clip_f", "csd_c", "ssim", "psnr"]
     content_votes = [
         comparison_vote(metrics, primary, baseline, metric)
         for metric in content_metrics
@@ -1337,6 +1511,10 @@ def make_analysis_sections(
         "luminance_flicker",
         "tlp",
         "clip_cons",
+        "vbench_subject_consistency",
+        "vbench_background_consistency",
+        "vbench_temporal_flickering",
+        "vbench_motion_smoothness",
     ]
     temporal_metrics = [
         metric
@@ -1370,6 +1548,38 @@ def make_analysis_sections(
             if lang == "zh"
             else " Reported diagnostics: "
             + "; ".join(temporal_values)
+            + "."
+        )
+
+    quality_metrics = [
+        metric
+        for metric in ("vbench_aesthetic_quality", "vbench_imaging_quality")
+        if metric in metrics.get("metric_info", {})
+    ]
+    quality_votes = [
+        comparison_vote(metrics, primary, baseline, metric)
+        for metric in quality_metrics
+    ]
+    quality_values = []
+    for metric in quality_metrics:
+        summary = aggregates.get(primary, {}).get(metric)
+        if summary:
+            info = metrics["metric_info"][metric]
+            quality_values.append(
+                f"{metric_label(lang, metric, info)} "
+                f"{stat_without_n(summary)}"
+            )
+    quality_text = category_verdict(
+        quality_votes, primary_name, baseline_name, lang
+    )
+    if quality_values:
+        quality_text += (
+            " 已报告的视频质量指标为："
+            + "；".join(quality_values)
+            + "。"
+            if lang == "zh"
+            else " Reported video-quality metrics: "
+            + "; ".join(quality_values)
             + "."
         )
 
@@ -1447,7 +1657,13 @@ def make_analysis_sections(
         if details:
             cost_text += " The primary method uses " + " and ".join(details) + "."
 
-    category_votes = [sum(style_votes), sum(content_votes), sum(temporal_votes), sum(cost_votes)]
+    category_votes = [
+        sum(style_votes),
+        sum(content_votes),
+        sum(temporal_votes),
+        sum(quality_votes),
+        sum(cost_votes),
+    ]
     wins = sum(vote > 0 for vote in category_votes)
     losses = sum(vote < 0 for vote in category_votes)
     if wins >= 3 and losses == 0:
@@ -1469,14 +1685,21 @@ def make_analysis_sections(
             else "The results show a multidimensional trade-off rather than universal dominance; the current evidence does not support a claim that one method is uniformly superior."
         )
 
-    return [
+    sections = [
         {"heading": s["style_analysis"], "text": style_text},
         {"heading": s["content_analysis"], "text": content_text},
         {"heading": s["temporal_analysis"], "text": temporal_text},
-        {"heading": s["perceptual_analysis"], "text": perceptual_text},
-        {"heading": s["cost_analysis"], "text": cost_text},
-        {"heading": s["synthesis"], "text": synthesis_text},
     ]
+    if quality_metrics:
+        sections.append({"heading": s["quality_analysis"], "text": quality_text})
+    sections.extend(
+        [
+            {"heading": s["perceptual_analysis"], "text": perceptual_text},
+            {"heading": s["cost_analysis"], "text": cost_text},
+            {"heading": s["synthesis"], "text": synthesis_text},
+        ]
+    )
+    return sections
 
 
 def make_conclusion(
@@ -1505,7 +1728,7 @@ def make_conclusion(
             else "应结合配对差值的置信区间判断差异稳定性和实际意义。"
         )
         return (
-            "评估显示风格、内容、运动和成本目标之间可能存在权衡；"
+            "评估显示风格、内容、运动、视频质量与成本目标之间可能存在权衡；"
             "只有在替代方案取得相近风格强度后才可解释保持性差异。"
             + suffix
         )
@@ -1524,9 +1747,9 @@ def make_conclusion(
         else "Paired confidence intervals should be used to judge the stability and practical relevance of the differences."
     )
     return (
-        "The evaluation indicates that style, content, motion, and cost objectives may "
-        "trade off. Preservation differences are interpretable only after methods are "
-        "compared at similar achieved style strength. "
+        "The evaluation indicates that style, content, motion, video quality, and cost "
+        "objectives may trade off. Preservation differences are interpretable only "
+        "after methods are compared at similar achieved style strength. "
         + suffix
     )
 
@@ -1542,8 +1765,13 @@ def paired_effect_rows(
     for metric in (
         "ssim",
         "lab_palette_w1",
+        "csd_s",
+        "csd_c",
         "offset_1_warp_rmse",
         "offset_1_flow_epe",
+        "vbench_motion_smoothness",
+        "vbench_aesthetic_quality",
+        "vbench_imaging_quality",
         "runtime_s",
     ):
         info = metrics.get("metric_info", {}).get(metric)
@@ -2078,6 +2306,10 @@ def resolve_cjk_fonts(
         Path("/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc"),
         Path("/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc"),
         Path("/usr/share/fonts/opentype/noto/NotoSansSC-Regular.otf"),
+        # macOS: PingFang and Hiragino use PostScript outlines that ReportLab
+        # cannot embed, so prefer the TrueType-flavoured system fonts first.
+        Path("/System/Library/Fonts/Supplemental/Arial Unicode.ttf"),
+        Path("/System/Library/Fonts/Supplemental/Songti.ttc"),
         Path("/System/Library/Fonts/PingFang.ttc"),
     ]
     regular_path = regular
