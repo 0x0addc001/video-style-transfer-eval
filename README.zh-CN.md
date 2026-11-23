@@ -160,6 +160,8 @@ python -m unittest discover -s tests -v
 SKILL.md
 docs/codex.md
 docs/claude-code.md
+docs/echostyle-evaluation-plan.md
+docs/echostyle-evaluation-plan.zh-CN.md
 agents/
 assets/
 references/
@@ -170,6 +172,10 @@ examples/sample_report/
 
 该技能采用渐进式披露方式：`SKILL.md` 保存主要操作流程，
 详细协议和数据结构位于 `references/`。
+
+完整评估 EchoStyle 的流程（含 HKUST SuperPOD 作业模板）见
+[中文流程](docs/echostyle-evaluation-plan.zh-CN.md) /
+[English](docs/echostyle-evaluation-plan.md)。
 
 ## 许可证
 

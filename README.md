@@ -171,6 +171,8 @@ python -m unittest discover -s tests -v
 SKILL.md
 docs/codex.md
 docs/claude-code.md
+docs/echostyle-evaluation-plan.md
+docs/echostyle-evaluation-plan.zh-CN.md
 agents/
 assets/
 references/
@@ -181,6 +183,10 @@ examples/sample_report/
 
 The skill follows progressive disclosure: `SKILL.md` contains the operating
 workflow, while detailed protocols and schemas live in `references/`.
+
+To evaluate EchoStyle end to end (including HKUST SuperPOD job templates), see the
+runbook in [English](docs/echostyle-evaluation-plan.md) or
+[简体中文](docs/echostyle-evaluation-plan.zh-CN.md).
 
 ## License
 
