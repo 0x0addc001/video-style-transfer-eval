@@ -53,6 +53,9 @@ Choose metrics that support the claim you are making:
 | Motion preservation | EPE from RAFT or another fixed flow estimator |
 | Temporal texture stability | Source-flow warping RMSE, tLP |
 | Semantic temporal stability | CLIP-CONS |
+| Style drift within a clip | CSD-S between the first frame and every later frame |
+| Content drift within a clip | CSD-C from the same disentangled CSD model |
+| Video quality without a source pair | VBench motion smoothness, imaging quality, aesthetic quality, subject/background consistency |
 | Style-preservation frontier | Paired curves over intervention strength at matched style |
 
 Use one fixed implementation and preprocessing pipeline for all methods. Store versioned metric outputs as evidence files and merge them into the evaluation run. Separately list baseline values copied from another paper; they are not a unified rerun.
@@ -68,6 +71,38 @@ python video-style-transfer-eval/scripts/merge_metrics.py \
 
 See [assets/advanced-metrics.example.json](../assets/advanced-metrics.example.json) for the minimal evidence schema. Record the implementation name, version/commit, hardware, resolution, and preprocessing in `metric_implementation`.
 
+Two adapters write this schema directly:
+
+```bash
+# CSD style/content consistency (GPU host; needs torch + openai-clip)
+python scripts/csd_consistency.py   --manifest evaluation/manifest.json   --output evaluation/evidence/csd.json   --device cuda
+
+# VBench per-video results (GPU host; custom_input mode)
+python scripts/vbench_import.py   --manifest evaluation/manifest.json   --results evaluation/vbench_results   --output evaluation/evidence/vbench.json
+```
+
+Then merge both files in one pass:
+
+```bash
+python scripts/merge_metrics.py   --metrics evaluation_run/metrics.json   --evidence evaluation/evidence/csd.json evaluation/evidence/vbench.json   --output evaluation_run/metrics_merged.json
+```
+
+### CSD: style and content consistency
+
+CSD is the contrastive style descriptor of Somepalli et al. ("Measuring Style Similarity in Diffusion Models", arXiv:2404.01292): a CLIP ViT-L/14 image encoder with separate style and content projection heads trained for content-style disentanglement. EchoStyle (ECCV 2026) reports style-head CSD between the first and each later frame as "Style Consis."; this skill exposes it as `csd_s` and adds the content-head companion `csd_c`.
+
+- Report `csd_s` with `csd_c`: a clip whose style holds while the content slowly dissolves is a different failure from one where both drift.
+- CSD is image-level. It does not localize drift, detect flicker, or prove texture quality. Pair it with warping RMSE/tLP and the blinded review.
+
+### VBench: video quality without a source pair
+
+VBench (Huang et al.) supplies no-reference video-quality dimensions. The registered subset is `vbench_subject_consistency`, `vbench_background_consistency`, `vbench_temporal_flickering`, `vbench_motion_smoothness`, `vbench_dynamic_degree`, `vbench_aesthetic_quality`, and `vbench_imaging_quality`.
+
+- Run VBench in `custom_input` mode on the manifest outputs. Those scores are not comparable with the official VBench leaderboard, which uses a fixed prompt suite.
+- Motion smoothness and consistency metrics reward static or blurred clips. Read them together with dynamic degree and the source-flow diagnostics.
+- Aesthetic quality is a learned photographic preference and can penalize deliberately painterly or ink-wash styles. Never use it as the style-transfer score.
+- Use one VBench commit for every compared method and record it in `metric_implementation`.
+
 ## Metric Definitions and Caveats
 
 - **CLIP-I:** cosine similarity of CLIP image embeddings for a generated frame and the style image. Content mismatch can dominate the embedding, so use it comparatively and supplement with a style-specific encoder or VLM review.
@@ -79,6 +114,12 @@ See [assets/advanced-metrics.example.json](../assets/advanced-metrics.example.js
 - **EPE:** compare source and generated optical flow at identical coordinates. A very different flow estimator or no occlusion handling can produce misleading large errors.
 - **tLP:** LPIPS applied after source-flow warping; use a fixed temporal offset and report it.
 - **CLIP-CONS:** compare the semantic change vector between adjacent source and generated frames. This tests semantic change agreement, not pixel stability.
+- **CSD-S / CSD-C:** cosine similarity between the first frame and every later frame under the CSD style head or content head, averaged over frames. Higher means less drift. Fix the checkpoint, CLIP preprocessing, and frame sampling for every method; cosine values are not comparable across CSD variants.
+- **VBench subject/background consistency:** DINO and CLIP feature agreement between adjacent frames. High values can come from a static video, so report dynamic degree alongside.
+- **VBench temporal flickering:** one minus the mean absolute adjacent-frame difference in [0,1]. It reacts to all channels, not only luma, and also punishes legitimate fast motion.
+- **VBench motion smoothness:** one minus the AMT interpolation error of held-out frames. It needs no paired source but partly rewards motion blur.
+- **VBench dynamic degree:** the fraction of clips whose estimated motion exceeds VBench's threshold. Higher is not automatically better; compare clips with comparable source motion.
+- **VBench aesthetic / imaging quality:** LAION aesthetic predictor and MUSIQ scores averaged over frames. Both are no-reference models with known biases toward clean photographic imagery.
 
 ## Statistical Reporting
 

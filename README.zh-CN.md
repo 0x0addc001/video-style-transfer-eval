@@ -42,7 +42,7 @@ XeLaTeX 报告。
 - 每个案例独立随机化方法标签的盲评联系表。
 - 面向风格、内容、时序稳定性、伪影和整体质量的 1-5 分 VLM/人工评分标准。
 - 严格的审查 JSON 校验和失败标签。
-- 合并固定外部实现计算的 LPIPS、CLIP-I/F、FID、ArtFID、tLP 和 CLIP-CONS。
+- 合并固定外部实现计算的 LPIPS、CLIP-I/F、FID、ArtFID、tLP、CLIP-CONS、CSD 风格/内容一致性与 VBench 视频质量指标。
 - 英文和中文的 Markdown、独立 HTML、PDF 与 XeLaTeX 报告。
 - 单案例证据、不确定度说明、失败分析和结论状态检查。
 
@@ -124,8 +124,23 @@ LaTeX 文件是可直接使用 XeLaTeX 编译的独立文档，包含 `booktabs`
 ## 指标范围
 
 Farneback 光流与 LAB 调色板距离是确定性诊断代理，不能替代 RAFT、LPIPS、
-CLIP-I/F、FID 或 ArtFID。若需要论文级指标，请使用固定外部实现计算，
+CLIP-I/F、FID、ArtFID、CSD 或 VBench。若需要论文级指标，请使用固定外部实现计算，
 再通过 `scripts/merge_metrics.py` 合并，并记录实现版本和预处理方式。
+
+两个适配器可直接生成可合并的证据文件：
+
+```bash
+# CSD-S / CSD-C 帧间一致性（GPU 主机，需要 torch 与 openai-clip）
+python scripts/csd_consistency.py --manifest manifest.json \
+  --output evidence/csd.json --device cuda
+
+# VBench 逐视频结果（custom_input 模式，GPU 主机）
+python scripts/vbench_import.py --manifest manifest.json \
+  --results vbench_results --output evidence/vbench.json
+```
+
+两者都通过 `merge_metrics.py --evidence` 合并；报告中会新增独立的视频质量表，
+并为每个导入维度附上公式、动机与解读注意事项。
 
 进一步阅读：
 

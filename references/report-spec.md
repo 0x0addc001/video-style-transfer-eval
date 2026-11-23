@@ -44,13 +44,14 @@ Separate tables:
 - style;
 - content;
 - temporal/motion;
+- video quality (no-reference VBench dimensions);
 - cost.
 
 Use arrows to show preferred direction. Show `n`, mean, dispersion, and missing cases. For comparisons, show paired difference and confidence interval once `n >= 5`.
 
 For paper-facing tables, mark the best and second-best means, explain the marking in the caption, and distinguish a direction-adjusted paired difference from the raw metric difference. Report standardized paired effect size only as descriptive evidence when the sample is small.
 
-Before the quantitative results, include a metric-definition section with the formula, motivation, current-run availability, and interpretation/reporting caveat for every metric shown or proposed for paper-grade evaluation. This includes SSIM, PSNR, LPIPS, CLIP-F, CLIP-I, FID, ArtFID, LAB palette distance, warping error, EPE, flow correlation, tLP, CLIP-CONS, luminance flicker, VLM aggregation, and runtime/peak-memory cost. Do not hide unavailable metrics; mark them as extensions while retaining their definitions.
+Before the quantitative results, include a metric-definition section with the formula, motivation, current-run availability, and interpretation/reporting caveat for every metric shown or proposed for paper-grade evaluation. This includes SSIM, PSNR, LPIPS, CLIP-F, CLIP-I, FID, ArtFID, LAB palette distance, warping error, EPE, flow correlation, tLP, CLIP-CONS, CSD-S, CSD-C, VBench subject/background consistency, VBench temporal flickering, VBench motion smoothness, VBench dynamic degree, VBench aesthetic quality, VBench imaging quality, luminance flicker, VLM aggregation, and runtime/peak-memory cost. Do not hide unavailable metrics; mark them as extensions while retaining their definitions.
 
 ## 6. Blinded Visual Review
 
@@ -70,7 +71,7 @@ Include at least one representative artifact against the intended reason. Give t
 
 ## 10. Threats to Validity
 
-At minimum discuss content/style leakage, single-reference FID misuse, pixel metrics after stylization, VLM position bias, non-identical baseline settings, compression, flow-estimator mismatch, small sample size, and stochasticity.
+At minimum discuss content/style leakage, single-reference FID misuse, pixel metrics after stylization, VLM position bias, non-identical baseline settings, compression, flow-estimator mismatch, small sample size, and stochasticity. Also state that VBench custom-input scores are not leaderboard-comparable, and that CSD and VBench consistency dimensions reward static clips unless dynamic degree is reported alongside.
 
 ## 11. Conclusion and Recommendation
 

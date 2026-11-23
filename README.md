@@ -47,7 +47,8 @@ The full example is available in
   overall quality.
 - A strict review validator and evidence tags.
 - Merge support for fixed external metrics such as LPIPS, CLIP-I/F, FID,
-  ArtFID, tLP, and CLIP-CONS.
+  ArtFID, tLP, CLIP-CONS, CSD style/content consistency, and VBench video
+  quality.
 - English and Chinese Markdown, standalone HTML, PDF, and XeLaTeX reports.
 - Per-case evidence, uncertainty caveats, failure analysis, and claim-status
   gates.
@@ -131,9 +132,24 @@ or other computer-vision manuscript.
 ## Metric Scope
 
 Farneback flow and LAB palette distance are deterministic diagnostic proxies.
-They are not substitutes for RAFT, LPIPS, CLIP-I/F, FID, or ArtFID. Use
-`scripts/merge_metrics.py` with a fixed external implementation and report the
-implementation version and preprocessing.
+They are not substitutes for RAFT, LPIPS, CLIP-I/F, FID, ArtFID, CSD, or
+VBench. Use `scripts/merge_metrics.py` with a fixed external implementation and
+report the implementation version and preprocessing.
+
+Two adapters write merge-ready evidence:
+
+```bash
+# CSD-S / CSD-C frame consistency (GPU host, needs torch + openai-clip)
+python scripts/csd_consistency.py --manifest manifest.json \
+  --output evidence/csd.json --device cuda
+
+# VBench per-video results (custom_input mode; GPU host)
+python scripts/vbench_import.py --manifest manifest.json \
+  --results vbench_results --output evidence/vbench.json
+```
+
+Both feed `--evidence` on `merge_metrics.py`; the report gains a dedicated
+video-quality table and per-metric caveats for every imported dimension.
 
 See:
 

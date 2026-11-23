@@ -25,7 +25,7 @@ Before choosing metrics or interpreting scores, read [references/evaluation-prot
    ```
 
    This computes readability, PSNR, SSIM, LAB palette distance, source-flow warping error, flow endpoint error, flow correlation, and luminance flicker. These are reproducible diagnostics, not substitutes for LPIPS, CLIP-I/CLIP-F, FID, or ArtFID.
-4. Inspect `evaluation_run/metrics.json`; resolve duration, frame-count, aspect-ratio, or decode warnings before interpreting results. Omit failed cases rather than silently averaging them. If LPIPS, CLIP-I/F, FID, ArtFID, tLP, or CLIP-CONS are computed with a fixed external implementation, merge them through `scripts/merge_metrics.py`; record that implementation in the evidence file and report.
+4. Inspect `evaluation_run/metrics.json`; resolve duration, frame-count, aspect-ratio, or decode warnings before interpreting results. Omit failed cases rather than silently averaging them. If LPIPS, CLIP-I/F, FID, ArtFID, tLP, or CLIP-CONS are computed with a fixed external implementation, merge them through `scripts/merge_metrics.py`; record that implementation in the evidence file and report. CSD style/content consistency and the VBench video-quality dimensions are first-class external metrics: `scripts/csd_consistency.py` and `scripts/vbench_import.py` emit merge-ready evidence, and both are registered in `scripts/metric_registry.py`.
 5. Review the generated contact sheets with a vision-language model or a human reviewer. Use only the blinded labels in `review_packet/`; do not open `blind_map.json` until scoring is complete. Save one completed JSON file per reviewer using [references/vlm-rubric.md](references/vlm-rubric.md).
 6. Validate all reviews:
 
@@ -55,7 +55,9 @@ Before choosing metrics or interpreting scores, read [references/evaluation-prot
 - Treat lower warping error as better temporal stability and lower flow EPE as better motion agreement. SSIM and PSNR are content diagnostics; LPIPS and CLIP-F are preferable perceptual and semantic content evidence when available.
 - Do not interpret a high style-palette score as proof of texture transfer. The diagnostic palette metric can reward global recoloring while missing brushwork, texture sticking, or semantic distortion.
 - Compare methods at similar achieved style strength when testing preservation. A method that stylizes weakly can otherwise appear to preserve content and motion trivially.
-- Never invent CLIP, LPIPS, FID, ArtFID, RAFT, or VLM values. Label Fast-Farneback values as proxies; use the same implementation for all methods if making a quantitative comparison.
+- Never invent CLIP, LPIPS, FID, ArtFID, RAFT, CSD, VBench, or VLM values. Label Fast-Farneback values as proxies; use the same implementation for all methods if making a quantitative comparison.
+- Report CSD-S and CSD-C together: they measure frame-to-first-frame drift and do not prove texture transfer or localize artifacts. Fix the CSD checkpoint, CLIP preprocessing, and frame sampling across methods.
+- VBench values must come from one fixed VBench commit in `custom_input` mode; they are not comparable with the official leaderboard. Pair any consistency or smoothness dimension with dynamic degree so a static or blurred clip cannot win by default.
 - If FID/ArtFID is required, use a style distribution with enough independent references and record the feature extractor, image count, resolution, and preprocessing. Do not compute a paper-style FID against a single style image and call it comparable.
 - VLM scores are perceptual evidence, not ground truth. Blind method labels, report model/version, sample frames, and preserve evidence or failure tags for every non-default score.
 - Report uncertainty and per-case results. Do not collapse style, preservation, motion, temporal stability, and cost into an unexplained single score.

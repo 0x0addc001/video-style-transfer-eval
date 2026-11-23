@@ -19,6 +19,30 @@
       "dimension": "style",
       "higher_is_better": true,
       "unit": ""
+    },
+    "csd_s": {
+      "label": "CSD-S style consistency",
+      "dimension": "style",
+      "higher_is_better": true,
+      "unit": "cosine"
+    },
+    "csd_c": {
+      "label": "CSD-C content consistency",
+      "dimension": "content",
+      "higher_is_better": true,
+      "unit": "cosine"
+    },
+    "vbench_motion_smoothness": {
+      "label": "VBench motion smoothness",
+      "dimension": "motion",
+      "higher_is_better": true,
+      "unit": "0-1"
+    },
+    "vbench_imaging_quality": {
+      "label": "VBench imaging quality",
+      "dimension": "quality",
+      "higher_is_better": true,
+      "unit": "MUSIQ 0-100"
     }
   },
   "cases": [
@@ -27,7 +51,11 @@
       "method_id": "ours",
       "metrics": {
         "lpips": 0.31,
-        "clip_i": 0.84
+        "clip_i": 0.84,
+        "csd_s": 0.91,
+        "csd_c": 0.88,
+        "vbench_motion_smoothness": 0.978,
+        "vbench_imaging_quality": 61.4
       }
     },
     {
@@ -35,7 +63,11 @@
       "method_id": "echostyle",
       "metrics": {
         "lpips": 0.36,
-        "clip_i": 0.86
+        "clip_i": 0.86,
+        "csd_s": 0.93,
+        "csd_c": 0.86,
+        "vbench_motion_smoothness": 0.971,
+        "vbench_imaging_quality": 58.2
       }
     }
   ]
