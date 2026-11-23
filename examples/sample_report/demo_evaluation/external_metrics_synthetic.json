@@ -1,0 +1,203 @@
+{
+  "schema_version": "1.0",
+  "metric_implementation": {
+    "name": "Synthetic CSD/VBench stand-in for the workflow demo",
+    "version_or_commit": "fixed synthetic values from build_external_metrics.py",
+    "device": "none",
+    "resolution": "not applicable",
+    "notes": "Every value in this file is fabricated to demonstrate the merge and report path. Do not cite it as a measurement of EchoStyle or any real model."
+  },
+  "metric_info": {
+    "csd_s": {
+      "label": "CSD-S style consistency",
+      "dimension": "style",
+      "higher_is_better": true,
+      "unit": "cosine"
+    },
+    "csd_c": {
+      "label": "CSD-C content consistency",
+      "dimension": "content",
+      "higher_is_better": true,
+      "unit": "cosine"
+    },
+    "vbench_subject_consistency": {
+      "label": "VBench subject consistency",
+      "dimension": "temporal",
+      "higher_is_better": true,
+      "unit": "0-1"
+    },
+    "vbench_background_consistency": {
+      "label": "VBench background consistency",
+      "dimension": "temporal",
+      "higher_is_better": true,
+      "unit": "0-1"
+    },
+    "vbench_temporal_flickering": {
+      "label": "VBench temporal flickering",
+      "dimension": "temporal",
+      "higher_is_better": true,
+      "unit": "0-1"
+    },
+    "vbench_motion_smoothness": {
+      "label": "VBench motion smoothness",
+      "dimension": "motion",
+      "higher_is_better": true,
+      "unit": "0-1"
+    },
+    "vbench_dynamic_degree": {
+      "label": "VBench dynamic degree",
+      "dimension": "motion",
+      "higher_is_better": true,
+      "unit": "0-1"
+    },
+    "vbench_aesthetic_quality": {
+      "label": "VBench aesthetic quality",
+      "dimension": "quality",
+      "higher_is_better": true,
+      "unit": "0-1"
+    },
+    "vbench_imaging_quality": {
+      "label": "VBench imaging quality",
+      "dimension": "quality",
+      "higher_is_better": true,
+      "unit": "MUSIQ 0-100"
+    }
+  },
+  "cases": [
+    {
+      "case_id": "demo_case_01",
+      "method_id": "balanced",
+      "metrics": {
+        "csd_s": 0.9291,
+        "csd_c": 0.9041,
+        "vbench_subject_consistency": 0.9281,
+        "vbench_background_consistency": 0.9333,
+        "vbench_temporal_flickering": 0.9513,
+        "vbench_motion_smoothness": 0.9836,
+        "vbench_dynamic_degree": 0.6447,
+        "vbench_aesthetic_quality": 0.5446,
+        "vbench_imaging_quality": 60.6922
+      }
+    },
+    {
+      "case_id": "demo_case_01",
+      "method_id": "flicker",
+      "metrics": {
+        "csd_s": 0.8189,
+        "csd_c": 0.8342,
+        "vbench_subject_consistency": 0.8516,
+        "vbench_background_consistency": 0.8735,
+        "vbench_temporal_flickering": 0.766,
+        "vbench_motion_smoothness": 0.8964,
+        "vbench_dynamic_degree": 0.6554,
+        "vbench_aesthetic_quality": 0.4454,
+        "vbench_imaging_quality": 53.4451
+      }
+    },
+    {
+      "case_id": "demo_case_01",
+      "method_id": "overlay",
+      "metrics": {
+        "csd_s": 0.8874,
+        "csd_c": 0.812,
+        "vbench_subject_consistency": 0.906,
+        "vbench_background_consistency": 0.8876,
+        "vbench_temporal_flickering": 0.9214,
+        "vbench_motion_smoothness": 0.9373,
+        "vbench_dynamic_degree": 0.7395,
+        "vbench_aesthetic_quality": 0.4259,
+        "vbench_imaging_quality": 46.4529
+      }
+    },
+    {
+      "case_id": "demo_case_02",
+      "method_id": "balanced",
+      "metrics": {
+        "csd_s": 0.9391,
+        "csd_c": 0.8857,
+        "vbench_subject_consistency": 0.9442,
+        "vbench_background_consistency": 0.9367,
+        "vbench_temporal_flickering": 0.9499,
+        "vbench_motion_smoothness": 0.9935,
+        "vbench_dynamic_degree": 0.6447,
+        "vbench_aesthetic_quality": 0.5282,
+        "vbench_imaging_quality": 61.3784
+      }
+    },
+    {
+      "case_id": "demo_case_02",
+      "method_id": "flicker",
+      "metrics": {
+        "csd_s": 0.8123,
+        "csd_c": 0.8537,
+        "vbench_subject_consistency": 0.8179,
+        "vbench_background_consistency": 0.8455,
+        "vbench_temporal_flickering": 0.7905,
+        "vbench_motion_smoothness": 0.9175,
+        "vbench_dynamic_degree": 0.6767,
+        "vbench_aesthetic_quality": 0.4753,
+        "vbench_imaging_quality": 52.1706
+      }
+    },
+    {
+      "case_id": "demo_case_02",
+      "method_id": "overlay",
+      "metrics": {
+        "csd_s": 0.8687,
+        "csd_c": 0.7841,
+        "vbench_subject_consistency": 0.8864,
+        "vbench_background_consistency": 0.8767,
+        "vbench_temporal_flickering": 0.9048,
+        "vbench_motion_smoothness": 0.945,
+        "vbench_dynamic_degree": 0.6585,
+        "vbench_aesthetic_quality": 0.3739,
+        "vbench_imaging_quality": 47.2765
+      }
+    },
+    {
+      "case_id": "demo_case_03",
+      "method_id": "balanced",
+      "metrics": {
+        "csd_s": 0.9219,
+        "csd_c": 0.921,
+        "vbench_subject_consistency": 0.9552,
+        "vbench_background_consistency": 0.9364,
+        "vbench_temporal_flickering": 0.9808,
+        "vbench_motion_smoothness": 0.9791,
+        "vbench_dynamic_degree": 0.7169,
+        "vbench_aesthetic_quality": 0.5178,
+        "vbench_imaging_quality": 61.2608
+      }
+    },
+    {
+      "case_id": "demo_case_03",
+      "method_id": "flicker",
+      "metrics": {
+        "csd_s": 0.8043,
+        "csd_c": 0.844,
+        "vbench_subject_consistency": 0.8436,
+        "vbench_background_consistency": 0.8794,
+        "vbench_temporal_flickering": 0.7858,
+        "vbench_motion_smoothness": 0.9164,
+        "vbench_dynamic_degree": 0.5901,
+        "vbench_aesthetic_quality": 0.4722,
+        "vbench_imaging_quality": 56.151
+      }
+    },
+    {
+      "case_id": "demo_case_03",
+      "method_id": "overlay",
+      "metrics": {
+        "csd_s": 0.8879,
+        "csd_c": 0.8059,
+        "vbench_subject_consistency": 0.8856,
+        "vbench_background_consistency": 0.873,
+        "vbench_temporal_flickering": 0.9283,
+        "vbench_motion_smoothness": 0.9492,
+        "vbench_dynamic_degree": 0.6297,
+        "vbench_aesthetic_quality": 0.3874,
+        "vbench_imaging_quality": 50.5118
+      }
+    }
+  ]
+}

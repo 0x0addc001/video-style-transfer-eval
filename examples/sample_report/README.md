@@ -6,7 +6,8 @@ This sample demonstrates the full `video-style-transfer-eval` workflow:
 2. source-flow temporal diagnostics;
 3. blinded visual review packet;
 4. validated VLM scores;
-5. Markdown, HTML, and PDF report generation.
+5. merged CSD/VBench video-quality evidence (synthetic stand-in values);
+6. Markdown, HTML, and PDF report generation.
 
 The clips and methods are synthetic and deliberately contain different style,
 content, and temporal trade-offs. They are not measurements of EchoStyle, UniVST,
@@ -27,28 +28,39 @@ with Tectonic 0.17.0.
 The machine-readable evidence is in
 [demo_evaluation/metrics.json](demo_evaluation/metrics.json), and the review export is
 [demo_evaluation/review_packet/validated_reviews.json](demo_evaluation/review_packet/validated_reviews.json).
+The CSD/VBench rows are fabricated by
+[demo_evaluation/external_metrics_synthetic.json](demo_evaluation/external_metrics_synthetic.json)
+for workflow demonstration only; they are not model measurements.
 
-To rebuild on Windows:
+To rebuild (macOS, Linux, or Windows):
 
-```powershell
+```bash
 python examples/sample_report/build_demo.py
-python scripts/evaluate.py `
-  --manifest examples/sample_report/demo_run/manifest.json `
-  --output-dir examples/sample_report/demo_evaluation `
+python scripts/evaluate.py \
+  --manifest examples/sample_report/demo_run/manifest.json \
+  --output-dir examples/sample_report/demo_evaluation \
   --blind
-python scripts/validate_review.py `
-  --review examples/sample_report/demo_review/codex_sample_review.json `
+python scripts/validate_review.py \
+  --review examples/sample_report/demo_review/codex_sample_review.json \
   --blind-map examples/sample_report/demo_evaluation/review_packet/blind_map.json
-python scripts/render_report.py `
-  --metrics examples/sample_report/demo_evaluation/metrics.json `
-  --review examples/sample_report/demo_evaluation/review_packet/validated_reviews.json `
-  --output-dir examples/sample_report/evaluation_report `
-  --language both `
-  --title "Video Style Transfer Evaluation - Synthetic Workflow Demonstration" `
-  --title-zh "视频风格迁移评估 - 合成流程演示" `
-  --claim "Demonstrate a reproducible style-content-motion evaluation workflow without presenting synthetic clips as model benchmark evidence." `
-  --claim-zh "演示可复现的风格、内容与运动评估流程，并明确合成片段不能作为模型基准证据。" `
-  --primary balanced `
-  --baseline flicker `
+python examples/sample_report/build_external_metrics.py
+python scripts/merge_metrics.py \
+  --metrics examples/sample_report/demo_evaluation/metrics.json \
+  --evidence examples/sample_report/demo_evaluation/external_metrics_synthetic.json \
+  --output examples/sample_report/demo_evaluation/metrics.json
+python scripts/render_report.py \
+  --metrics examples/sample_report/demo_evaluation/metrics.json \
+  --review examples/sample_report/demo_evaluation/review_packet/validated_reviews.json \
+  --output-dir examples/sample_report/evaluation_report \
+  --language both \
+  --title "Video Style Transfer Evaluation - Synthetic Workflow Demonstration" \
+  --title-zh "视频风格迁移评估 - 合成流程演示" \
+  --claim "Demonstrate a reproducible style-content-motion evaluation workflow without presenting synthetic clips as model benchmark evidence." \
+  --claim-zh "演示可复现的风格、内容与运动评估流程，并明确合成片段不能作为模型基准证据。" \
+  --primary balanced \
+  --baseline flicker \
   --status Exploratory
 ```
+
+The merge step is idempotent: re-running it on an already merged `metrics.json`
+recomputes aggregates instead of duplicating rows.

@@ -18,7 +18,7 @@
 \begin{document}
 \title{Video Style Transfer Evaluation - Synthetic Workflow Demonstration}
 \author{Automated Evaluation Report}
-\date{2026-11-08 \quad \textbf{Claim status: Exploratory}}
+\date{2026-11-23 \quad \textbf{Claim status: Exploratory}}
 \maketitle
 \begin{abstract}
 Demonstrate a reproducible style-content-motion evaluation workflow without presenting synthetic clips as model benchmark evidence.
@@ -36,7 +36,7 @@ Gate & Value & Status \\
 Paired valid cases & 3 & Pass \\
 Methods & 3 & Pass \\
 Blinded VLM review & Present & Pass \\
-Paper-grade perceptual metrics & Not detected & Not established \\
+Paper-grade perceptual metrics & Partially present & Pass \\
 Claim status & Exploratory & Caveat \\
 \bottomrule
 \end{tabular}
@@ -47,134 +47,38 @@ Claim status & Exploratory & Caveat \\
 \item Temporal offsets: [1, 5]
 \item Blinding: True
 \end{itemize}
-\section*{Metric Definitions and Motivation}
-\subsection*{SSIM}
-\textit{Computed in this run}
-\begin{equation*}
-\mathrm{SSIM}(x,y)=\frac{(2\mu_x\mu_y+C_1)(2\sigma_{xy}+C_2)}{(\mu_x^2+\mu_y^2+C_1)(\sigma_x^2+\sigma_y^2+C_2)}
-\end{equation*}
-\textbf{Motivation.} SSIM compares local luminance, contrast, and structure instead of raw pixel error. It is useful for detecting geometric and structural changes, but strong stylization legitimately changes contrast and texture.
-\textbf{Interpretation and reporting caveat.} Interpret it as a content diagnostic, not a perceptual style score.
-\subsection*{PSNR}
-\textit{Computed in this run}
-\begin{equation*}
-\mathrm{PSNR}=10\log_{10}\!\left(\frac{\mathrm{MAX}^2}{\mathrm{MSE}}\right)
-\end{equation*}
-\textbf{Motivation.} PSNR converts mean squared error into a logarithmic scale and gives a quick, deterministic fidelity diagnostic. It is sensitive to global color shifts, compression, and resolution differences.
-\textbf{Interpretation and reporting caveat.} Do not treat a small PSNR change as a proportional change in perceived quality.
-\subsection*{LPIPS}
-\textit{Not provided in this run; definition retained for paper-grade extension}
-\begin{equation*}
-\mathrm{LPIPS}(x,y)=\sum_l\frac{1}{H_lW_l}\sum_{h,w}\left\|w_l\odot(\hat\phi_l(x)_{h,w}-\hat\phi_l(y)_{h,w})\right\|_2^2
-\end{equation*}
-\textbf{Motivation.} LPIPS compares normalized deep features and aligns better with perceptual similarity than pixel metrics. It is preferred as preservation evidence when a fixed LPIPS implementation is available.
-\textbf{Interpretation and reporting caveat.} The network, preprocessing, and weights must be identical across every compared method.
-\subsection*{CLIP-F}
-\textit{Not provided in this run; definition retained for paper-grade extension}
-\begin{equation*}
-\mathrm{CLIP\text{-}F}(R,I)=100\cos\!\left(\phi_I(R),\phi_I(I)\right)
-\end{equation*}
-\textbf{Motivation.} CLIP-F measures whether the stylized and original frames retain the same image-level semantics. It complements structure metrics when appearance changes substantially.
-\textbf{Interpretation and reporting caveat.} Image-level embeddings can miss local identity, boundary, and occlusion errors.
-\subsection*{CLIP-I}
-\textit{Not provided in this run; definition retained for paper-grade extension}
-\begin{equation*}
-\mathrm{CLIP\text{-}I}(R,S)=100\cos\!\left(\phi_I(R),\phi_I(S)\right)
-\end{equation*}
-\textbf{Motivation.} CLIP-I provides a content-robust global signal for whether the generated frame and style reference occupy a similar semantic visual space. It is one component of style evidence, not a texture-transfer proof.
-\textbf{Interpretation and reporting caveat.} Report it comparatively and supplement it with texture-specific features or blinded review.
-\subsection*{FID}
-\textit{Not provided in this run; definition retained for paper-grade extension}
-\begin{equation*}
-\mathrm{FID}=\left\|\mu_s-\mu_g\right\|_2^2+\operatorname{Tr}\!\left(\Sigma_s+\Sigma_g-2(\Sigma_s\Sigma_g)^{1/2}\right)
-\end{equation*}
-\textbf{Motivation.} FID compares Inception feature distributions, so it can capture style-set mismatch beyond single-image color statistics. It requires a meaningful distribution of reference and generated frames.
-\textbf{Interpretation and reporting caveat.} A single style image is not a valid FID style distribution. Record image count, resolution, and preprocessing.
-\subsection*{ArtFID}
-\textit{Not provided in this run; definition retained for paper-grade extension}
-\begin{equation*}
-\mathrm{ArtFID}=\left(1+\frac{1}{N}\sum_i\mathrm{LPIPS}(I_i,R_i)\right)\left(1+\mathrm{FID}(R,S)\right)
-\end{equation*}
-\textbf{Motivation.} ArtFID combines perceptual content preservation and style-distribution distance in one number. The product makes a method visible when it improves one factor while degrading the other.
-\textbf{Interpretation and reporting caveat.} Do not use it unless its LPIPS and FID components follow the cited, fixed implementation.
-\subsection*{LAB palette W1}
-\textit{Computed in this run}
-\begin{equation*}
-W_{1,c}=\frac{1}{255}\sum_{k=0}^{255}\left|F^{\mathrm{frame}}_c(k)-F^{\mathrm{style}}_c(k)\right|,\qquad \mathrm{PaletteW1}=100\cdot\frac{1}{|C|}\sum_{c\in C}W_{1,c}
-\end{equation*}
-\textbf{Motivation.} This inexpensive diagnostic summarizes marginal LAB color alignment. It is useful for detecting global recoloring and palette mismatch before expensive perceptual metrics.
-\textbf{Interpretation and reporting caveat.} It does not measure brushwork, texture attachment, composition, or style semantics.
-\subsection*{Source-flow warping RMSE}
-\textit{Computed in this run}
-\begin{equation*}
-\mathrm{WarpRMSE}_{\Delta}=\sqrt{\frac{\sum_x M_t(x)\left\|R_t(x)-W(R_{t+\Delta})(x)\right\|_2^2}{\sum_x M_t(x)}}
-\end{equation*}
-\textbf{Motivation.} Source optical flow supplies the expected motion. Warping a later output frame back with that flow isolates drift and flicker from legitimate scene motion; occluded pixels are masked.
-\textbf{Interpretation and reporting caveat.} The result inherits the flow estimator's errors; Farneback is a diagnostic proxy, not RAFT.
-\subsection*{Flow endpoint error}
-\textit{Computed in this run}
-\begin{equation*}
-\mathrm{EPE}_{\Delta}=\frac{1}{|\Omega|}\sum_{x\in\Omega}\left\|F^R_t(x)-F^I_t(x)\right\|_2
-\end{equation*}
-\textbf{Motivation.} EPE measures whether stylization changes the estimated displacement between frames. It is sensitive to motion alteration and can reveal propagation failures that still images miss.
-\textbf{Interpretation and reporting caveat.} Texture changes can create spurious flow; use the same estimator and occlusion handling for every method.
-\subsection*{Flow-field correlation}
-\textit{Computed in this run}
-\begin{equation*}
-\rho_{\Delta}=\operatorname{corr}\!\left(\operatorname{vec}(F^R_t),\operatorname{vec}(F^I_t)\right)
-\end{equation*}
-\textbf{Motivation.} Correlation measures agreement in motion direction independently of the flow magnitude emphasized by EPE. Together they separate directional corruption from displacement scaling.
-\textbf{Interpretation and reporting caveat.} It is a global summary and may hide localized motion errors.
-\subsection*{Temporal LPIPS (tLP)}
-\textit{Not provided in this run; definition retained for paper-grade extension}
-\begin{equation*}
-\mathrm{tLP}=\frac{1}{T-\Delta}\sum_t\mathrm{LPIPS}\!\left(R_t,W(R_{t+\Delta})\right)
-\end{equation*}
-\textbf{Motivation.} tLP replaces pixel error in warping analysis with a perceptual deep-feature error, making texture and structure instability easier to detect than raw L2 differences.
-\textbf{Interpretation and reporting caveat.} Use a fixed LPIPS network and report the temporal offset.
-\subsection*{CLIP temporal consistency}
-\textit{Not provided in this run; definition retained for paper-grade extension}
-\begin{equation*}
-\mathrm{CLIP\text{-}CONS}=100\cos\!\left(\phi(R_{t+1})-\phi(R_t),\phi(I_{t+1})-\phi(I_t)\right)
-\end{equation*}
-\textbf{Motivation.} CLIP-CONS asks whether semantic change between adjacent stylized frames follows the semantic change in the source. It complements pixel warping when content is stylized heavily.
-\textbf{Interpretation and reporting caveat.} It measures semantic change agreement, not spatial alignment or flicker.
-\subsection*{Detrended luminance flicker}
-\textit{Computed in this run}
-\begin{equation*}
-F=\sqrt{\frac{1}{T}\sum_t\left(l_t-(at+b)\right)^2},\quad l_t=\operatorname{mean}(\operatorname{luma}(R_t))
-\end{equation*}
-\textbf{Motivation.} Removing a linear luminance trend distinguishes intentional exposure or scene changes from abrupt global flicker. The measure is cheap and directly targets one common VST artifact.
-\textbf{Interpretation and reporting caveat.} It ignores local flicker and texture sticking, which require motion-aware or visual review.
-\subsection*{Blinded VLM score}
-\textit{Computed in this run}
-\begin{equation*}
-\bar S_{d,m}=\frac{1}{R}\sum_{r=1}^{R}\frac{1}{|C_{\mathrm{valid}}|}\sum_{c\in C_{\mathrm{valid}}}s_{r,c,m,d},\quad s\in\{1,\ldots,5\}
-\end{equation*}
-\textbf{Motivation.} The rubric captures style adherence, content preservation, temporal stability, artifact control, and overall quality when automated metrics cannot separate texture and motion failures. Per-case blinded labels reduce method-identity bias.
-\textbf{Interpretation and reporting caveat.} VLM judgments are perceptual evidence, not ground truth; record model version and use multiple independent reviewers for paper-level claims.
-\subsection*{Runtime and peak memory}
-\textit{Computed in this run}
-\begin{equation*}
-\mathrm{Runtime}_m=\frac{1}{|C|}\sum_c t_{c,m},\qquad \mathrm{PeakMem}_m=\max_c p_{c,m}
-\end{equation*}
-\textbf{Motivation.} Quality comparisons are incomplete without deployment cost. Mean runtime captures expected latency, while maximum peak memory captures the worst observed resource requirement.
-\textbf{Interpretation and reporting caveat.} Measure on identical hardware, precision, resolution, and batch settings; report both mean and peak.
-\section*{Data and Paired Design}
+\subsection*{Metrics at a glance}
 \begin{table}[H]
 \centering
-\caption{Paired evaluation cases and valid method subset.}
-\label{tab:dataset}
+\caption{Metrics, dimensions, preferred direction and unit in this run.}
+\label{tab:metrics-glance}
 \small
-\begin{tabularx}{\linewidth}{@{}lXlX@{}}
+\begin{tabular}{@{}llll@{}}
 \toprule
-Case & Content / Style & Split & Valid methods \\
+Metric & Dimension & Direction & Unit \\
 \midrule
-demo\_case\_01 & content\_01 / style\_01 & synthetic\_demo & Simulated balanced, Simulated flicker, Simulated overlay \\
-demo\_case\_02 & content\_02 / style\_02 & synthetic\_demo & Simulated balanced, Simulated flicker, Simulated overlay \\
-demo\_case\_03 & content\_03 / style\_03 & synthetic\_demo & Simulated balanced, Simulated flicker, Simulated overlay \\
+CSD-S style consistency & Style & ↑ & cosine \\
+SSIM & Content & ↑ & -- \\
+PSNR & Content & ↑ & dB \\
+CSD-C content consistency & Content & ↑ & cosine \\
+LAB palette W1 & Style & ↓ & normalized x100 \\
+LAB chroma palette W1 & Style & ↓ & normalized x100 \\
+OFFSET 1 WARP RMSE & Temporal & ↓ & RGB levels \\
+OFFSET 5 WARP RMSE & Temporal & ↓ & RGB levels \\
+OFFSET 1 FLOW EPE & Motion & ↓ & px \\
+OFFSET 1 FLOW CORRELATION & Motion & ↑ & -- \\
+Detrended luminance flicker & Temporal & ↓ & gray levels \\
+VBench subject consistency & Temporal & ↑ & 0-1 \\
+VBench background consistency & Temporal & ↑ & 0-1 \\
+VBench temporal flickering & Temporal & ↑ & 0-1 \\
+VBench motion smoothness & Motion & ↑ & 0-1 \\
+VBench dynamic degree & Motion & ↑ & 0-1 \\
+VBench aesthetic quality & Video quality & ↑ & 0-1 \\
+VBench imaging quality & Video quality & ↑ & MUSIQ 0-100 \\
+Runtime & Cost & ↓ & s \\
+Peak GPU memory & Cost & ↓ & GB \\
 \bottomrule
-\end{tabularx}
+\end{tabular}
 \end{table}
 \section*{Experimental Results}
 \begin{table}[H]
@@ -187,6 +91,7 @@ demo\_case\_03 & content\_03 / style\_03 & synthetic\_demo & Simulated balanced,
 \toprule
 Metric & Simulated balanced & Simulated flicker & Simulated overlay \\
 \midrule
+CSD-S style consistency $\uparrow$ & \textbf{$0.9300 \pm 0.0086$} & $0.8118 \pm 0.0073$ & \underline{$0.8813 \pm 0.0109$} \\
 LAB palette W1 $\downarrow$ & $9.0208 \pm 0.5445$ & \textbf{$7.4201 \pm 0.5347$} & \underline{$8.0416 \pm 0.9411$} \\
 LAB chroma palette W1 $\downarrow$ & \underline{$3.1765 \pm 1.3380$} & \textbf{$1.8824 \pm 1.0178$} & $4.6879 \pm 0.4238$ \\
 \bottomrule
@@ -205,6 +110,7 @@ Metric & Simulated balanced & Simulated flicker & Simulated overlay \\
 \midrule
 SSIM $\uparrow$ & \textbf{$0.9290 \pm 0.0165$} & \underline{$0.8111 \pm 0.0326$} & $0.7153 \pm 0.0149$ \\
 PSNR $\uparrow$ & \textbf{$22.58 \pm 0.9018$} & \underline{$17.54 \pm 0.3337$} & $14.90 \pm 0.3931$ \\
+CSD-C content consistency $\uparrow$ & \textbf{$0.9036 \pm 0.0177$} & \underline{$0.8440 \pm 0.0098$} & $0.8007 \pm 0.0147$ \\
 \bottomrule
 \end{tabular}%
 }
@@ -224,6 +130,27 @@ OFFSET 5 WARP RMSE $\downarrow$ & \textbf{$33.20 \pm 5.2688$} & \underline{$46.1
 OFFSET 1 FLOW EPE $\downarrow$ & \underline{$0.2438 \pm 0.0558$} & $0.5426 \pm 0.3239$ & \textbf{$0.1874 \pm 0.0547$} \\
 OFFSET 1 FLOW CORRELATION $\uparrow$ & \textbf{$0.4268 \pm 0.2381$} & $0.2267 \pm 0.0923$ & \underline{$0.2662 \pm 0.1339$} \\
 Detrended luminance flicker $\downarrow$ & \underline{$0.1035 \pm 0.0619$} & $12.43 \pm 0.4689$ & \textbf{$0.0822 \pm 0.0217$} \\
+VBench subject consistency $\uparrow$ & \textbf{$0.9425 \pm 0.0136$} & $0.8377 \pm 0.0176$ & \underline{$0.8927 \pm 0.0116$} \\
+VBench background consistency $\uparrow$ & \textbf{$0.9355 \pm 0.0019$} & $0.8661 \pm 0.0181$ & \underline{$0.8791 \pm 0.0076$} \\
+VBench temporal flickering $\uparrow$ & \textbf{$0.9607 \pm 0.0175$} & $0.7808 \pm 0.0130$ & \underline{$0.9182 \pm 0.0121$} \\
+VBench motion smoothness $\uparrow$ & \textbf{$0.9854 \pm 0.0074$} & $0.9101 \pm 0.0119$ & \underline{$0.9438 \pm 0.0060$} \\
+VBench dynamic degree $\uparrow$ & \underline{$0.6688 \pm 0.0417$} & $0.6407 \pm 0.0451$ & \textbf{$0.6759 \pm 0.0569$} \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+\begin{table}[H]
+\centering
+\caption{Video quality comparison. Mean and sample standard deviation across valid paired clips. Best and second-best mean values are shown in bold and underlined, respectively. Arrows denote preferred direction. Valid clips: balanced: 3; flicker: 3; overlay: 3.}
+\label{tab:metrics-4}
+\small
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Metric & Simulated balanced & Simulated flicker & Simulated overlay \\
+\midrule
+VBench aesthetic quality $\uparrow$ & \textbf{$0.5302 \pm 0.0135$} & \underline{$0.4643 \pm 0.0164$} & $0.3957 \pm 0.0270$ \\
+VBench imaging quality $\uparrow$ & \textbf{$61.11 \pm 0.3670$} & \underline{$53.92 \pm 2.0326$} & $48.08 \pm 2.1455$ \\
 \bottomrule
 \end{tabular}%
 }
@@ -231,7 +158,7 @@ Detrended luminance flicker $\downarrow$ & \underline{$0.1035 \pm 0.0619$} & $12
 \begin{table}[H]
 \centering
 \caption{Cost comparison. Mean and sample standard deviation across valid paired clips. Best and second-best mean values are shown in bold and underlined, respectively. Arrows denote preferred direction. Valid clips: balanced: 3; flicker: 3; overlay: 3.}
-\label{tab:metrics-4}
+\label{tab:metrics-5}
 \small
 \resizebox{\linewidth}{!}{%
 \begin{tabular}{@{}lccc@{}}
@@ -255,8 +182,13 @@ Metric & $\Delta$ & $d_z$ & 95\% CI & $n$ \\
 \midrule
 SSIM & 0.1180 & 7.1536 & -- & 3 \\
 LAB palette W1 & -1.6007 & -15.05 & -- & 3 \\
+CSD-S style consistency & 0.1182 & 14.21 & -- & 3 \\
+CSD-C content consistency & 0.0596 & 2.4649 & -- & 3 \\
 OFFSET 1 WARP RMSE & 16.08 & 3.9236 & -- & 3 \\
 OFFSET 1 FLOW EPE & 0.2988 & 1.0159 & -- & 3 \\
+VBench motion smoothness & 0.0753 & 6.1394 & -- & 3 \\
+VBench aesthetic quality & 0.0659 & 2.2670 & -- & 3 \\
+VBench imaging quality & 7.1882 & 3.5071 & -- & 3 \\
 Runtime & -3.8000 & n/a & -- & 3 \\
 \bottomrule
 \end{tabular}
@@ -282,33 +214,218 @@ Simulated overlay & 3.33 & 3.00 & 3.00 & 2.00 & 2.00 \\
 \noindent\textbf{Failure tags:} detail loss (3), texture sticking (3), flicker (3), edge ghosting (2), temporal jump (2), texture drift (1), geometry melting (1)\par
 \section*{Analysis and Discussion}
 \subsection*{Style fidelity}
-The available indicators collectively favor Simulated flicker. Reported diagnostics: LAB palette W1 9.0208 ± 0.5445; LAB chroma palette W1 3.1765 ± 1.3380. The blinded style-adherence score is 4.00/5.
+The available indicators collectively favor Simulated flicker. Reported diagnostics: CSD-S style consistency 0.9300 ± 0.0086; LAB palette W1 9.0208 ± 0.5445; LAB chroma palette W1 3.1765 ± 1.3380. The blinded style-adherence score is 4.00/5.
 \subsection*{Content preservation}
-The available indicators collectively favor Simulated balanced. Reported diagnostics: SSIM 0.9290 ± 0.0165; PSNR 22.58 ± 0.9018.
+The available indicators collectively favor Simulated balanced. Reported diagnostics: CSD-C content consistency 0.9036 ± 0.0177; SSIM 0.9290 ± 0.0165; PSNR 22.58 ± 0.9018.
 \subsection*{Motion and temporal stability}
-The available indicators collectively favor Simulated balanced. Reported diagnostics: OFFSET 1 WARP RMSE 31.70 ± 6.7038; OFFSET 5 WARP RMSE 33.20 ± 5.2688; OFFSET 1 FLOW EPE 0.2438 ± 0.0558; Detrended luminance flicker 0.1035 ± 0.0619.
+The available indicators collectively favor Simulated balanced. Reported diagnostics: OFFSET 1 WARP RMSE 31.70 ± 6.7038; OFFSET 5 WARP RMSE 33.20 ± 5.2688; OFFSET 1 FLOW EPE 0.2438 ± 0.0558; Detrended luminance flicker 0.1035 ± 0.0619; VBench subject consistency 0.9425 ± 0.0136; VBench background consistency 0.9355 ± 0.0019; VBench temporal flickering 0.9607 ± 0.0175; VBench motion smoothness 0.9854 ± 0.0074.
+\subsection*{Video quality (VBench)}
+The available indicators collectively favor Simulated balanced. Reported video-quality metrics: VBench aesthetic quality 0.5302 ± 0.0135; VBench imaging quality 61.11 ± 0.3670.
 \subsection*{Perceptual review and failure modes}
 The blinded review gives the highest overall visual quality to Simulated balanced (4.00/5 across 1 reviewer(s)). This reflects preference on the reviewed sample rather than ground-truth quality. The leading failure modes are detail loss (3), texture sticking (3), flicker (3).
 \subsection*{Computational cost}
 The available indicators collectively favor Simulated flicker. The primary method uses runtime 18.80 ± 0.4000 s and peak memory 12.70 ± 0.0000 GB.
 \subsection*{Synthesis}
 The results show a multidimensional trade-off rather than universal dominance; the current evidence does not support a claim that one method is uniformly superior.
-\section*{Limitations and Threats to Validity}
-\begin{itemize}
-\item Content and style distributions may not represent the intended use.
-\item Low-level metrics are sensitive to colorization and compression.
-\item Farneback flow is not RAFT and can fail on large motion or occlusions.
-\item A single style image does not define a valid FID style distribution.
-\item VLM review can have position, content, and prompt bias.
-\item External baseline numbers copied from papers may not use the same settings.
-\item Fewer than five clips do not support a stable comparative confidence interval.
-\end{itemize}
 \section*{Conclusion}
 This report uses 3 synthetic cases to validate the evaluation pipeline and does not provide evidence of real model performance. The tables, perceptual analysis, and conclusions preserve multidimensional evidence and should not be interpreted as a benchmark ranking of EchoStyle or the proposed method.
 \subsection*{Recommendation}
 Use these results to validate the evaluation pipeline and choose the next experiment. Do not treat the synthetic run as model evidence.
 \clearpage
-\section*{Appendix: Per-Case Evidence}
+\section*{Appendix}
+\subsection*{A. Metric definitions and motivation}
+\subsubsection*{SSIM}
+\textit{Computed in this run}
+\begin{equation*}
+\mathrm{SSIM}(x,y)=\frac{(2\mu_x\mu_y+C_1)(2\sigma_{xy}+C_2)}{(\mu_x^2+\mu_y^2+C_1)(\sigma_x^2+\sigma_y^2+C_2)}
+\end{equation*}
+\textbf{Motivation.} SSIM compares local luminance, contrast, and structure instead of raw pixel error. It is useful for detecting geometric and structural changes, but strong stylization legitimately changes contrast and texture.
+\textbf{Interpretation and reporting caveat.} Interpret it as a content diagnostic, not a perceptual style score.
+\subsubsection*{PSNR}
+\textit{Computed in this run}
+\begin{equation*}
+\mathrm{PSNR}=10\log_{10}\!\left(\frac{\mathrm{MAX}^2}{\mathrm{MSE}}\right)
+\end{equation*}
+\textbf{Motivation.} PSNR converts mean squared error into a logarithmic scale and gives a quick, deterministic fidelity diagnostic. It is sensitive to global color shifts, compression, and resolution differences.
+\textbf{Interpretation and reporting caveat.} Do not treat a small PSNR change as a proportional change in perceived quality.
+\subsubsection*{LPIPS}
+\textit{Not provided in this run; definition retained for paper-grade extension}
+\begin{equation*}
+\mathrm{LPIPS}(x,y)=\sum_l\frac{1}{H_lW_l}\sum_{h,w}\left\|w_l\odot(\hat\phi_l(x)_{h,w}-\hat\phi_l(y)_{h,w})\right\|_2^2
+\end{equation*}
+\textbf{Motivation.} LPIPS compares normalized deep features and aligns better with perceptual similarity than pixel metrics. It is preferred as preservation evidence when a fixed LPIPS implementation is available.
+\textbf{Interpretation and reporting caveat.} The network, preprocessing, and weights must be identical across every compared method.
+\subsubsection*{CLIP-F}
+\textit{Not provided in this run; definition retained for paper-grade extension}
+\begin{equation*}
+\mathrm{CLIP\text{-}F}(R,I)=100\cos\!\left(\phi_I(R),\phi_I(I)\right)
+\end{equation*}
+\textbf{Motivation.} CLIP-F measures whether the stylized and original frames retain the same image-level semantics. It complements structure metrics when appearance changes substantially.
+\textbf{Interpretation and reporting caveat.} Image-level embeddings can miss local identity, boundary, and occlusion errors.
+\subsubsection*{CLIP-I}
+\textit{Not provided in this run; definition retained for paper-grade extension}
+\begin{equation*}
+\mathrm{CLIP\text{-}I}(R,S)=100\cos\!\left(\phi_I(R),\phi_I(S)\right)
+\end{equation*}
+\textbf{Motivation.} CLIP-I provides a content-robust global signal for whether the generated frame and style reference occupy a similar semantic visual space. It is one component of style evidence, not a texture-transfer proof.
+\textbf{Interpretation and reporting caveat.} Report it comparatively and supplement it with texture-specific features or blinded review.
+\subsubsection*{FID}
+\textit{Not provided in this run; definition retained for paper-grade extension}
+\begin{equation*}
+\mathrm{FID}=\left\|\mu_s-\mu_g\right\|_2^2+\operatorname{Tr}\!\left(\Sigma_s+\Sigma_g-2(\Sigma_s\Sigma_g)^{1/2}\right)
+\end{equation*}
+\textbf{Motivation.} FID compares Inception feature distributions, so it can capture style-set mismatch beyond single-image color statistics. It requires a meaningful distribution of reference and generated frames.
+\textbf{Interpretation and reporting caveat.} A single style image is not a valid FID style distribution. Record image count, resolution, and preprocessing.
+\subsubsection*{ArtFID}
+\textit{Not provided in this run; definition retained for paper-grade extension}
+\begin{equation*}
+\mathrm{ArtFID}=\left(1+\frac{1}{N}\sum_i\mathrm{LPIPS}(I_i,R_i)\right)\left(1+\mathrm{FID}(R,S)\right)
+\end{equation*}
+\textbf{Motivation.} ArtFID combines perceptual content preservation and style-distribution distance in one number. The product makes a method visible when it improves one factor while degrading the other.
+\textbf{Interpretation and reporting caveat.} Do not use it unless its LPIPS and FID components follow the cited, fixed implementation.
+\subsubsection*{LAB palette W1}
+\textit{Computed in this run}
+\begin{equation*}
+W_{1,c}=\frac{1}{255}\sum_{k=0}^{255}\left|F^{\mathrm{frame}}_c(k)-F^{\mathrm{style}}_c(k)\right|,\qquad \mathrm{PaletteW1}=100\cdot\frac{1}{|C|}\sum_{c\in C}W_{1,c}
+\end{equation*}
+\textbf{Motivation.} This inexpensive diagnostic summarizes marginal LAB color alignment. It is useful for detecting global recoloring and palette mismatch before expensive perceptual metrics.
+\textbf{Interpretation and reporting caveat.} It does not measure brushwork, texture attachment, composition, or style semantics.
+\subsubsection*{Source-flow warping RMSE}
+\textit{Computed in this run}
+\begin{equation*}
+\mathrm{WarpRMSE}_{\Delta}=\sqrt{\frac{\sum_x M_t(x)\left\|R_t(x)-W(R_{t+\Delta})(x)\right\|_2^2}{\sum_x M_t(x)}}
+\end{equation*}
+\textbf{Motivation.} Source optical flow supplies the expected motion. Warping a later output frame back with that flow isolates drift and flicker from legitimate scene motion; occluded pixels are masked.
+\textbf{Interpretation and reporting caveat.} The result inherits the flow estimator's errors; Farneback is a diagnostic proxy, not RAFT.
+\subsubsection*{Flow endpoint error}
+\textit{Computed in this run}
+\begin{equation*}
+\mathrm{EPE}_{\Delta}=\frac{1}{|\Omega|}\sum_{x\in\Omega}\left\|F^R_t(x)-F^I_t(x)\right\|_2
+\end{equation*}
+\textbf{Motivation.} EPE measures whether stylization changes the estimated displacement between frames. It is sensitive to motion alteration and can reveal propagation failures that still images miss.
+\textbf{Interpretation and reporting caveat.} Texture changes can create spurious flow; use the same estimator and occlusion handling for every method.
+\subsubsection*{Flow-field correlation}
+\textit{Computed in this run}
+\begin{equation*}
+\rho_{\Delta}=\operatorname{corr}\!\left(\operatorname{vec}(F^R_t),\operatorname{vec}(F^I_t)\right)
+\end{equation*}
+\textbf{Motivation.} Correlation measures agreement in motion direction independently of the flow magnitude emphasized by EPE. Together they separate directional corruption from displacement scaling.
+\textbf{Interpretation and reporting caveat.} It is a global summary and may hide localized motion errors.
+\subsubsection*{Temporal LPIPS (tLP)}
+\textit{Not provided in this run; definition retained for paper-grade extension}
+\begin{equation*}
+\mathrm{tLP}=\frac{1}{T-\Delta}\sum_t\mathrm{LPIPS}\!\left(R_t,W(R_{t+\Delta})\right)
+\end{equation*}
+\textbf{Motivation.} tLP replaces pixel error in warping analysis with a perceptual deep-feature error, making texture and structure instability easier to detect than raw L2 differences.
+\textbf{Interpretation and reporting caveat.} Use a fixed LPIPS network and report the temporal offset.
+\subsubsection*{CLIP temporal consistency}
+\textit{Not provided in this run; definition retained for paper-grade extension}
+\begin{equation*}
+\mathrm{CLIP\text{-}CONS}=100\cos\!\left(\phi(R_{t+1})-\phi(R_t),\phi(I_{t+1})-\phi(I_t)\right)
+\end{equation*}
+\textbf{Motivation.} CLIP-CONS asks whether semantic change between adjacent stylized frames follows the semantic change in the source. It complements pixel warping when content is stylized heavily.
+\textbf{Interpretation and reporting caveat.} It measures semantic change agreement, not spatial alignment or flicker.
+\subsubsection*{Detrended luminance flicker}
+\textit{Computed in this run}
+\begin{equation*}
+F=\sqrt{\frac{1}{T}\sum_t\left(l_t-(at+b)\right)^2},\quad l_t=\operatorname{mean}(\operatorname{luma}(R_t))
+\end{equation*}
+\textbf{Motivation.} Removing a linear luminance trend distinguishes intentional exposure or scene changes from abrupt global flicker. The measure is cheap and directly targets one common VST artifact.
+\textbf{Interpretation and reporting caveat.} It ignores local flicker and texture sticking, which require motion-aware or visual review.
+\subsubsection*{Blinded VLM score}
+\textit{Computed in this run}
+\begin{equation*}
+\bar S_{d,m}=\frac{1}{R}\sum_{r=1}^{R}\frac{1}{|C_{\mathrm{valid}}|}\sum_{c\in C_{\mathrm{valid}}}s_{r,c,m,d},\quad s\in\{1,\ldots,5\}
+\end{equation*}
+\textbf{Motivation.} The rubric captures style adherence, content preservation, temporal stability, artifact control, and overall quality when automated metrics cannot separate texture and motion failures. Per-case blinded labels reduce method-identity bias.
+\textbf{Interpretation and reporting caveat.} VLM judgments are perceptual evidence, not ground truth; record model version and use multiple independent reviewers for paper-level claims.
+\subsubsection*{Runtime and peak memory}
+\textit{Computed in this run}
+\begin{equation*}
+\mathrm{Runtime}_m=\frac{1}{|C|}\sum_c t_{c,m},\qquad \mathrm{PeakMem}_m=\max_c p_{c,m}
+\end{equation*}
+\textbf{Motivation.} Quality comparisons are incomplete without deployment cost. Mean runtime captures expected latency, while maximum peak memory captures the worst observed resource requirement.
+\textbf{Interpretation and reporting caveat.} Measure on identical hardware, precision, resolution, and batch settings; report both mean and peak.
+\subsubsection*{CSD-S style consistency}
+\textit{Computed in this run}
+\begin{equation*}
+\mathrm{CSD\text{-}S}=\frac{1}{T-1}\sum_{t=1}^{T-1}\cos\!\left(s(f_t),s(f_0)\right)
+\end{equation*}
+\textbf{Motivation.} CSD (contrastive style descriptor) is a CLIP ViT-L/14 image encoder with separate style and content projection heads trained for content-style disentanglement; s(.) is the style head. Comparing every later frame with the first frame measures style drift without folding in content change, which is the 'Style Consis.' column reported by EchoStyle (ECCV 2026).
+\textbf{Interpretation and reporting caveat.} The score is image-level and does not localize drift. Fix the CSD checkpoint, the CLIP preprocessing, and the frame sampling for every method; absolute cosine values are not comparable across different CSD variants.
+\subsubsection*{CSD-C content consistency}
+\textit{Computed in this run}
+\begin{equation*}
+\mathrm{CSD\text{-}C}=\frac{1}{T-1}\sum_{t=1}^{T-1}\cos\!\left(c(f_t),c(f_0)\right)
+\end{equation*}
+\textbf{Motivation.} The content head of the same disentangled CSD model gives the companion drift signal. Separating CSD-S from CSD-C distinguishes a method that keeps its style but slowly melts the content from one that loses both.
+\textbf{Interpretation and reporting caveat.} The content head is a semantic embedding, not a geometric or temporal model. Pair it with source-flow warping error and CLIP-F before concluding that content was preserved.
+\subsubsection*{VBench subject consistency}
+\textit{Computed in this run}
+\begin{equation*}
+\mathrm{SubjectCons}=\frac{1}{T-1}\sum_{t=1}^{T-1}\cos\!\left(d(f_t),d(f_{t+1})\right),\quad d=\mathrm{DINO\text{-}ViT\text{-}S/16}
+\end{equation*}
+\textbf{Motivation.} VBench uses DINO features to ask whether the same subject survives across frames. In video stylization this catches identity morphing and subject-level flicker that palette and pixel metrics miss.
+\textbf{Interpretation and reporting caveat.} It rewards static clips, because an unchanged subject always scores high. Read it together with dynamic degree and motion smoothness, and remember that custom-input VBench runs are not leaderboard-comparable.
+\subsubsection*{VBench background consistency}
+\textit{Computed in this run}
+\begin{equation*}
+\mathrm{BgCons}=\frac{1}{T-1}\sum_{t=1}^{T-1}\cos\!\left(c(f_t),c(f_{t+1})\right),\quad c=\mathrm{CLIP\text{-}ViT\text{-}B/32}
+\end{equation*}
+\textbf{Motivation.} Background consistency tracks whether the scene context drifts or pops between frames. It complements subject consistency: a method can hold the person while repainting the room behind them.
+\textbf{Interpretation and reporting caveat.} CLIP features are coarse and can still mix subject and background; treat the split between subject and background as indicative, not exact.
+\subsubsection*{VBench temporal flickering}
+\textit{Computed in this run}
+\begin{equation*}
+\mathrm{Flicker}=1-\frac{1}{T-1}\sum_{t=1}^{T-1}\operatorname{mean}\left|I_{t+1}-I_t\right|
+\end{equation*}
+\textbf{Motivation.} VBench's pixel-level static consistency term penalizes sudden global changes between adjacent frames. It is a useful sanity check on the diagnostic luminance-flicker measure because it reacts to any channel, not only luma.
+\textbf{Interpretation and reporting caveat.} Pixel differences also punish legitimate fast motion and hard cuts. Do not rank a dynamic clip against a static clip on this metric alone.
+\subsubsection*{VBench motion smoothness}
+\textit{Computed in this run}
+\begin{equation*}
+\mathrm{MotionSmooth}=1-\frac{1}{T-2}\sum_{t=2}^{T-1}\left\|I_t-\mathrm{AMT}(I_{t-1},I_{t+1})\right\|_2^2
+\end{equation*}
+\textbf{Motivation.} VBench interpolates held-out frames with AMT and treats interpolation error as a smoothness signal. Unlike source-to-output flow metrics it does not need a paired source, so it also works when only generated videos are available.
+\textbf{Interpretation and reporting caveat.} The score depends on the AMT checkpoint and partly rewards motion blur or oversmoothing; a blurry result can look 'smooth'.
+\subsubsection*{VBench dynamic degree}
+\textit{Computed in this run}
+\begin{equation*}
+\mathrm{DynDegree}=\frac{1}{|V|}\sum_{v\in V}\mathbf{1}\!\left[\overline{\left|F_v\right|}>\tau\right]
+\end{equation*}
+\textbf{Motivation.} Dynamic degree reports the fraction of clips with enough estimated motion to be considered dynamic. It is VBench's guard against models that pass consistency metrics by generating nearly static videos.
+\textbf{Interpretation and reporting caveat.} Higher is not automatically better: exaggerated motion raises the score while damaging content fidelity. Compare only clips with comparable source motion.
+\subsubsection*{VBench aesthetic quality}
+\textit{Computed in this run}
+\begin{equation*}
+\mathrm{Aesthetic}=\frac{1}{T}\sum_{t=1}^{T}\mathrm{LAION\text{-}Aesthetic}(I_t)
+\end{equation*}
+\textbf{Motivation.} The LAION aesthetic predictor supplies a learned preference score per frame. It is one of the few public signals for the 'does it look good' question that pixel fidelity metrics cannot answer.
+\textbf{Interpretation and reporting caveat.} It is trained on photographic aesthetics and can penalize deliberately painterly, ink-wash, or stylized textures. Never use it as a style-transfer score on its own.
+\subsubsection*{VBench imaging quality}
+\textit{Computed in this run}
+\begin{equation*}
+\mathrm{Imaging}=\frac{1}{T}\sum_{t=1}^{T}\mathrm{MUSIQ}(I_t)
+\end{equation*}
+\textbf{Motivation.} MUSIQ is a no-reference image-quality model, so it can flag compression, blur, and noise artifacts without a ground-truth target. EchoStyle reports this column as 'Imaging Qual.'
+\textbf{Interpretation and reporting caveat.} No-reference quality models can reward oversharpening and may score a heavily textured painting style lower than a clean photo. Report the model version and input resolution.
+\subsection*{B. Dataset and pairing}
+\begin{table}[H]
+\centering
+\caption{Paired evaluation cases and valid method subset.}
+\label{tab:dataset}
+\small
+\begin{tabularx}{\linewidth}{@{}lXlX@{}}
+\toprule
+Case & Content / Style & Split & Valid methods \\
+\midrule
+demo\_case\_01 & content\_01 / style\_01 & synthetic\_demo & Simulated balanced, Simulated flicker, Simulated overlay \\
+demo\_case\_02 & content\_02 / style\_02 & synthetic\_demo & Simulated balanced, Simulated flicker, Simulated overlay \\
+demo\_case\_03 & content\_03 / style\_03 & synthetic\_demo & Simulated balanced, Simulated flicker, Simulated overlay \\
+\bottomrule
+\end{tabularx}
+\end{table}
+\subsection*{C. Per-case outcomes}
 \subsection*{demo\_case\_01}
 \begin{table}[H]
 \centering
@@ -369,5 +486,19 @@ Simulated overlay & 0.7022 & 8.9114 & 56.35 & 0.1766 \\
 \includegraphics[width=\linewidth]{assets/demo\_case\_03.jpg}
 \caption{Blinded source, style, and candidate comparison for demo\_case\_03.}
 \end{figure}
+\subsection*{D. Ablations and trade-offs}
+This report compares observed configurations only. A style-preservation frontier is not established unless the manifest contains a controlled style-strength sweep at fixed content, motion, and seed settings.
+\subsection*{E. Failure gallery}
+The contact sheets above are the visual evidence packet. Failures should be read together with reviewer evidence and timestamps; attractive stills are not sufficient evidence of temporal quality.
+\subsection*{F. Threats to validity}
+\begin{itemize}
+\item Content and style distributions may not represent the intended use.
+\item Low-level metrics are sensitive to colorization and compression.
+\item Farneback flow is not RAFT and can fail on large motion or occlusions.
+\item A single style image does not define a valid FID style distribution.
+\item VLM review can have position, content, and prompt bias.
+\item External baseline numbers copied from papers may not use the same settings.
+\item Fewer than five clips do not support a stable comparative confidence interval.
+\end{itemize}
 \textit{Generated by video-style-transfer-eval.}
 \end{document}

@@ -143,6 +143,60 @@
       "dimension": "diagnostic",
       "higher_is_better": false,
       "unit": "ratio"
+    },
+    "csd_s": {
+      "label": "CSD-S style consistency",
+      "dimension": "style",
+      "higher_is_better": true,
+      "unit": "cosine"
+    },
+    "csd_c": {
+      "label": "CSD-C content consistency",
+      "dimension": "content",
+      "higher_is_better": true,
+      "unit": "cosine"
+    },
+    "vbench_subject_consistency": {
+      "label": "VBench subject consistency",
+      "dimension": "temporal",
+      "higher_is_better": true,
+      "unit": "0-1"
+    },
+    "vbench_background_consistency": {
+      "label": "VBench background consistency",
+      "dimension": "temporal",
+      "higher_is_better": true,
+      "unit": "0-1"
+    },
+    "vbench_temporal_flickering": {
+      "label": "VBench temporal flickering",
+      "dimension": "temporal",
+      "higher_is_better": true,
+      "unit": "0-1"
+    },
+    "vbench_motion_smoothness": {
+      "label": "VBench motion smoothness",
+      "dimension": "motion",
+      "higher_is_better": true,
+      "unit": "0-1"
+    },
+    "vbench_dynamic_degree": {
+      "label": "VBench dynamic degree",
+      "dimension": "motion",
+      "higher_is_better": true,
+      "unit": "0-1"
+    },
+    "vbench_aesthetic_quality": {
+      "label": "VBench aesthetic quality",
+      "dimension": "quality",
+      "higher_is_better": true,
+      "unit": "0-1"
+    },
+    "vbench_imaging_quality": {
+      "label": "VBench imaging quality",
+      "dimension": "quality",
+      "higher_is_better": true,
+      "unit": "MUSIQ 0-100"
     }
   },
   "review_dimensions": [
@@ -233,7 +287,16 @@
             "offset_5_flow_correlation": 0.27582750022411345,
             "offset_5_occlusion_ratio": 0.3240416666666667,
             "runtime_s": 18.4,
-            "peak_memory_gb": 12.7
+            "peak_memory_gb": 12.7,
+            "csd_s": 0.9291,
+            "csd_c": 0.9041,
+            "vbench_subject_consistency": 0.9281,
+            "vbench_background_consistency": 0.9333,
+            "vbench_temporal_flickering": 0.9513,
+            "vbench_motion_smoothness": 0.9836,
+            "vbench_dynamic_degree": 0.6447,
+            "vbench_aesthetic_quality": 0.5446,
+            "vbench_imaging_quality": 60.6922
           }
         },
         "flicker": {
@@ -266,7 +329,16 @@
             "offset_5_flow_correlation": 0.18894443958997725,
             "offset_5_occlusion_ratio": 0.3240416666666667,
             "runtime_s": 14.6,
-            "peak_memory_gb": 9.8
+            "peak_memory_gb": 9.8,
+            "csd_s": 0.8189,
+            "csd_c": 0.8342,
+            "vbench_subject_consistency": 0.8516,
+            "vbench_background_consistency": 0.8735,
+            "vbench_temporal_flickering": 0.766,
+            "vbench_motion_smoothness": 0.8964,
+            "vbench_dynamic_degree": 0.6554,
+            "vbench_aesthetic_quality": 0.4454,
+            "vbench_imaging_quality": 53.4451
           }
         },
         "overlay": {
@@ -299,12 +371,21 @@
             "offset_5_flow_correlation": 0.14302862785756587,
             "offset_5_occlusion_ratio": 0.3240416666666667,
             "runtime_s": 16.1,
-            "peak_memory_gb": 10.4
+            "peak_memory_gb": 10.4,
+            "csd_s": 0.8874,
+            "csd_c": 0.812,
+            "vbench_subject_consistency": 0.906,
+            "vbench_background_consistency": 0.8876,
+            "vbench_temporal_flickering": 0.9214,
+            "vbench_motion_smoothness": 0.9373,
+            "vbench_dynamic_degree": 0.7395,
+            "vbench_aesthetic_quality": 0.4259,
+            "vbench_imaging_quality": 46.4529
           }
         }
       },
       "warnings": [],
-      "contact_sheet": "D:\\_Engineering\\PG\\2026-2027-PG-21\\ARIN5201-CV\\Project_CV\\sample_report\\demo_evaluation\\contact_sheets\\demo_case_01.jpg"
+      "contact_sheet": "contact_sheets/demo_case_01.jpg"
     },
     {
       "id": "demo_case_02",
@@ -386,7 +467,16 @@
             "offset_5_flow_correlation": 0.49011322736740115,
             "offset_5_occlusion_ratio": 0.35841388888888887,
             "runtime_s": 18.799999999999997,
-            "peak_memory_gb": 12.7
+            "peak_memory_gb": 12.7,
+            "csd_s": 0.9391,
+            "csd_c": 0.8857,
+            "vbench_subject_consistency": 0.9442,
+            "vbench_background_consistency": 0.9367,
+            "vbench_temporal_flickering": 0.9499,
+            "vbench_motion_smoothness": 0.9935,
+            "vbench_dynamic_degree": 0.6447,
+            "vbench_aesthetic_quality": 0.5282,
+            "vbench_imaging_quality": 61.3784
           }
         },
         "flicker": {
@@ -419,7 +509,16 @@
             "offset_5_flow_correlation": 0.30172461092472075,
             "offset_5_occlusion_ratio": 0.35841388888888887,
             "runtime_s": 15.0,
-            "peak_memory_gb": 9.8
+            "peak_memory_gb": 9.8,
+            "csd_s": 0.8123,
+            "csd_c": 0.8537,
+            "vbench_subject_consistency": 0.8179,
+            "vbench_background_consistency": 0.8455,
+            "vbench_temporal_flickering": 0.7905,
+            "vbench_motion_smoothness": 0.9175,
+            "vbench_dynamic_degree": 0.6767,
+            "vbench_aesthetic_quality": 0.4753,
+            "vbench_imaging_quality": 52.1706
           }
         },
         "overlay": {
@@ -452,12 +551,21 @@
             "offset_5_flow_correlation": 0.26473180651664735,
             "offset_5_occlusion_ratio": 0.35841388888888887,
             "runtime_s": 16.5,
-            "peak_memory_gb": 10.4
+            "peak_memory_gb": 10.4,
+            "csd_s": 0.8687,
+            "csd_c": 0.7841,
+            "vbench_subject_consistency": 0.8864,
+            "vbench_background_consistency": 0.8767,
+            "vbench_temporal_flickering": 0.9048,
+            "vbench_motion_smoothness": 0.945,
+            "vbench_dynamic_degree": 0.6585,
+            "vbench_aesthetic_quality": 0.3739,
+            "vbench_imaging_quality": 47.2765
           }
         }
       },
       "warnings": [],
-      "contact_sheet": "D:\\_Engineering\\PG\\2026-2027-PG-21\\ARIN5201-CV\\Project_CV\\sample_report\\demo_evaluation\\contact_sheets\\demo_case_02.jpg"
+      "contact_sheet": "contact_sheets/demo_case_02.jpg"
     },
     {
       "id": "demo_case_03",
@@ -539,7 +647,16 @@
             "offset_5_flow_correlation": 0.3178247955441475,
             "offset_5_occlusion_ratio": 0.30545694444444443,
             "runtime_s": 19.2,
-            "peak_memory_gb": 12.7
+            "peak_memory_gb": 12.7,
+            "csd_s": 0.9219,
+            "csd_c": 0.921,
+            "vbench_subject_consistency": 0.9552,
+            "vbench_background_consistency": 0.9364,
+            "vbench_temporal_flickering": 0.9808,
+            "vbench_motion_smoothness": 0.9791,
+            "vbench_dynamic_degree": 0.7169,
+            "vbench_aesthetic_quality": 0.5178,
+            "vbench_imaging_quality": 61.2608
           }
         },
         "flicker": {
@@ -572,7 +689,16 @@
             "offset_5_flow_correlation": 0.2500873878598213,
             "offset_5_occlusion_ratio": 0.30545694444444443,
             "runtime_s": 15.4,
-            "peak_memory_gb": 9.8
+            "peak_memory_gb": 9.8,
+            "csd_s": 0.8043,
+            "csd_c": 0.844,
+            "vbench_subject_consistency": 0.8436,
+            "vbench_background_consistency": 0.8794,
+            "vbench_temporal_flickering": 0.7858,
+            "vbench_motion_smoothness": 0.9164,
+            "vbench_dynamic_degree": 0.5901,
+            "vbench_aesthetic_quality": 0.4722,
+            "vbench_imaging_quality": 56.151
           }
         },
         "overlay": {
@@ -605,12 +731,21 @@
             "offset_5_flow_correlation": 0.2673842120170593,
             "offset_5_occlusion_ratio": 0.30545694444444443,
             "runtime_s": 16.900000000000002,
-            "peak_memory_gb": 10.4
+            "peak_memory_gb": 10.4,
+            "csd_s": 0.8879,
+            "csd_c": 0.8059,
+            "vbench_subject_consistency": 0.8856,
+            "vbench_background_consistency": 0.873,
+            "vbench_temporal_flickering": 0.9283,
+            "vbench_motion_smoothness": 0.9492,
+            "vbench_dynamic_degree": 0.6297,
+            "vbench_aesthetic_quality": 0.3874,
+            "vbench_imaging_quality": 50.5118
           }
         }
       },
       "warnings": [],
-      "contact_sheet": "D:\\_Engineering\\PG\\2026-2027-PG-21\\ARIN5201-CV\\Project_CV\\sample_report\\demo_evaluation\\contact_sheets\\demo_case_03.jpg"
+      "contact_sheet": "contact_sheets/demo_case_03.jpg"
     }
   ],
   "aggregates": {
@@ -767,6 +902,87 @@
         "min": 12.7,
         "max": 12.7,
         "ci95_mean": null
+      },
+      "csd_s": {
+        "n": 3,
+        "mean": 0.9300333333333334,
+        "std": 0.008637900979597607,
+        "median": 0.9291,
+        "min": 0.9219,
+        "max": 0.9391,
+        "ci95_mean": null
+      },
+      "csd_c": {
+        "n": 3,
+        "mean": 0.9036,
+        "std": 0.01765531081572907,
+        "median": 0.9041,
+        "min": 0.8857,
+        "max": 0.921,
+        "ci95_mean": null
+      },
+      "vbench_subject_consistency": {
+        "n": 3,
+        "mean": 0.9425,
+        "std": 0.013629746879527888,
+        "median": 0.9442,
+        "min": 0.9281,
+        "max": 0.9552,
+        "ci95_mean": null
+      },
+      "vbench_background_consistency": {
+        "n": 3,
+        "mean": 0.9354666666666667,
+        "std": 0.0018823743871327176,
+        "median": 0.9364,
+        "min": 0.9333,
+        "max": 0.9367,
+        "ci95_mean": null
+      },
+      "vbench_temporal_flickering": {
+        "n": 3,
+        "mean": 0.9606666666666667,
+        "std": 0.01745002387772961,
+        "median": 0.9513,
+        "min": 0.9499,
+        "max": 0.9808,
+        "ci95_mean": null
+      },
+      "vbench_motion_smoothness": {
+        "n": 3,
+        "mean": 0.9853999999999999,
+        "std": 0.007366817494685241,
+        "median": 0.9836,
+        "min": 0.9791,
+        "max": 0.9935,
+        "ci95_mean": null
+      },
+      "vbench_dynamic_degree": {
+        "n": 3,
+        "mean": 0.6687666666666666,
+        "std": 0.04168468943549094,
+        "median": 0.6447,
+        "min": 0.6447,
+        "max": 0.7169,
+        "ci95_mean": null
+      },
+      "vbench_aesthetic_quality": {
+        "n": 3,
+        "mean": 0.5302,
+        "std": 0.013511476603243597,
+        "median": 0.5282,
+        "min": 0.5178,
+        "max": 0.5446,
+        "ci95_mean": null
+      },
+      "vbench_imaging_quality": {
+        "n": 3,
+        "mean": 61.11046666666667,
+        "std": 0.36697097069568557,
+        "median": 61.2608,
+        "min": 60.6922,
+        "max": 61.3784,
+        "ci95_mean": null
       }
     },
     "flicker": {
@@ -921,6 +1137,87 @@
         "median": 9.8,
         "min": 9.8,
         "max": 9.8,
+        "ci95_mean": null
+      },
+      "csd_s": {
+        "n": 3,
+        "mean": 0.8118333333333334,
+        "std": 0.007311178655547474,
+        "median": 0.8123,
+        "min": 0.8043,
+        "max": 0.8189,
+        "ci95_mean": null
+      },
+      "csd_c": {
+        "n": 3,
+        "mean": 0.8439666666666666,
+        "std": 0.00975004273494906,
+        "median": 0.844,
+        "min": 0.8342,
+        "max": 0.8537,
+        "ci95_mean": null
+      },
+      "vbench_subject_consistency": {
+        "n": 3,
+        "mean": 0.8377,
+        "std": 0.017607668783799893,
+        "median": 0.8436,
+        "min": 0.8179,
+        "max": 0.8516,
+        "ci95_mean": null
+      },
+      "vbench_background_consistency": {
+        "n": 3,
+        "mean": 0.8661333333333333,
+        "std": 0.018110862302312736,
+        "median": 0.8735,
+        "min": 0.8455,
+        "max": 0.8794,
+        "ci95_mean": null
+      },
+      "vbench_temporal_flickering": {
+        "n": 3,
+        "mean": 0.7807666666666666,
+        "std": 0.013002435669263401,
+        "median": 0.7858,
+        "min": 0.766,
+        "max": 0.7905,
+        "ci95_mean": null
+      },
+      "vbench_motion_smoothness": {
+        "n": 3,
+        "mean": 0.9100999999999999,
+        "std": 0.011877289253024031,
+        "median": 0.9164,
+        "min": 0.8964,
+        "max": 0.9175,
+        "ci95_mean": null
+      },
+      "vbench_dynamic_degree": {
+        "n": 3,
+        "mean": 0.6407333333333334,
+        "std": 0.045124531391842,
+        "median": 0.6554,
+        "min": 0.5901,
+        "max": 0.6767,
+        "ci95_mean": null
+      },
+      "vbench_aesthetic_quality": {
+        "n": 3,
+        "mean": 0.4643,
+        "std": 0.016441107018689456,
+        "median": 0.4722,
+        "min": 0.4454,
+        "max": 0.4753,
+        "ci95_mean": null
+      },
+      "vbench_imaging_quality": {
+        "n": 3,
+        "mean": 53.92223333333334,
+        "std": 2.0326431569100714,
+        "median": 53.4451,
+        "min": 52.1706,
+        "max": 56.151,
         "ci95_mean": null
       }
     },
@@ -1077,10 +1374,107 @@
         "min": 10.4,
         "max": 10.4,
         "ci95_mean": null
+      },
+      "csd_s": {
+        "n": 3,
+        "mean": 0.8813333333333334,
+        "std": 0.010943643512712433,
+        "median": 0.8874,
+        "min": 0.8687,
+        "max": 0.8879,
+        "ci95_mean": null
+      },
+      "csd_c": {
+        "n": 3,
+        "mean": 0.8006666666666667,
+        "std": 0.014667765110381792,
+        "median": 0.8059,
+        "min": 0.7841,
+        "max": 0.812,
+        "ci95_mean": null
+      },
+      "vbench_subject_consistency": {
+        "n": 3,
+        "mean": 0.8926666666666666,
+        "std": 0.011553931509807972,
+        "median": 0.8864,
+        "min": 0.8856,
+        "max": 0.906,
+        "ci95_mean": null
+      },
+      "vbench_background_consistency": {
+        "n": 3,
+        "mean": 0.8790999999999999,
+        "std": 0.007590125163658334,
+        "median": 0.8767,
+        "min": 0.873,
+        "max": 0.8876,
+        "ci95_mean": null
+      },
+      "vbench_temporal_flickering": {
+        "n": 3,
+        "mean": 0.9181666666666667,
+        "std": 0.012079045216130818,
+        "median": 0.9214,
+        "min": 0.9048,
+        "max": 0.9283,
+        "ci95_mean": null
+      },
+      "vbench_motion_smoothness": {
+        "n": 3,
+        "mean": 0.9438333333333334,
+        "std": 0.006035174672976199,
+        "median": 0.945,
+        "min": 0.9373,
+        "max": 0.9492,
+        "ci95_mean": null
+      },
+      "vbench_dynamic_degree": {
+        "n": 3,
+        "mean": 0.6759000000000001,
+        "std": 0.05693048392557366,
+        "median": 0.6585,
+        "min": 0.6297,
+        "max": 0.7395,
+        "ci95_mean": null
+      },
+      "vbench_aesthetic_quality": {
+        "n": 3,
+        "mean": 0.3957333333333333,
+        "std": 0.026983019351683624,
+        "median": 0.3874,
+        "min": 0.3739,
+        "max": 0.4259,
+        "ci95_mean": null
+      },
+      "vbench_imaging_quality": {
+        "n": 3,
+        "mean": 48.0804,
+        "std": 2.145543919382683,
+        "median": 47.2765,
+        "min": 46.4529,
+        "max": 50.5118,
+        "ci95_mean": null
       }
     }
   },
   "pairwise": [
+    {
+      "method_a": "balanced",
+      "method_b": "flicker",
+      "metric": "csd_c",
+      "n": 3,
+      "mean_diff_a_minus_b": 0.05963333333333335,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "balanced",
+      "method_b": "flicker",
+      "metric": "csd_s",
+      "n": 3,
+      "mean_diff_a_minus_b": 0.11820000000000004,
+      "ci95_diff": null
+    },
     {
       "method_a": "balanced",
       "method_b": "flicker",
@@ -1215,6 +1609,78 @@
       "metric": "ssim",
       "n": 3,
       "mean_diff_a_minus_b": 0.1179738481363158,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "balanced",
+      "method_b": "flicker",
+      "metric": "vbench_aesthetic_quality",
+      "n": 3,
+      "mean_diff_a_minus_b": 0.0659,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "balanced",
+      "method_b": "flicker",
+      "metric": "vbench_background_consistency",
+      "n": 3,
+      "mean_diff_a_minus_b": 0.06933333333333332,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "balanced",
+      "method_b": "flicker",
+      "metric": "vbench_dynamic_degree",
+      "n": 3,
+      "mean_diff_a_minus_b": 0.028033333333333393,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "balanced",
+      "method_b": "flicker",
+      "metric": "vbench_imaging_quality",
+      "n": 3,
+      "mean_diff_a_minus_b": 7.188233333333334,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "balanced",
+      "method_b": "flicker",
+      "metric": "vbench_motion_smoothness",
+      "n": 3,
+      "mean_diff_a_minus_b": 0.07530000000000003,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "balanced",
+      "method_b": "flicker",
+      "metric": "vbench_subject_consistency",
+      "n": 3,
+      "mean_diff_a_minus_b": 0.10480000000000005,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "balanced",
+      "method_b": "flicker",
+      "metric": "vbench_temporal_flickering",
+      "n": 3,
+      "mean_diff_a_minus_b": 0.17989999999999998,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "balanced",
+      "method_b": "overlay",
+      "metric": "csd_c",
+      "n": 3,
+      "mean_diff_a_minus_b": 0.10293333333333336,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "balanced",
+      "method_b": "overlay",
+      "metric": "csd_s",
+      "n": 3,
+      "mean_diff_a_minus_b": 0.04870000000000004,
       "ci95_diff": null
     },
     {
@@ -1354,6 +1820,78 @@
       "ci95_diff": null
     },
     {
+      "method_a": "balanced",
+      "method_b": "overlay",
+      "metric": "vbench_aesthetic_quality",
+      "n": 3,
+      "mean_diff_a_minus_b": 0.13446666666666665,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "balanced",
+      "method_b": "overlay",
+      "metric": "vbench_background_consistency",
+      "n": 3,
+      "mean_diff_a_minus_b": 0.056366666666666676,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "balanced",
+      "method_b": "overlay",
+      "metric": "vbench_dynamic_degree",
+      "n": 3,
+      "mean_diff_a_minus_b": -0.007133333333333325,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "balanced",
+      "method_b": "overlay",
+      "metric": "vbench_imaging_quality",
+      "n": 3,
+      "mean_diff_a_minus_b": 13.030066666666668,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "balanced",
+      "method_b": "overlay",
+      "metric": "vbench_motion_smoothness",
+      "n": 3,
+      "mean_diff_a_minus_b": 0.041566666666666675,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "balanced",
+      "method_b": "overlay",
+      "metric": "vbench_subject_consistency",
+      "n": 3,
+      "mean_diff_a_minus_b": 0.04983333333333336,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "balanced",
+      "method_b": "overlay",
+      "metric": "vbench_temporal_flickering",
+      "n": 3,
+      "mean_diff_a_minus_b": 0.04249999999999998,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "flicker",
+      "method_b": "overlay",
+      "metric": "csd_c",
+      "n": 3,
+      "mean_diff_a_minus_b": 0.043300000000000005,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "flicker",
+      "method_b": "overlay",
+      "metric": "csd_s",
+      "n": 3,
+      "mean_diff_a_minus_b": -0.0695,
+      "ci95_diff": null
+    },
+    {
       "method_a": "flicker",
       "method_b": "overlay",
       "metric": "lab_ab_palette_w1",
@@ -1488,8 +2026,80 @@
       "n": 3,
       "mean_diff_a_minus_b": 0.0957860420197744,
       "ci95_diff": null
+    },
+    {
+      "method_a": "flicker",
+      "method_b": "overlay",
+      "metric": "vbench_aesthetic_quality",
+      "n": 3,
+      "mean_diff_a_minus_b": 0.06856666666666666,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "flicker",
+      "method_b": "overlay",
+      "metric": "vbench_background_consistency",
+      "n": 3,
+      "mean_diff_a_minus_b": -0.012966666666666645,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "flicker",
+      "method_b": "overlay",
+      "metric": "vbench_dynamic_degree",
+      "n": 3,
+      "mean_diff_a_minus_b": -0.035166666666666714,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "flicker",
+      "method_b": "overlay",
+      "metric": "vbench_imaging_quality",
+      "n": 3,
+      "mean_diff_a_minus_b": 5.841833333333334,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "flicker",
+      "method_b": "overlay",
+      "metric": "vbench_motion_smoothness",
+      "n": 3,
+      "mean_diff_a_minus_b": -0.03373333333333336,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "flicker",
+      "method_b": "overlay",
+      "metric": "vbench_subject_consistency",
+      "n": 3,
+      "mean_diff_a_minus_b": -0.054966666666666684,
+      "ci95_diff": null
+    },
+    {
+      "method_a": "flicker",
+      "method_b": "overlay",
+      "metric": "vbench_temporal_flickering",
+      "n": 3,
+      "mean_diff_a_minus_b": -0.1374,
+      "ci95_diff": null
     }
   ],
   "review_packet": "D:\\_Engineering\\PG\\2026-2027-PG-21\\ARIN5201-CV\\Project_CV\\sample_report\\demo_evaluation\\review_packet\\packet.json",
-  "blind_map": "D:\\_Engineering\\PG\\2026-2027-PG-21\\ARIN5201-CV\\Project_CV\\sample_report\\demo_evaluation\\review_packet\\blind_map.json"
+  "blind_map": "D:\\_Engineering\\PG\\2026-2027-PG-21\\ARIN5201-CV\\Project_CV\\sample_report\\demo_evaluation\\review_packet\\blind_map.json",
+  "evidence_merge": {
+    "files": [
+      {
+        "path": "/Users/jerryli/Documents/GitHub/0x0addc001/video-style-transfer-eval/examples/sample_report/demo_evaluation/external_metrics_synthetic.json",
+        "sha256": "c20bb2636575b37e0b53696843f6d752d9faf71c96db8e1529d45a2e7bae0a9c",
+        "metric_implementation": {
+          "name": "Synthetic CSD/VBench stand-in for the workflow demo",
+          "version_or_commit": "fixed synthetic values from build_external_metrics.py",
+          "device": "none",
+          "resolution": "not applicable",
+          "notes": "Every value in this file is fabricated to demonstrate the merge and report path. Do not cite it as a measurement of EchoStyle or any real model."
+        }
+      }
+    ],
+    "metric_value_count": 81
+  }
 }
