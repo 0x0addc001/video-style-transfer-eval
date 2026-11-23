@@ -174,6 +174,19 @@ TEXT = {
         "executive": "Executive verdict",
         "protocol": "Protocol and reproducibility",
         "metric_definitions": "Metric definitions and motivation",
+        "metrics_glance": "Metrics at a glance",
+        "metric": "Metric",
+        "dimension": "Dimension",
+        "direction": "Direction",
+        "unit": "Unit",
+        "availability": "Availability",
+        "appendix": "Appendix",
+        "appendix_metric_definitions": "A. Metric definitions and motivation",
+        "appendix_dataset": "B. Dataset and pairing",
+        "appendix_per_case": "C. Per-case outcomes",
+        "appendix_ablations": "D. Ablations and trade-offs",
+        "appendix_failures": "E. Failure gallery",
+        "appendix_threats": "F. Threats to validity",
         "motivation": "Motivation",
         "implementation": "Interpretation and reporting caveat",
         "evidence_gates": "Evidence gates",
@@ -260,6 +273,19 @@ TEXT = {
         "executive": "执行摘要",
         "protocol": "评估协议与可复现性",
         "metric_definitions": "指标定义与设计动机",
+        "metrics_glance": "指标速览",
+        "metric": "指标",
+        "dimension": "维度",
+        "direction": "方向",
+        "unit": "单位",
+        "availability": "可用性",
+        "appendix": "附录",
+        "appendix_metric_definitions": "A. 指标定义与设计动机",
+        "appendix_dataset": "B. 数据集与配对",
+        "appendix_per_case": "C. 单案例结果",
+        "appendix_ablations": "D. 消融与权衡",
+        "appendix_failures": "E. 失败案例",
+        "appendix_threats": "F. 有效性威胁",
         "motivation": "设计动机",
         "implementation": "解释与报告注意事项",
         "evidence_gates": "证据完整性检查",
@@ -648,6 +674,49 @@ METRIC_DEFINITIONS = [
 ]
 
 
+METRIC_DIMENSION_LABELS = {
+    "en": {
+        "style": "Style",
+        "content": "Content",
+        "temporal": "Temporal",
+        "motion": "Motion",
+        "quality": "Video quality",
+        "cost": "Cost",
+    },
+    "zh": {
+        "style": "风格",
+        "content": "内容",
+        "temporal": "时序",
+        "motion": "运动",
+        "quality": "视频质量",
+        "cost": "成本",
+    },
+}
+
+
+def metrics_at_a_glance_rows(
+    metrics: dict[str, Any],
+    lang: str,
+) -> list[dict[str, str]]:
+    """Compact one-screen summary of the metrics present in this run."""
+    info_by_metric = metrics.get("metric_info", {})
+    rows = []
+    for metric, _ in KEY_METRICS:
+        info = info_by_metric.get(metric)
+        if not info:
+            continue
+        dimension = info.get("dimension")
+        rows.append(
+            {
+                "label": metric_label(lang, metric, info),
+                "dimension": METRIC_DIMENSION_LABELS[lang].get(dimension, dimension or "—"),
+                "direction": "↑" if info.get("higher_is_better") else "↓",
+                "unit": info.get("unit") or "—",
+            }
+        )
+    return rows
+
+
 def metric_definition_rows(
     metrics: dict[str, Any],
     lang: str,
@@ -745,6 +814,17 @@ def format_stat(summary: dict[str, Any] | None, digits: int = 4) -> str:
     std = format_number(summary.get("std"), digits)
     n = summary.get("n", 0)
     return f"{mean} ± {std} (n={n})"
+
+
+def asset_name(value: Any) -> str:
+    """Basename of a contact-sheet path, tolerating Windows-authored metrics."""
+    return Path(str(value).replace("\\", "/")).name
+
+
+def resolve_asset_source(value: Any, metrics_dir: Path) -> Path:
+    """Resolve a contact-sheet path, accepting relative and Windows-style input."""
+    normalized = Path(str(value).replace("\\", "/"))
+    return normalized if normalized.is_absolute() else metrics_dir / normalized
 
 
 def direction_symbol(metric: str, metric_info: dict[str, Any]) -> str:
@@ -1874,45 +1954,15 @@ def markdown_report(
             f"- {s['temporal_offsets']}: {experiment.get('temporal_offsets', na)}",
             f"- {s['blinding']}: {blind_value}",
             "",
-            f"## {s['metric_definitions']}",
+            f"### {s['metrics_glance']}",
             "",
+            f"| {s['metric']} | {s['dimension']} | {s['direction']} | {s['unit']} |",
+            "|---|---|---|---|",
         ]
     )
-    for definition in metric_definition_rows(metrics, lang):
-        lines.extend(
-            [
-                f"### {definition['name']}",
-                "",
-                f"**{'可用性' if lang == 'zh' else 'Availability'}:** {definition['available']}",
-                "",
-                f"$${definition['formula']}$$",
-                "",
-                f"**{s['motivation']}:** {definition['rationale']}",
-                "",
-                f"**{s['implementation']}:** {definition['caveat']}",
-                "",
-            ]
-        )
-    lines.extend(
-        [
-            f"## {s['dataset']}",
-            "",
-            f"| {s['case']} | {s['content']} | {s['style']} | {s['split']} | "
-            f"{s['valid_methods']} | {s['warnings']} |",
-            "|---|---|---|---|---|---|",
-        ]
-    )
-    for case in metrics.get("cases", []):
-        valid = [
-            labels.get(method_id, method_id)
-            for method_id, result in case.get("methods", {}).items()
-            if result.get("valid")
-        ]
-        warnings = "; ".join(case.get("warnings", [])) or s["none"]
+    for row in metrics_at_a_glance_rows(metrics, lang):
         lines.append(
-            f"| {case.get('id')} | {case.get('content_id') or na} | "
-            f"{case.get('style_id') or na} | {case.get('split')} | "
-            f"{', '.join(valid)} | {warnings} |"
+            f"| {row['label']} | {row['dimension']} | {row['direction']} | {row['unit']} |"
         )
 
     lines.extend(["", f"## {s['quantitative']}", ""])
@@ -2002,9 +2052,64 @@ def markdown_report(
                 [f"### {section['heading']}", "", section["text"], ""]
             )
 
-    lines.extend(["", f"## {s['per_case']}", ""])
+    lines.extend(
+        [
+            "",
+            f"## {s['conclusion']}",
+            "",
+            conclusion,
+            "",
+            f"### {s['recommendation']}",
+            "",
+            recommendation,
+            "",
+            f"## {s['appendix']}",
+            "",
+            f"### {s['appendix_metric_definitions']}",
+            "",
+        ]
+    )
+    for definition in metric_definition_rows(metrics, lang):
+        lines.extend(
+            [
+                f"#### {definition['name']}",
+                "",
+                f"**{s['availability']}:** {definition['available']}",
+                "",
+                f"$${definition['formula']}$$",
+                "",
+                f"**{s['motivation']}:** {definition['rationale']}",
+                "",
+                f"**{s['implementation']}:** {definition['caveat']}",
+                "",
+            ]
+        )
+
+    lines.extend(
+        [
+            f"### {s['appendix_dataset']}",
+            "",
+            f"| {s['case']} | {s['content']} | {s['style']} | {s['split']} | "
+            f"{s['valid_methods']} | {s['warnings']} |",
+            "|---|---|---|---|---|---|",
+        ]
+    )
     for case in metrics.get("cases", []):
-        lines.append(f"### {case.get('id')}")
+        valid = [
+            labels.get(method_id, method_id)
+            for method_id, result in case.get("methods", {}).items()
+            if result.get("valid")
+        ]
+        warnings = "; ".join(case.get("warnings", [])) or s["none"]
+        lines.append(
+            f"| {case.get('id')} | {case.get('content_id') or na} | "
+            f"{case.get('style_id') or na} | {case.get('split')} | "
+            f"{', '.join(valid)} | {warnings} |"
+        )
+
+    lines.extend(["", f"### {s['appendix_per_case']}", ""])
+    for case in metrics.get("cases", []):
+        lines.append(f"#### {case.get('id')}")
         lines.append("")
         lines.append("| " + " | ".join(s["per_case_headers"]) + " |")
         lines.append("|---|---|---|---|---|")
@@ -2024,41 +2129,31 @@ def markdown_report(
                 f"{format_number(values.get('offset_1_flow_epe'))} |"
             )
         if case.get("contact_sheet"):
-            asset_name = Path(case["contact_sheet"]).name
+            name = asset_name(case["contact_sheet"])
             lines.extend(
                 [
                     "",
-                    f"![{s['contact_sheet']} {case.get('id')}](assets/{asset_name})",
+                    f"![{s['contact_sheet']} {case.get('id')}](assets/{name})",
                 ]
             )
         lines.append("")
 
     lines.extend(
         [
-            f"## {s['ablation']}",
+            f"### {s['appendix_ablations']}",
             "",
             s["ablation_text"],
             "",
-            f"## {s['failure_gallery']}",
+            f"### {s['appendix_failures']}",
             "",
             s["failure_text"],
+            "",
+            f"### {s['appendix_threats']}",
+            "",
         ]
     )
-    lines.extend(["", f"## {s['threats']}", ""])
     lines.extend(f"- {threat}" for threat in s["threats_list"])
-    lines.extend(
-        [
-            "",
-            f"## {s['conclusion']}",
-            "",
-            conclusion,
-            "",
-            f"### {s['recommendation']}",
-            "",
-            recommendation,
-            "",
-        ]
-    )
+    lines.extend(["", ""])
     return "\n".join(lines)
 
 
@@ -2180,8 +2275,8 @@ def html_report(
             )
         image = ""
         if case.get("contact_sheet"):
-            asset_name = Path(case["contact_sheet"]).name
-            image = f"<img src='assets/{html.escape(asset_name)}' alt='Contact sheet {html.escape(case.get('id', ''))}'>"
+            name = asset_name(case["contact_sheet"])
+            image = f"<img src='assets/{html.escape(name)}' alt='Contact sheet {html.escape(case.get('id', ''))}'>"
         case_sections.append(
             "<article class='case-card'>"
             f"<h3>{html.escape(case.get('id', ''))}</h3>"
@@ -2219,6 +2314,49 @@ def html_report(
         "</article>"
         for definition in metric_definition_rows(metrics, lang)
     )
+    glance_rows = "".join(
+        f"<tr><td>{html.escape(row['label'])}</td>"
+        f"<td>{html.escape(row['dimension'])}</td>"
+        f"<td>{html.escape(row['direction'])}</td>"
+        f"<td>{html.escape(row['unit'])}</td></tr>"
+        for row in metrics_at_a_glance_rows(metrics, lang)
+    )
+    glance_html = (
+        f"<h3>{html.escape(s['metrics_glance'])}</h3>"
+        "<div class='table-wrap'><table><thead><tr>"
+        f"<th>{html.escape(s['metric'])}</th>"
+        f"<th>{html.escape(s['dimension'])}</th>"
+        f"<th>{html.escape(s['direction'])}</th>"
+        f"<th>{html.escape(s['unit'])}</th>"
+        f"</tr></thead><tbody>{glance_rows}</tbody></table></div>"
+    )
+    dataset_rows = []
+    for case in metrics.get("cases", []):
+        valid = [
+            html.escape(labels.get(method_id, method_id))
+            for method_id, result in case.get("methods", {}).items()
+            if result.get("valid")
+        ]
+        warnings = html.escape("; ".join(case.get("warnings", [])) or s["none"])
+        dataset_rows.append(
+            "<tr>"
+            f"<td>{html.escape(str(case.get('id')))}</td>"
+            f"<td>{html.escape(str(case.get('content_id') or na))}</td>"
+            f"<td>{html.escape(str(case.get('style_id') or na))}</td>"
+            f"<td>{html.escape(str(case.get('split')))}</td>"
+            f"<td>{', '.join(valid)}</td>"
+            f"<td>{warnings}</td>"
+            "</tr>"
+        )
+    dataset_html = (
+        f"<h3>{html.escape(s['appendix_dataset'])}</h3>"
+        "<div class='table-wrap'><table><thead><tr>"
+        f"<th>{html.escape(s['case'])}</th><th>{html.escape(s['content'])}</th>"
+        f"<th>{html.escape(s['style'])}</th><th>{html.escape(s['split'])}</th>"
+        f"<th>{html.escape(s['valid_methods'])}</th><th>{html.escape(s['warnings'])}</th>"
+        f"</tr></thead><tbody>{''.join(dataset_rows)}</tbody></table></div>"
+    )
+
     return f"""<!doctype html>
 <html lang="{lang}">
 <head>
@@ -2266,14 +2404,19 @@ th,td {{ padding:10px 12px; border-bottom:1px solid var(--line); vertical-align:
 </header>
 <section><h2>{html.escape(s['executive'])}</h2><div class="grid">{''.join(f'<div class="finding">{html.escape(item)}</div>' for item in findings)}</div></section>
 <section><h2>{html.escape(s['evidence_gates'])}</h2><div class="table-wrap"><table><thead><tr><th>{html.escape(s['gate'])}</th><th>{html.escape(s['value'])}</th><th>{html.escape(s['status'])}</th></tr></thead><tbody>{evidence_html}</tbody></table></div>
-<p class="small">{html.escape(s['diagnostic_caveat'])}</p></section>
-<section><h2>{html.escape(s['metric_definitions'])}</h2>{metric_defs_html}</section>
+<p class="small">{html.escape(s['diagnostic_caveat'])}</p>{glance_html}</section>
 <section><h2>{html.escape(s['quantitative'])}</h2>{''.join(table_html)}{paired_html}<p class="small">{html.escape(s['metrics_note'])}</p></section>
 <section><h2>{html.escape(s['blind_review'])}</h2><div class="grid">{''.join(review_cards)}</div></section>
 {analysis_html}
-<section><h2>{html.escape(s['per_case'])}</h2><p class="small">{html.escape(s['per_case_note'])}</p>{''.join(case_sections)}</section>
-<section><h2>{html.escape(s['threats'])}</h2><ul>{''.join(f'<li>{html.escape(item)}</li>' for item in s['threats_list'])}</ul></section>
 <section class="recommendation"><h2>{html.escape(s['conclusion'])}</h2><p>{html.escape(conclusion)}</p><h3>{html.escape(s['recommendation'])}</h3><p>{html.escape(recommendation)}</p></section>
+<section class="appendix"><h2>{html.escape(s['appendix'])}</h2>
+<h3>{html.escape(s['appendix_metric_definitions'])}</h3>{metric_defs_html}
+{dataset_html}
+<h3>{html.escape(s['appendix_per_case'])}</h3><p class="small">{html.escape(s['per_case_note'])}</p>{''.join(case_sections)}
+<h3>{html.escape(s['appendix_ablations'])}</h3><p>{html.escape(s['ablation_text'])}</p>
+<h3>{html.escape(s['appendix_failures'])}</h3><p>{html.escape(s['failure_text'])}</p>
+<h3>{html.escape(s['appendix_threats'])}</h3><ul>{''.join(f'<li>{html.escape(item)}</li>' for item in s['threats_list'])}</ul>
+</section>
 <p class="small">{html.escape(s['generated'])}</p>
 </main></body></html>
 """
@@ -2606,35 +2749,20 @@ def pdf_report(
         )
     )
 
-    story.append(Paragraph(html.escape(s["metric_definitions"]), styles["Section"]))
-    for definition in metric_definition_rows(metrics, lang):
-        story.append(
-            Paragraph(html.escape(definition["name"]), styles["Subsection"])
+    story.append(Paragraph(html.escape(s["metrics_glance"]), styles["Subsection"]))
+    story.append(
+        pdf_table(
+            [s["metric"], s["dimension"], s["direction"], s["unit"]],
+            [
+                [row["label"], row["dimension"], row["direction"], row["unit"]]
+                for row in metrics_at_a_glance_rows(metrics, lang)
+            ],
+            178 * mm,
+            font_regular=font_regular,
+            font_bold=font_bold,
+            lang=lang,
         )
-        story.append(
-            Paragraph(
-                f"<b>{html.escape('可用性' if lang == 'zh' else 'Availability')}:</b> "
-                f"{html.escape(definition['available'])}",
-                styles["BodySmall"],
-            )
-        )
-        story.append(
-            Paragraph(html.escape(definition["formula"]), styles["Formula"])
-        )
-        story.append(
-            Paragraph(
-                f"<b>{html.escape(s['motivation'])}:</b> "
-                f"{html.escape(definition['rationale'])}",
-                styles["BodyCJK"],
-            )
-        )
-        story.append(
-            Paragraph(
-                f"<b>{html.escape(s['implementation'])}:</b> "
-                f"{html.escape(definition['caveat'])}",
-                styles["BodySmall"],
-            )
-        )
+    )
 
     story.append(Paragraph(html.escape(s["quantitative"]), styles["Section"]))
     for table_data in metric_tables(metrics, labels, lang):
@@ -2771,7 +2899,89 @@ def pdf_report(
                 Paragraph(html.escape(section["text"]), styles["BodyCJK"])
             )
 
-    story.append(Paragraph(html.escape(s["per_case"]), styles["Section"]))
+    story.append(PageBreak())
+    story.append(Paragraph(html.escape(s["conclusion"]), styles["Section"]))
+    story.append(Paragraph(html.escape(conclusion), styles["BodyCJK"]))
+    story.append(Paragraph(html.escape(s["recommendation"]), styles["Section"]))
+    story.append(Paragraph(html.escape(recommendation), styles["BodyCJK"]))
+
+    story.append(PageBreak())
+    story.append(Paragraph(html.escape(s["appendix"]), styles["Section"]))
+    story.append(
+        Paragraph(
+            html.escape(s["appendix_metric_definitions"]), styles["Subsection"]
+        )
+    )
+    for definition in metric_definition_rows(metrics, lang):
+        story.append(
+            Paragraph(html.escape(definition["name"]), styles["Subsection"])
+        )
+        story.append(
+            Paragraph(
+                f"<b>{html.escape(s['availability'])}:</b> "
+                f"{html.escape(definition['available'])}",
+                styles["BodySmall"],
+            )
+        )
+        story.append(
+            Paragraph(html.escape(definition["formula"]), styles["Formula"])
+        )
+        story.append(
+            Paragraph(
+                f"<b>{html.escape(s['motivation'])}:</b> "
+                f"{html.escape(definition['rationale'])}",
+                styles["BodyCJK"],
+            )
+        )
+        story.append(
+            Paragraph(
+                f"<b>{html.escape(s['implementation'])}:</b> "
+                f"{html.escape(definition['caveat'])}",
+                styles["BodySmall"],
+            )
+        )
+
+    story.append(
+        Paragraph(html.escape(s["appendix_dataset"]), styles["Subsection"])
+    )
+    dataset_rows = []
+    for case in metrics.get("cases", []):
+        valid = [
+            labels.get(method_id, method_id)
+            for method_id, result in case.get("methods", {}).items()
+            if result.get("valid")
+        ]
+        dataset_rows.append(
+            [
+                str(case.get("id")),
+                str(case.get("content_id") or na),
+                str(case.get("style_id") or na),
+                str(case.get("split")),
+                ", ".join(valid),
+                "; ".join(case.get("warnings", [])) or s["none"],
+            ]
+        )
+    story.append(
+        pdf_table(
+            [
+                s["case"],
+                s["content"],
+                s["style"],
+                s["split"],
+                s["valid_methods"],
+                s["warnings"],
+            ],
+            dataset_rows,
+            178 * mm,
+            font_regular=font_regular,
+            font_bold=font_bold,
+            lang=lang,
+        )
+    )
+
+    story.append(
+        Paragraph(html.escape(s["appendix_per_case"]), styles["Subsection"])
+    )
     for case in metrics.get("cases", []):
         story.append(Paragraph(html.escape(str(case.get("id"))), styles["Subsection"]))
         rows = []
@@ -2797,23 +3007,29 @@ def pdf_report(
             )
         )
         if case.get("contact_sheet"):
-            asset_path = output_path.parent / "assets" / Path(case["contact_sheet"]).name
+            asset_path = output_path.parent / "assets" / asset_name(case["contact_sheet"])
             image = fit_rl_image(asset_path, 174 * mm, 92 * mm)
             if image:
                 story.append(Spacer(1, 3 * mm))
                 story.append(image)
         story.append(Spacer(1, 5 * mm))
 
-    closing_block = [Paragraph(html.escape(s["threats"]), styles["Section"])]
+    story.append(
+        Paragraph(html.escape(s["appendix_ablations"]), styles["Subsection"])
+    )
+    story.append(Paragraph(html.escape(s["ablation_text"]), styles["BodyCJK"]))
+    story.append(
+        Paragraph(html.escape(s["appendix_failures"]), styles["Subsection"])
+    )
+    story.append(Paragraph(html.escape(s["failure_text"]), styles["BodyCJK"]))
+    threats_block = [
+        Paragraph(html.escape(s["appendix_threats"]), styles["Subsection"])
+    ]
     for threat in s["threats_list"]:
-        closing_block.append(
+        threats_block.append(
             Paragraph(f"- {html.escape(threat)}", styles["BodySmall"])
         )
-    closing_block.append(Paragraph(html.escape(s["conclusion"]), styles["Section"]))
-    closing_block.append(Paragraph(html.escape(conclusion), styles["BodyCJK"]))
-    closing_block.append(Paragraph(html.escape(s["recommendation"]), styles["Section"]))
-    closing_block.append(Paragraph(html.escape(recommendation), styles["BodyCJK"]))
-    story.append(KeepTogether(closing_block))
+    story.append(KeepTogether(threats_block))
 
     def add_page_number(canvas: Any, document: Any) -> None:
         canvas.saveState()
@@ -2988,56 +3204,40 @@ def latex_report(
             rf"\item {latex_escape(s['temporal_offsets'])}: {latex_escape(experiment.get('temporal_offsets', '--'))}",
             rf"\item {latex_escape(s['blinding'])}: {latex_escape(experiment.get('blind', False))}",
             r"\end{itemize}",
-            rf"\section*{{{latex_escape(labels_text['metric_definitions'])}}}",
+            rf"\subsection*{{{latex_escape(s['metrics_glance'])}}}",
         ]
     )
-    for definition in metric_definition_rows(metrics, lang):
-        lines.extend(
-            [
-                rf"\subsection*{{{latex_escape(definition['name'])}}}",
-                rf"\textit{{{latex_escape(definition['available'])}}}",
-                r"\begin{equation*}",
-                definition["formula_tex"],
-                r"\end{equation*}",
-                rf"\textbf{{{latex_escape(labels_text['motivation'])}.}} {latex_escape(definition['rationale'])}",
-                rf"\textbf{{{latex_escape(labels_text['implementation'])}.}} {latex_escape(definition['caveat'])}",
-            ]
-        )
     lines += [
-            rf"\section*{{{latex_escape(labels_text['dataset'])}}}",
-            r"\begin{table}[H]",
-            r"\centering",
-            r"\caption{"
-            + latex_escape(
-                "配对评估案例及有效方法子集。"
-                if lang == "zh"
-                else "Paired evaluation cases and valid method subset."
-            )
-            + "}",
-            r"\label{tab:dataset}",
-            r"\small",
-            r"\begin{tabularx}{\linewidth}{@{}lXlX@{}}",
-            r"\toprule",
-            rf"{latex_escape(s['case'])} & {latex_escape(s['content'])} / {latex_escape(s['style'])} & {latex_escape(s['split'])} & {latex_escape(s['valid_methods'])} \\",
-            r"\midrule",
-        ]
-    for case in metrics.get("cases", []):
-        valid = [
-            labels.get(method_id, method_id)
-            for method_id, result in case.get("methods", {}).items()
-            if result.get("valid")
-        ]
-        lines.append(
-            f"{latex_escape(case.get('id'))} & "
-            f"{latex_escape(case.get('content_id') or '--')} / {latex_escape(case.get('style_id') or '--')} & "
-            f"{latex_escape(case.get('split'))} & {latex_escape(', '.join(valid))} \\\\"
+        r"\begin{table}[H]",
+        r"\centering",
+        r"\caption{"
+        + latex_escape(
+            "本次运行的指标、维度、偏好方向与单位。"
+            if lang == "zh"
+            else "Metrics, dimensions, preferred direction and unit in this run."
         )
-    lines += [
-        r"\bottomrule",
-        r"\end{tabularx}",
-        r"\end{table}",
-        rf"\section*{{{latex_escape(labels_text['results'])}}}",
+        + "}",
+        r"\label{tab:metrics-glance}",
+        r"\small",
+        r"\begin{tabular}{@{}llll@{}}",
+        r"\toprule",
+        " & ".join(
+            latex_escape(s[key])
+            for key in ("metric", "dimension", "direction", "unit")
+        )
+        + r" \\",
+        r"\midrule",
     ]
+    for row in metrics_at_a_glance_rows(metrics, lang):
+        lines.append(
+            " & ".join(
+                latex_escape(row[key])
+                for key in ("label", "dimension", "direction", "unit")
+            )
+            + r" \\"
+        )
+    lines += [r"\bottomrule", r"\end{tabular}", r"\end{table}"]
+    lines.append(rf"\section*{{{latex_escape(labels_text['results'])}}}")
 
     for table_index, table in enumerate(metric_tables(metrics, labels, lang), start=1):
         columns = "l" + "c" * len(table["method_ids"])
@@ -3177,19 +3377,55 @@ def latex_report(
         )
 
     lines += [
-        rf"\section*{{{latex_escape(labels_text['limitations'])}}}",
-        r"\begin{itemize}",
-    ]
-    lines.extend(rf"\item {latex_escape(threat)}" for threat in s["threats_list"])
-    lines += [
-        r"\end{itemize}",
         rf"\section*{{{latex_escape(labels_text['conclusion'])}}}",
         latex_escape(conclusion),
         rf"\subsection*{{{latex_escape(labels_text['recommendation'])}}}",
         latex_escape(recommendation),
         r"\clearpage",
-        rf"\section*{{{latex_escape(labels_text['appendix'])}}}",
+        rf"\section*{{{latex_escape(s['appendix'])}}}",
+        rf"\subsection*{{{latex_escape(s['appendix_metric_definitions'])}}}",
     ]
+    for definition in metric_definition_rows(metrics, lang):
+        lines += [
+            rf"\subsubsection*{{{latex_escape(definition['name'])}}}",
+            rf"\textit{{{latex_escape(definition['available'])}}}",
+            r"\begin{equation*}",
+            definition["formula_tex"],
+            r"\end{equation*}",
+            rf"\textbf{{{latex_escape(labels_text['motivation'])}.}} {latex_escape(definition['rationale'])}",
+            rf"\textbf{{{latex_escape(labels_text['implementation'])}.}} {latex_escape(definition['caveat'])}",
+        ]
+    lines.append(rf"\subsection*{{{latex_escape(s['appendix_dataset'])}}}")
+    lines += [
+        r"\begin{table}[H]",
+        r"\centering",
+        r"\caption{"
+        + latex_escape(
+            "配对评估案例及有效方法子集。"
+            if lang == "zh"
+            else "Paired evaluation cases and valid method subset."
+        )
+        + "}",
+        r"\label{tab:dataset}",
+        r"\small",
+        r"\begin{tabularx}{\linewidth}{@{}lXlX@{}}",
+        r"\toprule",
+        rf"{latex_escape(s['case'])} & {latex_escape(s['content'])} / {latex_escape(s['style'])} & {latex_escape(s['split'])} & {latex_escape(s['valid_methods'])} \\",
+        r"\midrule",
+    ]
+    for case in metrics.get("cases", []):
+        valid = [
+            labels.get(method_id, method_id)
+            for method_id, result in case.get("methods", {}).items()
+            if result.get("valid")
+        ]
+        lines.append(
+            f"{latex_escape(case.get('id'))} & "
+            f"{latex_escape(case.get('content_id') or '--')} / {latex_escape(case.get('style_id') or '--')} & "
+            f"{latex_escape(case.get('split'))} & {latex_escape(', '.join(valid))} \\\\"
+        )
+    lines += [r"\bottomrule", r"\end{tabularx}", r"\end{table}"]
+    lines.append(rf"\subsection*{{{latex_escape(s['appendix_per_case'])}}}")
     for case in metrics.get("cases", []):
         lines += [
             rf"\subsection*{{{latex_escape(case.get('id'))}}}",
@@ -3220,11 +3456,11 @@ def latex_report(
             lines.append(" & ".join(cells) + r" \\")
         lines += [r"\bottomrule", r"\end{tabular}", r"\end{table}"]
         if case.get("contact_sheet"):
-            asset_name = Path(case["contact_sheet"]).name
+            name = asset_name(case["contact_sheet"])
             lines += [
                 r"\begin{figure}[H]",
                 r"\centering",
-                rf"\includegraphics[width=\linewidth]{{assets/{latex_escape(asset_name)}}}",
+                rf"\includegraphics[width=\linewidth]{{assets/{latex_escape(name)}}}",
                 rf"\caption{{"
                 + latex_escape(
                     f"{case.get('id')} 的盲评源视频、风格参考与候选结果比较。"
@@ -3235,6 +3471,17 @@ def latex_report(
                 + "}",
                 r"\end{figure}",
             ]
+
+    lines.append(rf"\subsection*{{{latex_escape(s['appendix_ablations'])}}}")
+    lines.append(latex_escape(s["ablation_text"]))
+    lines.append(rf"\subsection*{{{latex_escape(s['appendix_failures'])}}}")
+    lines.append(latex_escape(s["failure_text"]))
+    lines += [
+        rf"\subsection*{{{latex_escape(s['appendix_threats'])}}}",
+        r"\begin{itemize}",
+    ]
+    lines.extend(rf"\item {latex_escape(threat)}" for threat in s["threats_list"])
+    lines.append(r"\end{itemize}")
 
     lines += [
         rf"\textit{{{latex_escape(labels_text['generated'])}}}",
@@ -3247,15 +3494,16 @@ def latex_report(
 def copy_contact_sheets(
     metrics: dict[str, Any],
     assets_dir: Path,
+    metrics_dir: Path,
 ) -> None:
     assets_dir.mkdir(parents=True, exist_ok=True)
     for case in metrics.get("cases", []):
         source = case.get("contact_sheet")
         if not source:
             continue
-        source_path = Path(source)
+        source_path = resolve_asset_source(source, metrics_dir)
         if source_path.is_file():
-            shutil.copy2(source_path, assets_dir / source_path.name)
+            shutil.copy2(source_path, assets_dir / asset_name(source))
 
 
 def main() -> None:
@@ -3265,7 +3513,7 @@ def main() -> None:
     status = args.status or infer_status(metrics, review)
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
-    copy_contact_sheets(metrics, args.output_dir / "assets")
+    copy_contact_sheets(metrics, args.output_dir / "assets", args.metrics.parent)
     languages = ["en", "zh"] if args.language == "both" else [args.language]
 
     cjk_regular = "Helvetica"

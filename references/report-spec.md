@@ -1,12 +1,17 @@
 # Evaluation Report Specification
 
-The report must make the evidence behind each conclusion inspectable. Use the following sections in order.
+The report must make the evidence behind each conclusion inspectable, without
+burying the argument. Use a **two-tier structure**: a short core body that a
+reviewer can read in a few minutes, and an appendix that carries the full
+definitions, per-case evidence, and limitations.
 
 Generate Chinese and English variants from the same metrics and review export. The translations must preserve section order, numbers, sample counts, evidence gates, method identities, and limitations. Use manifest `label_zh` values for method names when Chinese wording would otherwise remain ambiguous; never retranslate or silently alter technical metric names.
 
 Every language variant must also have a standalone XeLaTeX source. Use `booktabs` rules, captions above tables, units and preferred directions, mean and dispersion, best/second-best marking, and appendix-level per-case evidence. Keep tables copyable into a CVPR-style paper; avoid dashboard-only visual encodings that disappear in print.
 
-## 1. Header and Claim Status
+## Core body
+
+### 1. Header and Claim Status
 
 Include project, run name, date, evaluator, schema version, split, and one status:
 
@@ -17,7 +22,7 @@ Include project, run name, date, evaluator, schema version, split, and one statu
 
 State the claim in one sentence. Do not write "Method A is better" without naming the dimension, dataset, and comparison.
 
-## 2. Executive Verdict
+### 2. Executive Verdict
 
 Provide 3-5 findings:
 
@@ -29,15 +34,13 @@ Provide 3-5 findings:
 
 Never create an overall scalar score when the dimensions disagree. A recommendation may be conditional on the intended use.
 
-## 3. Protocol and Reproducibility
+### 3. Protocol and Reproducibility
 
-List manifest path/hash, method seed, checkpoint or commit, inference resolution, sampling plan, hardware, runtime, peak memory, metric implementations, reviewer model/version, frame sampling, and missing data.
+List manifest path/hash, method seed, checkpoint or commit, inference resolution, sampling plan, hardware, runtime, peak memory, metric implementations, reviewer model/version, frame sampling, and missing data. Keep this compact: one gate table plus a short bullet list.
 
-## 4. Dataset and Pairing
+Then include **Metrics at a glance**: a one-screen table with metric name, dimension, preferred direction and unit for every metric present in this run. Do not put formulas and caveats here; they belong in Appendix A.
 
-State number of independent clips, content identities, styles, split, temporal offsets, and maximum sampled frames. Confirm every compared method was paired. Identify external baselines whose numbers were copied rather than rerun.
-
-## 5. Quantitative Results
+### 4. Quantitative Results
 
 Separate tables:
 
@@ -51,33 +54,59 @@ Use arrows to show preferred direction. Show `n`, mean, dispersion, and missing 
 
 For paper-facing tables, mark the best and second-best means, explain the marking in the caption, and distinguish a direction-adjusted paired difference from the raw metric difference. Report standardized paired effect size only as descriptive evidence when the sample is small.
 
-Before the quantitative results, include a metric-definition section with the formula, motivation, current-run availability, and interpretation/reporting caveat for every metric shown or proposed for paper-grade evaluation. This includes SSIM, PSNR, LPIPS, CLIP-F, CLIP-I, FID, ArtFID, LAB palette distance, warping error, EPE, flow correlation, tLP, CLIP-CONS, CSD-S, CSD-C, VBench subject/background consistency, VBench temporal flickering, VBench motion smoothness, VBench dynamic degree, VBench aesthetic quality, VBench imaging quality, luminance flicker, VLM aggregation, and runtime/peak-memory cost. Do not hide unavailable metrics; mark them as extensions while retaining their definitions.
-
-## 6. Blinded Visual Review
+### 5. Blinded Visual Review
 
 Report reviewer identity/model, blinding, input type, and agreement across reviewers. Keep the five dimensions separate. Show failure-tag counts and pairwise preferences with supporting frame ranges. Label contact sheets as evidence, not ground truth.
 
-## 7. Per-Case Outcomes
+### 6. Discussion
 
-For each case, show source, style, methods, metrics, and review result. Flag cases where models rank differently from aggregate trends. Do not drop inconvenient cases without a documented validity failure.
+Interpret the observed effects dimension by dimension: style, content, motion and
+temporal stability, video quality, cost, and the synthesis. A style-preservation
+trade-off must be described as a trade-off, not as universal dominance.
 
-## 8. Ablations and Trade-offs
-
-Present controlled effects, not just the best configuration. Use style strength on one axis and preservation/motion on the other. Identify matched-style comparisons.
-
-## 9. Failure Gallery
-
-Include at least one representative artifact against the intended reason. Give timestamp/frame, method, and evidence. If no failure was found, state the sampled scope; do not imply universal robustness.
-
-## 10. Threats to Validity
-
-At minimum discuss content/style leakage, single-reference FID misuse, pixel metrics after stylization, VLM position bias, non-identical baseline settings, compression, flow-estimator mismatch, small sample size, and stochasticity. Also state that VBench custom-input scores are not leaderboard-comparable, and that CSD and VBench consistency dimensions reward static clips unless dynamic degree is reported alongside.
-
-## 11. Conclusion and Recommendation
+### 7. Conclusion and Recommendation
 
 Repeat only claims supported by the earlier tables. Distinguish observed evidence, practical recommendation, and unverified hypothesis.
 
 The conclusion must state whether any method dominates across style, content, motion, and cost. If dimensions disagree, report a trade-off and avoid a universal superiority claim. Explicitly identify when the sample size does not support stable confidence intervals.
+
+## Appendix
+
+The appendix starts on a new page (or after a horizontal rule) and repeats every
+item needed to audit the core claims.
+
+### A. Metric definitions and motivation
+
+For every metric shown or proposed for paper-grade evaluation, state the formula,
+motivation, current-run availability, and interpretation/reporting caveat. This
+includes SSIM, PSNR, LPIPS, CLIP-F, CLIP-I, FID, ArtFID, LAB palette distance,
+warping error, EPE, flow correlation, tLP, CLIP-CONS, CSD-S, CSD-C, VBench
+subject/background consistency, VBench temporal flickering, VBench motion
+smoothness, VBench dynamic degree, VBench aesthetic quality, VBench imaging
+quality, luminance flicker, VLM aggregation, and runtime/peak-memory cost. Do not
+hide unavailable metrics; mark them as extensions while retaining their definitions.
+
+### B. Dataset and pairing
+
+State number of independent clips, content identities, styles, split, temporal offsets, maximum sampled frames, and the per-case pairing table. Confirm every compared method was paired. Identify external baselines whose numbers were copied rather than rerun.
+
+### C. Per-case outcomes
+
+For each case, show source, style, methods, metrics, review result, and the
+contact sheet. Flag cases where models rank differently from aggregate trends. Do
+not drop inconvenient cases without a documented validity failure.
+
+### D. Ablations and trade-offs
+
+Present controlled effects, not just the best configuration. Use style strength on one axis and preservation/motion on the other. Identify matched-style comparisons.
+
+### E. Failure gallery
+
+Include at least one representative artifact against the intended reason. Give timestamp/frame, method, and evidence. If no failure was found, state the sampled scope; do not imply universal robustness.
+
+### F. Threats to validity
+
+At minimum discuss content/style leakage, single-reference FID misuse, pixel metrics after stylization, VLM position bias, non-identical baseline settings, compression, flow-estimator mismatch, small sample size, and stochasticity. Also state that VBench custom-input scores are not leaderboard-comparable, and that CSD and VBench consistency dimensions reward static clips unless dynamic degree is reported alongside.
 
 ## Evidence Gates
 

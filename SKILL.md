@@ -48,7 +48,7 @@ Before choosing metrics or interpreting scores, read [references/evaluation-prot
 
    Replace `METHOD_ID` and `BASELINE_ID` with manifest IDs. Omit those flags only when there is no meaningful primary comparison. `--language both` generates English and Chinese Markdown, HTML, PDF, and LaTeX reports. Use `--title-zh` and `--claim-zh` when the Chinese report needs project-specific wording. Chinese PDFs auto-detect common CJK fonts; pass `--cjk-font PATH` or set `VST_EVAL_CJK_FONT` in minimal environments.
 
-8. Inspect both language versions of the Markdown, HTML, PDF, and LaTeX. Confirm the metric-definition section states each formula, motivation, availability, and reporting caveat. Check the evidence-completeness table before making a comparative or paper-ready claim. Include representative success and failure examples, with timestamps and the corresponding source/style pair.
+8. Inspect both language versions of the Markdown, HTML, PDF, and LaTeX. Confirm the core body stays short (verdict, protocol, metrics at a glance, results, review, conclusion) and that the appendix carries the metric definitions with formula, motivation, availability and caveat, plus the dataset table, per-case evidence, ablations, failures, and threats. Check the evidence-completeness table before making a comparative or paper-ready claim. Include representative success and failure examples, with timestamps and the corresponding source/style pair.
 
 ## Evidence Rules
 
@@ -86,4 +86,4 @@ evaluation_report/
   assets/
 ```
 
-Single-language mode writes `report.md`, `report.html`, `report.pdf`, and `report.tex`. The report uses publication-style tables with mean and dispersion, best and second-best means, direction-adjusted paired effects, evidence-gated analysis, and copyable `booktabs` LaTeX tables. The report sections, evidence gates, language parity, and claim language are fixed by [references/report-spec.md](references/report-spec.md).
+Single-language mode writes `report.md`, `report.html`, `report.pdf`, and `report.tex`. The report uses publication-style tables with mean and dispersion, best and second-best means, direction-adjusted paired effects, evidence-gated analysis, and copyable `booktabs` LaTeX tables. A short core body (verdict, protocol, metrics at a glance, results, review, conclusion) is followed by an appendix holding metric definitions, the dataset table, per-case evidence, ablations, failures, and threats. The report sections, evidence gates, language parity, and claim language are fixed by [references/report-spec.md](references/report-spec.md).

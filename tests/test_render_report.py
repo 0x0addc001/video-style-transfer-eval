@@ -118,6 +118,8 @@ class LocalizedRenderTest(unittest.TestCase):
             chinese_html = (output_dir / "report_zh.html").read_text(encoding="utf-8")
             self.assertIn("Quantitative results", english_html)
             self.assertIn("Analysis and discussion", english_html)
+            self.assertIn("Metrics at a glance", english_html)
+            self.assertIn("Appendix", english_html)
             self.assertIn("Metric definitions and motivation", english_html)
             self.assertIn("定量结果", chinese_html)
             self.assertIn("本文方法", chinese_html)
@@ -125,7 +127,17 @@ class LocalizedRenderTest(unittest.TestCase):
             chinese_tex = (output_dir / "report_zh.tex").read_text(encoding="utf-8")
             self.assertIn(r"\usepackage{booktabs}", english_tex)
             self.assertIn(r"\begin{table}[H]", english_tex)
-            self.assertIn("Metric Definitions and Motivation", english_tex)
+            self.assertIn("A. Metric definitions and motivation", english_tex)
+            self.assertIn(r"\subsection*{Metrics at a glance}", english_tex)
+            # The heavy definitions must sit in the appendix, after the conclusion.
+            self.assertLess(
+                english_tex.index("\\section*{Conclusion}"),
+                english_tex.index("A. Metric definitions and motivation"),
+            )
+            self.assertLess(
+                english_tex.index("\\section*{Conclusion}"),
+                english_tex.index("B. Dataset and pairing"),
+            )
             self.assertIn(r"\documentclass[UTF8,10pt]{ctexart}", chinese_tex)
 
 
