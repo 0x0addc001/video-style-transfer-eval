@@ -564,7 +564,14 @@ METRIC_DEFINITIONS = [
         "id": "warp_rmse",
         "name_en": "Source-flow warping RMSE",
         "name_zh": "源光流重映射 RMSE",
-        "available_keys": ["offset_1_warp_rmse", "offset_5_warp_rmse"],
+        "available_keys": [
+            "offset_1_warp_rmse",
+            "offset_5_warp_rmse",
+            "offset_1_warp_mae",
+            "offset_5_warp_mae",
+            "offset_1_occlusion_ratio",
+            "offset_5_occlusion_ratio",
+        ],
         "formula": "WarpRMSE_d = sqrt(sum_x M_t(x)*||R_t(x) - W(R_(t+d))(x)||_2^2 / sum_x M_t(x))",
         "formula_tex": r"\mathrm{WarpRMSE}_{\Delta}=\sqrt{\frac{\sum_x M_t(x)\left\|R_t(x)-W(R_{t+\Delta})(x)\right\|_2^2}{\sum_x M_t(x)}}",
         "rationale_en": "Source optical flow supplies the expected motion. Warping a later output frame back with that flow isolates drift and flicker from legitimate scene motion; occluded pixels are masked.",
@@ -895,6 +902,7 @@ def key_result_rows(
             {
                 "dimension": METRIC_DIMENSION_LABELS[lang].get(dimension, dimension),
                 "metric": metric_label(lang, metric, info),
+                "metric_id": metric,
                 "values": values,
                 "method_ids": method_order,
                 "best_ids": best_ids,
@@ -1013,7 +1021,13 @@ def data_profile_rows(
 
 def metric_button(metric_id: str, label: str, lang: str) -> str:
     definition = next(
-        (item for item in METRIC_DEFINITIONS if item["id"] == metric_id), None
+        (
+            item
+            for item in METRIC_DEFINITIONS
+            if item["id"] == metric_id
+            or metric_id in item.get("available_keys", [])
+        ),
+        None,
     )
     if definition is None:
         return html.escape(label)
@@ -2912,7 +2926,8 @@ def html_report(
         for row in key_rows:
             cells = [
                 f"<td class='dim'>{html.escape(row['dimension'])}</td>",
-                f"<td class='metric'>{html.escape(row['metric'])}</td>",
+                f"<td class='metric'>"
+                f"{metric_button(row['metric_id'], row['metric'], lang)}</td>",
             ]
             for method_id in method_ids:
                 value = row["values"].get(method_id, "—")
