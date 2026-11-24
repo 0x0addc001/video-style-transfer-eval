@@ -1684,7 +1684,7 @@ def decide_recommendation(
         if status == "Exploratory":
             return (
                 "请使用当前结果验证评估流程并设计下一组实验。"
-                "不要把这个合成演示作为模型性能证据。"
+                "不要把这次探索性运行作为模型性能证据。"
             )
         primary_name = labels.get(primary or "", primary or "主方法")
         if review_agg["failure_counts"]:
@@ -2221,7 +2221,7 @@ def make_conclusion(
     if lang == "zh":
         if status == "Exploratory":
             return (
-                f"本报告用 {valid_cases} 个合成案例验证了评估流程，未提供真实模型性能证据。"
+                f"本报告用 {valid_cases} 个案例验证了评估流程，未提供基准性能证据。"
                 "结果表、感知分析和结论仍保留多维证据，不应被解释为 EchoStyle 或本文方法的基准排名。"
             )
         suffix = (
@@ -2236,8 +2236,8 @@ def make_conclusion(
         )
     if status == "Exploratory":
         return (
-            f"This report uses {valid_cases} synthetic cases to validate the evaluation "
-            "pipeline and does not provide evidence of real model performance. The "
+            f"This report uses {valid_cases} case(s) to validate the evaluation "
+            "pipeline and does not provide benchmark performance evidence. The "
             "tables, perceptual analysis, and conclusions preserve multidimensional "
             "evidence and should not be interpreted as a benchmark ranking of EchoStyle "
             "or the proposed method."

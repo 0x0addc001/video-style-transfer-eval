@@ -1,7 +1,7 @@
 # 视频风格迁移评估报告
 
-**报告 ID:** `VST-20261124T144623-8c45376dabc9`  
-**时间:** 2026-11-24 14:46:23  
+**报告 ID:** `VST-20261124T152535-8c45376dabc9`  
+**时间:** 2026-11-24 15:25:35  
 **证据:** `examples/sample_report/demo_evaluation/metrics.json`  
 **基准:** [video-style-transfer-eval](https://github.com/0x0addc001/video-style-transfer-eval)
 
@@ -191,7 +191,7 @@
 
 ## 结论
 
-本报告用 3 个合成案例验证了评估流程，未提供真实模型性能证据。结果表、感知分析和结论仍保留多维证据，不应被解释为 EchoStyle 或本文方法的基准排名。
+本报告用 3 个案例验证了评估流程，未提供基准性能证据。结果表、感知分析和结论仍保留多维证据，不应被解释为 EchoStyle 或本文方法的基准排名。
 
 ## 备注
 
