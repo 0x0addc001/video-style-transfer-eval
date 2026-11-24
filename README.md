@@ -206,7 +206,8 @@ homepage: Settings → Pages → Deploy from branch → `main` / `/docs`.
   `DASHSCOPE_BASE_URL=https://dashscope-intl.aliyuncs.com/compatible-mode/v1`.
 - **Gemini** (`--provider gemini`): create a key at
   `aistudio.google.com/app/apikey`, then set `GEMINI_API_KEY`. The Gemini API is
-  region-restricted; check that your account region is supported.
+  region-restricted and is **not available in Hong Kong**; leave the key empty and
+  use Qwen-VL only unless you have a supported-region account.
 
 Put them in `~/.config/video-style-transfer-eval/env` (copy `.env.example`,
 `chmod 600`) or export them in your shell. `--env-file PATH` overrides the path.

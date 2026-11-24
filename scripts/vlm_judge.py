@@ -112,7 +112,10 @@ def encode_image(path: Path) -> str:
 def call_gemini(model: str, prompt: str, image_b64: str) -> str:
     api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
-        raise RuntimeError("GEMINI_API_KEY is not set")
+        raise RuntimeError(
+            "GEMINI_API_KEY is not set. The Gemini API is region-restricted and "
+            "is not available in Hong Kong; use --provider qwen instead."
+        )
     url = (
         "https://generativelanguage.googleapis.com/v1beta/models/"
         f"{model}:generateContent?key={api_key}"
