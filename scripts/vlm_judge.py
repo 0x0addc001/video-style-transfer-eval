@@ -58,6 +58,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--provider", choices=("gemini", "qwen"), default="qwen")
     parser.add_argument("--model", default=None)
     parser.add_argument("--limit", type=int, default=0)
+    parser.add_argument(
+        "--env-file",
+        type=Path,
+        default=Path("~/.config/video-style-transfer-eval/env").expanduser(),
+        help="Optional KEY=VALUE file with DASHSCOPE_API_KEY / GEMINI_API_KEY.",
+    )
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--reviewer-id", default="vlm-judge")
     return parser.parse_args()
@@ -190,8 +196,24 @@ def parse_scores(raw: str, case_id: str, labels: list[str]) -> list[dict[str, An
     return scores
 
 
+def load_env_file(path: Path) -> None:
+    """Load simple KEY=VALUE lines without overriding the real environment."""
+    if not path.is_file():
+        return
+    for line in path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        key = key.strip()
+        value = value.strip().strip('"').strip("'")
+        if key and key not in os.environ:
+            os.environ[key] = value
+
+
 def main() -> int:
     args = parse_args()
+    load_env_file(args.env_file)
     blind_map = json.loads(args.blind_map.read_text(encoding="utf-8"))
     model = args.model or ("gemini-2.5-flash" if args.provider == "gemini" else "qwen-vl-max")
     reviews: list[dict[str, Any]] = []

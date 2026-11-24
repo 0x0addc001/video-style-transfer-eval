@@ -195,6 +195,17 @@ The bilingual (English / 中文) sample report is published from
 [docs/index.html](docs/index.html) and can be served as a GitHub Pages
 homepage: Settings → Pages → Deploy from branch → `main` / `/docs`.
 
+## VLM review API keys
+
+`scripts/vlm_judge.py` reads keys from environment variables, never from the repo:
+
+- `DASHSCOPE_API_KEY` for Qwen-VL (`--provider qwen`);
+- `GEMINI_API_KEY` for Gemini (`--provider gemini`).
+
+Put them in `~/.config/video-style-transfer-eval/env` (copy `.env.example`,
+`chmod 600`) or export them in your shell. `--env-file PATH` overrides the path.
+`.env` is gitignored.
+
 ## License
 
 MIT. See [LICENSE](LICENSE).

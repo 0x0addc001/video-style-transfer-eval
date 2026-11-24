@@ -178,6 +178,17 @@ examples/sample_report/
 [中文流程](docs/echostyle-evaluation-plan.zh-CN.md) /
 [English](docs/echostyle-evaluation-plan.md)。
 
+## VLM 评审 API Key
+
+`scripts/vlm_judge.py` 只从环境变量读取 key，不写入仓库：
+
+- Qwen-VL：`DASHSCOPE_API_KEY`；
+- Gemini：`GEMINI_API_KEY`。
+
+推荐放在 `~/.config/video-style-transfer-eval/env`（参考 `.env.example`，
+`chmod 600`），或在 shell 中 export；`--env-file PATH` 可指定其他路径。
+项目根目录的 `.env` 已被 gitignore。
+
 ## 许可证
 
 MIT 许可证，详见 [LICENSE](LICENSE)。

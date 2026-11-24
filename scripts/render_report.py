@@ -211,6 +211,7 @@ TEXT = {
         "mean_duration": "Mean clip duration",
         "resolutions": "Resolution",
         "data_warnings": "Warnings",
+        "notes": "Notes",
         "tool_label": "Benchmark",
         "seed": "Seed",
         "setting": "Setting",
@@ -356,6 +357,7 @@ TEXT = {
         "mean_duration": "平均时长",
         "resolutions": "分辨率",
         "data_warnings": "警告",
+        "notes": "备注",
         "tool_label": "基准",
         "seed": "随机种子",
         "setting": "配置项",
@@ -1019,6 +1021,60 @@ def data_profile_rows(
     ]
 
 
+QUALITATIVE_DEFINITIONS = (
+    {
+        "id": "style_adherence",
+        "name_en": "Style adherence (VLM)",
+        "name_zh": "风格遵循（VLM）",
+        "formula": "score in 1-5 from the blinded contact-sheet rubric",
+        "rationale_en": "The judge sees the style reference, source frames and blinded candidate rows in one contact sheet, then scores how well each candidate follows the requested style. The prompt is fixed and recorded with the review export.",
+        "rationale_zh": "评审模型在同一张 contact sheet 上看到风格参考、源帧和盲化候选行，然后对每个候选的风格遵循程度打 1-5 分；提示词固定并随评审记录保存。",
+        "caveat_en": "Subjective: record the judge model, prompt version and reviewer count; do not compare across different judges.",
+        "caveat_zh": "主观指标：必须记录评审模型、提示词版本和评审次数，不同评审模型之间不可直接比较。",
+    },
+    {
+        "id": "content_preservation",
+        "name_en": "Content preservation (VLM)",
+        "name_zh": "内容保持（VLM）",
+        "formula": "score in 1-5 from the blinded contact-sheet rubric",
+        "rationale_en": "Scores whether the subject, layout and scene semantics survive stylization, using the source frames as the reference.",
+        "rationale_zh": "以源帧为参照，评估主体、构图与场景语义在风格化后是否保留。",
+        "caveat_en": "Image-level judgement; local identity or occlusion errors need the per-case evidence.",
+        "caveat_zh": "图像级判断；局部身份或遮挡错误仍需逐案例证据。",
+    },
+    {
+        "id": "temporal_stability",
+        "name_en": "Temporal stability (VLM)",
+        "name_zh": "时序稳定性（VLM）",
+        "formula": "score in 1-5 from the blinded contact-sheet rubric",
+        "rationale_en": "Scores flicker, jitter and temporal coherence visible across the sampled frames.",
+        "rationale_zh": "根据采样帧之间的闪烁、抖动与时序连贯性打分。",
+        "caveat_en": "Contact sheets sample frames; subtle high-frequency flicker can be missed.",
+        "caveat_zh": "contact sheet 只采样部分帧，细微高频闪烁可能被漏掉。",
+    },
+    {
+        "id": "artifact_control",
+        "name_en": "Artifact control (VLM)",
+        "name_zh": "伪影控制（VLM）",
+        "formula": "score in 1-5 from the blinded contact-sheet rubric",
+        "rationale_en": "Scores visible artifacts such as texture sticking, ghosting, banding and geometric distortion.",
+        "rationale_zh": "对纹理粘连、重影、色带与几何畸变等可见伪影打分。",
+        "caveat_en": "Artifact severity depends on display size; review at the reported resolution.",
+        "caveat_zh": "伪影严重程度与显示尺寸有关，应在报告分辨率下查看。",
+    },
+    {
+        "id": "overall_visual_quality",
+        "name_en": "Overall visual quality (VLM)",
+        "name_zh": "整体视觉质量（VLM）",
+        "formula": "score in 1-5 from the blinded contact-sheet rubric",
+        "rationale_en": "A holistic preference score combining style, content and temporal impression.",
+        "rationale_zh": "综合风格、内容与时序印象的整体偏好分。",
+        "caveat_en": "Do not collapse it into a benchmark claim without per-dimension evidence.",
+        "caveat_zh": "没有各维度证据时，不能把它单独当作基准结论。",
+    },
+)
+
+
 def metric_button(metric_id: str, label: str, lang: str) -> str:
     definition = next(
         (
@@ -1029,6 +1085,11 @@ def metric_button(metric_id: str, label: str, lang: str) -> str:
         ),
         None,
     )
+    if definition is None:
+        definition = next(
+            (item for item in QUALITATIVE_DEFINITIONS if item["id"] == metric_id),
+            None,
+        )
     if definition is None:
         return html.escape(label)
     return (
@@ -1115,6 +1176,18 @@ def parse_args() -> argparse.Namespace:
         help="Timestamp shown in the header, precise to the second.",
     )
     parser.add_argument("--report-id", help="Override the generated report ID.")
+    parser.add_argument(
+        "--note",
+        action="append",
+        default=[],
+        help="Extra note shown in the Notes section below the conclusion.",
+    )
+    parser.add_argument(
+        "--note-zh",
+        action="append",
+        default=[],
+        help="Chinese variant of --note; used when the report language is zh.",
+    )
     parser.add_argument(
         "--skill-url",
         default="https://github.com/0x0addc001/video-style-transfer-eval",
@@ -2289,6 +2362,13 @@ def repo_name_from_url(url: str) -> str:
     return url.rstrip("/").rsplit("/", 1)[-1] or url
 
 
+def report_notes(args: argparse.Namespace, lang: str) -> list[str]:
+    zh_notes = getattr(args, "note_zh", None)
+    if lang == "zh" and zh_notes:
+        return list(zh_notes)
+    return list(getattr(args, "note", []) or [])
+
+
 def report_identity(args: argparse.Namespace, metrics: dict[str, Any]) -> tuple[str, str]:
     """Report ID derived from the timestamp and the manifest evidence hash."""
     evidence = str(metrics.get("manifest_sha256") or "unknown")
@@ -2441,7 +2521,6 @@ def markdown_report(
     )
     for dimension in REVIEW_DIMENSIONS:
         lines.append(f"| {DIMENSION_LABELS[lang][dimension]} | 1-5 |")
-    lines.append(f"| {s['reviewers_count']} | {review_agg.get('reviewer_count', 0)} |")
     lines.append("")
 
     lines.extend(
@@ -2557,6 +2636,11 @@ def markdown_report(
             "",
             conclusion,
             "",
+            *(
+                [f"## {s['notes']}", "", *[f"- {note}" for note in report_notes(args, lang)], ""]
+                if report_notes(args, lang)
+                else []
+            ),
             f"## {s['appendix']}",
             "",
             f"### {s['appendix_metric_definitions']}",
@@ -2878,11 +2962,12 @@ def html_report(
         for family, family_rows in glance_by_family(metrics, lang)
     )
     qual_rows_html = "".join(
-        f"<tr><td>{html.escape(DIMENSION_LABELS[lang][dimension])}</td><td>1-5</td></tr>"
+        "<tr><td>"
+        + metric_button(
+            dimension, DIMENSION_LABELS[lang][dimension], lang
+        )
+        + "</td><td>1-5</td></tr>"
         for dimension in REVIEW_DIMENSIONS
-    ) + (
-        f"<tr><td>{html.escape(s['reviewers_count'])}</td>"
-        f"<td>{review_agg.get('reviewer_count', 0)}</td></tr>"
     )
     metric_config_html = (
         f"<section><h2>{html.escape(s['metrics_by_category'])}</h2>"
@@ -2903,6 +2988,13 @@ def html_report(
         f"<tr><td>{html.escape(label)}</td><td>{html.escape(str(value))}</td></tr>"
         for label, value in data_profile_rows(metrics, lang)
     )
+    notes_html = ""
+    if report_notes(args, lang):
+        notes_html = (
+            f"<section><h2>{html.escape(s['notes'])}</h2><ul>"
+            + "".join(f"<li>{html.escape(note)}</li>" for note in report_notes(args, lang))
+            + "</ul></section>"
+        )
     data_config_html = (
         f"<section><h2>{html.escape(s['data_config'])}</h2>"
         "<div class='table-wrap'><table><thead><tr>"
@@ -3059,6 +3151,7 @@ th,td {{ padding:10px 12px; border-bottom:1px solid var(--line); vertical-align:
 <section><h2>{html.escape(s['blind_review'])}</h2><div class="grid">{''.join(review_cards)}</div></section>
 {analysis_html}
 <section><h2>{html.escape(s['conclusion'])}</h2><p>{html.escape(conclusion)}</p></section>
+{notes_html}
 <section class="appendix"><h2>{html.escape(s['appendix'])}</h2>
 <h3>{html.escape(s['appendix_metric_definitions'])}</h3>{metric_defs_html}
 {dataset_html}
@@ -3490,11 +3583,8 @@ def pdf_report(
         pdf_table(
             [s["dimension"], s["value_label"]],
             [
-                *[
-                    [DIMENSION_LABELS[lang][dimension], "1-5"]
-                    for dimension in REVIEW_DIMENSIONS
-                ],
-                [s["reviewers_count"], str(review_agg.get("reviewer_count", 0))],
+                [DIMENSION_LABELS[lang][dimension], "1-5"]
+                for dimension in REVIEW_DIMENSIONS
             ],
             178 * mm,
             font_regular=font_regular,
@@ -3664,6 +3754,13 @@ def pdf_report(
     story.append(PageBreak())
     story.append(Paragraph(html.escape(s["conclusion"]), styles["Section"]))
     story.append(Paragraph(html.escape(conclusion), styles["BodyCJK"]))
+    if report_notes(args, lang):
+        notes_block = [Paragraph(html.escape(s["notes"]), styles["Section"])]
+        for note in report_notes(args, lang):
+            notes_block.append(
+                Paragraph(f"- {html.escape(note)}", styles["BodySmall"])
+            )
+        story.append(KeepTogether(notes_block))
 
     story.append(PageBreak())
     story.append(Paragraph(html.escape(s["appendix"]), styles["Section"]))
@@ -3974,10 +4071,6 @@ def latex_report(
         rf"{latex_escape(DIMENSION_LABELS[lang][dimension])} & 1-5 \\"
         for dimension in REVIEW_DIMENSIONS
     )
-    lines.append(
-        rf"{latex_escape(s['reviewers_count'])} & "
-        rf"{review_agg.get('reviewer_count', 0)} \\"
-    )
     lines += [r"\bottomrule", r"\end{tabular}"]
     lines.append(rf"\subsection*{{{latex_escape(s['data_config'])}}}")
     lines += [
@@ -4173,6 +4266,13 @@ def latex_report(
     lines += [
         rf"\section*{{{latex_escape(labels_text['conclusion'])}}}",
         latex_escape(conclusion),
+    ]
+    if report_notes(args, lang):
+        lines.append(rf"\section*{{{latex_escape(s['notes'])}}}")
+        lines.append(r"\begin{itemize}")
+        lines.extend(rf"\item {latex_escape(note)}" for note in report_notes(args, lang))
+        lines.append(r"\end{itemize}")
+    lines += [
         r"\clearpage",
         rf"\section*{{{latex_escape(s['appendix'])}}}",
         rf"\subsection*{{{latex_escape(s['appendix_metric_definitions'])}}}",

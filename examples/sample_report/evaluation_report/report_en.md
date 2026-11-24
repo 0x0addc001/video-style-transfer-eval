@@ -1,7 +1,7 @@
 # Video Style Transfer Evaluation Report
 
-**Report ID:** `VST-20261124T143338-8c45376dabc9`  
-**Date:** 2026-11-24 14:33:38  
+**Report ID:** `VST-20261124T144623-8c45376dabc9`  
+**Date:** 2026-11-24 14:46:23  
 **Evidence:** `examples/sample_report/demo_evaluation/metrics.json`  
 **Benchmark:** [video-style-transfer-eval](https://github.com/0x0addc001/video-style-transfer-eval)
 
@@ -49,7 +49,6 @@
 | Temporal stability | 1-5 |
 | Artifact control | 1-5 |
 | Overall visual quality | 1-5 |
-| VLM reviewers | 1 |
 
 ### Data configuration
 
@@ -193,6 +192,10 @@ The results show a multidimensional trade-off rather than universal dominance; t
 ## Conclusion
 
 This report uses 3 synthetic cases to validate the evaluation pipeline and does not provide evidence of real model performance. The tables, perceptual analysis, and conclusions preserve multidimensional evidence and should not be interpreted as a benchmark ranking of EchoStyle or the proposed method.
+
+## Notes
+
+- Synthetic demo clips and stand-in CSD/VBench values; the numbers illustrate the workflow, not model performance.
 
 ## Appendix
 
