@@ -845,6 +845,9 @@ def key_result_rows(
     """One row per evidence family: the headline metric and its paired delta."""
     aggregates = metrics.get("aggregates", {})
     info_by_metric = metrics.get("metric_info", {})
+    if not primary:
+        methods = metrics.get("methods", [])
+        primary = methods[0]["id"] if methods else None
     rows = []
     for dimension, candidates in KEY_RESULT_FAMILIES:
         metric = next(
