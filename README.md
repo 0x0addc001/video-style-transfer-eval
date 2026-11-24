@@ -188,6 +188,12 @@ To evaluate EchoStyle end to end (including HKUST SuperPOD job templates), see t
 runbook in [English](docs/echostyle-evaluation-plan.md) or
 [简体中文](docs/echostyle-evaluation-plan.zh-CN.md).
 
+## Project homepage
+
+The bilingual (English / 中文) sample report is published from
+[docs/index.html](docs/index.html) and can be served as a GitHub Pages
+homepage: Settings → Pages → Deploy from branch → `main` / `/docs`.
+
 ## License
 
 MIT. See [LICENSE](LICENSE).
