@@ -78,6 +78,10 @@ def main() -> None:
   border-radius:8px; cursor:pointer; font-size:14px; color:#17212b; }}
 #lang-menu button:hover {{ background:#eef6f5; }}
 </style>
+<script>
+window.MathJax = {{ tex: {{ inlineMath: [['$', '$']], displayMath: [['$$', '$$']] }}, svg: {{ fontCache: 'global' }} }};
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
 </head>
 <body>
 <div class="lang-switch">

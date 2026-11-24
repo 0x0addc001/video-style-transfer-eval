@@ -1096,7 +1096,7 @@ def metric_button(metric_id: str, label: str, lang: str) -> str:
         return html.escape(label)
     return (
         f"<button class='metric-link' data-name='{html.escape(label, quote=True)}' "
-        f"data-formula='{html.escape(definition['formula'], quote=True)}' "
+        f"data-formula='{html.escape(definition.get('formula_tex') or definition['formula'], quote=True)}' "
         f"data-why='{html.escape(definition[f'rationale_{lang}'], quote=True)}' "
         f"data-caveat='{html.escape(definition[f'caveat_{lang}'], quote=True)}'>"
         f"{html.escape(label)}</button>"
@@ -2910,7 +2910,7 @@ def html_report(
         "<article class='metric-definition'>"
         f"<h3>{html.escape(definition['name'])}</h3>"
         f"<p class='availability'>{html.escape(definition['available'])}</p>"
-        f"<div class='formula'>{html.escape(definition['formula'])}</div>"
+        f"<div class='formula'>${definition['formula_tex']}$</div>"
         f"<p><b>{html.escape(s['motivation'])}:</b> {html.escape(definition['rationale'])}</p>"
         f"<p><b>{html.escape(s['implementation'])}:</b> {html.escape(definition['caveat'])}</p>"
         "</article>"
@@ -3150,6 +3150,10 @@ th,td {{ padding:10px 12px; border-bottom:1px solid var(--line); vertical-align:
 @media print {{ body {{ background:#fff; }} main {{ max-width:none; padding:0; }} header {{ padding:28px 30px; border-radius:0; }} section {{ box-shadow:none; }} .kpi, .review-card, .case-card, tr {{ break-inside:avoid; }} }}
 @media (max-width:700px) {{ main {{ padding:20px 12px 50px; }} header {{ padding:30px 22px; }} header h1 {{ font-size:31px; }} section,.case-card {{ padding:20px; }} .bar-row {{ grid-template-columns:110px 1fr 36px; font-size:12px; }} }}
 </style>
+<script>
+window.MathJax = {{ tex: {{ inlineMath: [['$', '$']], displayMath: [['$$', '$$']] }}, svg: {{ fontCache: 'global' }} }};
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
 </head>
 <body><main>
 <header>
@@ -3197,7 +3201,7 @@ th,td {{ padding:10px 12px; border-bottom:1px solid var(--line); vertical-align:
     card.appendChild(title);
     var formula = document.createElement('div');
     formula.className = 'mm-formula';
-    formula.textContent = link.getAttribute('data-formula') || '';
+    formula.textContent = '$' + (link.getAttribute('data-formula') || '') + '$';
     card.appendChild(formula);
     card.appendChild(line('Motivation', link.getAttribute('data-why') || ''));
     card.appendChild(line('Caveat', link.getAttribute('data-caveat') || ''));
@@ -3205,6 +3209,15 @@ th,td {{ padding:10px 12px; border-bottom:1px solid var(--line); vertical-align:
     var rect = link.getBoundingClientRect();
     card.style.left = Math.max(12, Math.min(rect.left, window.innerWidth - 400)) + 'px';
     card.style.top = (rect.bottom + window.scrollY + 8) + 'px';
+    if (window.MathJax && window.MathJax.typesetPromise) {{
+      window.MathJax.typesetPromise([card]).catch(function () {{}});
+    }} else {{
+      setTimeout(function () {{
+        if (window.MathJax && window.MathJax.typesetPromise) {{
+          window.MathJax.typesetPromise([card]).catch(function () {{}});
+        }}
+      }}, 900);
+    }}
     event.stopPropagation();
   }});
   document.addEventListener('keydown', function (event) {{
