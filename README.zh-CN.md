@@ -182,11 +182,16 @@ examples/sample_report/
 
 `scripts/vlm_judge.py` 只从环境变量读取 key，不写入仓库：
 
-- Qwen-VL：`DASHSCOPE_API_KEY`；
-- Gemini：`GEMINI_API_KEY`。
+- **Qwen-VL**：在阿里云百炼 / Model Studio 控制台创建 key（国内
+  `bailian.console.aliyun.com`，国际 `modelstudio.console.alibabacloud.com`），
+  填 `DASHSCOPE_API_KEY`；国际账号再加
+  `DASHSCOPE_BASE_URL=https://dashscope-intl.aliyuncs.com/compatible-mode/v1`。
+- **Gemini**：在 `aistudio.google.com/app/apikey` 创建 key，填 `GEMINI_API_KEY`；
+  Gemini API 有地区限制，需确认账号所在地区受支持。
 
 推荐放在 `~/.config/video-style-transfer-eval/env`（参考 `.env.example`，
 `chmod 600`），或在 shell 中 export；`--env-file PATH` 可指定其他路径。
+报告主表只用一个评审模型并写明模型名，第二个模型仅做交叉验证，不要平均。
 项目根目录的 `.env` 已被 gitignore。
 
 ## 许可证

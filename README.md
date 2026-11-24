@@ -199,12 +199,19 @@ homepage: Settings → Pages → Deploy from branch → `main` / `/docs`.
 
 `scripts/vlm_judge.py` reads keys from environment variables, never from the repo:
 
-- `DASHSCOPE_API_KEY` for Qwen-VL (`--provider qwen`);
-- `GEMINI_API_KEY` for Gemini (`--provider gemini`).
+- **Qwen-VL** (`--provider qwen`): create a key in the Alibaba Cloud Model Studio /
+  DashScope console (mainland: `bailian.console.aliyun.com`, international:
+  `modelstudio.console.alibabacloud.com`), then set `DASHSCOPE_API_KEY`.
+  International accounts also set
+  `DASHSCOPE_BASE_URL=https://dashscope-intl.aliyuncs.com/compatible-mode/v1`.
+- **Gemini** (`--provider gemini`): create a key at
+  `aistudio.google.com/app/apikey`, then set `GEMINI_API_KEY`. The Gemini API is
+  region-restricted; check that your account region is supported.
 
 Put them in `~/.config/video-style-transfer-eval/env` (copy `.env.example`,
 `chmod 600`) or export them in your shell. `--env-file PATH` overrides the path.
-`.env` is gitignored.
+`.env` is gitignored. Use one judge for the reported table and keep the model
+name in the report; a second judge is only a cross-check, never an average.
 
 ## License
 

@@ -124,7 +124,10 @@ def call_qwen(model: str, prompt: str, image_b64: str) -> str:
     api_key = os.environ.get("DASHSCOPE_API_KEY")
     if not api_key:
         raise RuntimeError("DASHSCOPE_API_KEY is not set")
-    url = "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"
+    base_url = os.environ.get(
+        "DASHSCOPE_BASE_URL", "https://dashscope.aliyuncs.com/compatible-mode/v1"
+    ).rstrip("/")
+    url = f"{base_url}/chat/completions"
     payload = {
         "model": model,
         "messages": [
