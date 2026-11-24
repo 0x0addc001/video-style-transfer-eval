@@ -16,6 +16,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--assets", type=Path, help="Report assets directory to copy.")
     parser.add_argument(
+        "--mathjax-url",
+        default="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js",
+        help="MathJax bundle URL; point to a local file for offline use.",
+    )
+    parser.add_argument(
         "--default-language", choices=("en", "zh"), default="zh"
     )
     return parser.parse_args()
@@ -81,7 +86,7 @@ def main() -> None:
 <script>
 window.MathJax = {{ tex: {{ inlineMath: [['$', '$']], displayMath: [['$$', '$$']] }}, svg: {{ fontCache: 'global' }} }};
 </script>
-<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+<script async src="{args.mathjax_url}"></script>
 </head>
 <body>
 <div class="lang-switch">

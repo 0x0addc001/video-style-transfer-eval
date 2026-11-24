@@ -1196,6 +1196,11 @@ def parse_args() -> argparse.Namespace:
         help="Skill repository linked from the report header.",
     )
     parser.add_argument(
+        "--mathjax-url",
+        default="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js",
+        help="MathJax bundle URL; point to a local file for offline reports.",
+    )
+    parser.add_argument(
         "--pdf-engine",
         choices=("chrome", "reportlab"),
         default="chrome",
@@ -3153,7 +3158,7 @@ th,td {{ padding:10px 12px; border-bottom:1px solid var(--line); vertical-align:
 <script>
 window.MathJax = {{ tex: {{ inlineMath: [['$', '$']], displayMath: [['$$', '$$']] }}, svg: {{ fontCache: 'global' }} }};
 </script>
-<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+<script async src="{html.escape(args.mathjax_url)}"></script>
 </head>
 <body><main>
 <header>
