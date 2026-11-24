@@ -212,6 +212,7 @@ TEXT = {
         "resolutions": "Resolution",
         "data_warnings": "Warnings",
         "notes": "Notes",
+        "review_model": "Review model",
         "tool_label": "Benchmark",
         "seed": "Seed",
         "setting": "Setting",
@@ -358,6 +359,7 @@ TEXT = {
         "resolutions": "分辨率",
         "data_warnings": "警告",
         "notes": "备注",
+        "review_model": "评审模型",
         "tool_label": "基准",
         "seed": "随机种子",
         "setting": "配置项",
@@ -1314,6 +1316,7 @@ def aggregate_reviews(
             "failure_counts": Counter(),
             "preference_counts": {},
             "per_case": {},
+            "models": [],
         }
 
     per_reviewer_method_dimension: dict[
@@ -1376,6 +1379,13 @@ def aggregate_reviews(
                 "reviewer_n": len(values),
             }
 
+    models = sorted(
+        {
+            str(item.get("reviewer", {}).get("model"))
+            for item in review.get("reviews", [])
+            if item.get("reviewer", {}).get("model")
+        }
+    )
     return {
         "reviewer_count": review.get("reviewer_count", len(review.get("reviews", []))),
         "scored_count": scored_count,
@@ -1383,6 +1393,7 @@ def aggregate_reviews(
         "failure_counts": failure_counts,
         "preference_counts": preference_counts,
         "per_case": dict(per_case),
+        "models": models,
     }
 
 
@@ -2326,6 +2337,7 @@ def configuration_rows(
     labels: dict[str, str],
     lang: str,
     evidence_path: str,
+    review_agg: dict[str, Any] | None = None,
 ) -> list[tuple[str, str]]:
     """Reproducibility and test-design details shown in the config table."""
     s = TEXT[lang]
@@ -2345,6 +2357,9 @@ def configuration_rows(
         (s["temporal_offsets"], str(experiment.get("temporal_offsets", "—"))),
         (s["flow_implementation"], str(flow)),
     ]
+    models = (review_agg or {}).get("models") or []
+    if models:
+        rows.append((s["review_model"], ", ".join(models)))
     return rows
 
 
@@ -2494,7 +2509,7 @@ def markdown_report(
         ]
     )
     for label, value in configuration_rows(
-        metrics, labels, lang, str(getattr(args, "metrics", ""))
+        metrics, labels, lang, str(getattr(args, "metrics", "")), review_agg
     ):
         lines.append(f"| {label} | {value} |")
     lines.extend(
@@ -2948,7 +2963,7 @@ def html_report(
     protocol_rows_html = "".join(
         f"<tr><td>{html.escape(label)}</td><td>{html.escape(str(value))}</td></tr>"
         for label, value in configuration_rows(
-            metrics, labels, lang, str(getattr(args, "metrics", ""))
+            metrics, labels, lang, str(getattr(args, "metrics", "")), review_agg
         )
     )
     quant_rows_html = "".join(
@@ -3553,7 +3568,7 @@ def pdf_report(
             [
                 [label, str(value)]
                 for label, value in configuration_rows(
-                    metrics, labels, lang, str(getattr(args, "metrics", ""))
+                    metrics, labels, lang, str(getattr(args, "metrics", "")), review_agg
                 )
             ],
             178 * mm,
@@ -4043,7 +4058,7 @@ def latex_report(
     lines.extend(
         rf"{latex_escape(label)} & {latex_escape(str(value))} \\"
         for label, value in configuration_rows(
-            metrics, labels, lang, str(getattr(args, "metrics", "--"))
+            metrics, labels, lang, str(getattr(args, "metrics", "--")), review_agg
         )
     )
     lines += [r"\bottomrule", r"\end{tabular}"]

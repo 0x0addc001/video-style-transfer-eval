@@ -1,7 +1,7 @@
 # Video Style Transfer Evaluation Report
 
-**Report ID:** `VST-20261124T152535-8c45376dabc9`  
-**Date:** 2026-11-24 15:25:35  
+**Report ID:** `VST-20261124T153142-8c45376dabc9`  
+**Date:** 2026-11-24 15:31:42  
 **Evidence:** `examples/sample_report/demo_evaluation/metrics.json`  
 **Benchmark:** [video-style-transfer-eval](https://github.com/0x0addc001/video-style-transfer-eval)
 
@@ -26,6 +26,7 @@
 | Maximum evaluation side | 320 px |
 | Temporal offsets | [1, 5] |
 | Flow implementation | OpenCV Farneback |
+| Review model | Codex multimodal visual inspection |
 
 ### Metric configuration
 

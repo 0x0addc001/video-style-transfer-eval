@@ -1,7 +1,7 @@
 # 视频风格迁移评估报告
 
-**报告 ID:** `VST-20261124T152535-8c45376dabc9`  
-**时间:** 2026-11-24 15:25:35  
+**报告 ID:** `VST-20261124T153142-8c45376dabc9`  
+**时间:** 2026-11-24 15:31:42  
 **证据:** `examples/sample_report/demo_evaluation/metrics.json`  
 **基准:** [video-style-transfer-eval](https://github.com/0x0addc001/video-style-transfer-eval)
 
@@ -26,6 +26,7 @@
 | 最大评估边长 | 320 px |
 | 时序偏移 | [1, 5] |
 | 光流实现 | OpenCV Farneback |
+| 评审模型 | Codex multimodal visual inspection |
 
 ### 指标配置
 

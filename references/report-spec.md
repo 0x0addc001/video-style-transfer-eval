@@ -52,7 +52,8 @@ A two-column table (`setting`, `value`) with the reproduction details:
 - sampled frames per video;
 - maximum evaluation side;
 - temporal offsets;
-- flow implementation.
+- flow implementation;
+- review model (the VLM judge), when a qualitative review is included.
 
 Then **metric configuration**, split into:
 
