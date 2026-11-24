@@ -201,7 +201,16 @@ TEXT = {
         "methods_list": "Methods",
         "data_count": "Data items",
         "data_source": "Data source",
-        "metrics_by_category": "Metrics by category",
+        "metrics_by_category": "Metric configuration",
+        "quantitative_metrics": "Quantitative metrics",
+        "qualitative_metrics": "Qualitative metrics",
+        "data_config": "Data configuration",
+        "content_count": "Contents",
+        "style_count": "Styles",
+        "splits": "Splits",
+        "mean_duration": "Mean clip duration",
+        "resolutions": "Resolution",
+        "data_warnings": "Warnings",
         "tool_label": "Benchmark",
         "seed": "Seed",
         "setting": "Setting",
@@ -337,7 +346,16 @@ TEXT = {
         "methods_list": "与试方法",
         "data_count": "数据数量",
         "data_source": "数据来源",
-        "metrics_by_category": "分类指标",
+        "metrics_by_category": "指标配置",
+        "quantitative_metrics": "定量指标",
+        "qualitative_metrics": "定性指标",
+        "data_config": "数据配置",
+        "content_count": "内容数",
+        "style_count": "风格数",
+        "splits": "划分",
+        "mean_duration": "平均时长",
+        "resolutions": "分辨率",
+        "data_warnings": "警告",
         "tool_label": "基准",
         "seed": "随机种子",
         "setting": "配置项",
@@ -783,6 +801,7 @@ def metrics_at_a_glance_rows(
         dimension = info.get("dimension")
         rows.append(
             {
+                "id": metric,
                 "label": metric_label(lang, metric, info),
                 "dimension": METRIC_DIMENSION_LABELS[lang].get(dimension, dimension or "—"),
                 "direction": "↑" if info.get("higher_is_better") else "↓",
@@ -950,6 +969,60 @@ def relative_bar(value: float | None, reference: float | None, width: int = 8) -
     scale = max(abs(value), abs(reference or 0.0), 1e-9)
     filled = max(1, int(round(abs(value) / scale * width)))
     return "█" * filled + "·" * (width - filled)
+
+
+def data_profile_rows(
+    metrics: dict[str, Any],
+    lang: str,
+) -> list[tuple[str, str]]:
+    s = TEXT[lang]
+    experiment = metrics.get("experiment", {})
+    cases = metrics.get("cases", [])
+    contents = {case.get("content_id") for case in cases if case.get("content_id")}
+    styles = {case.get("style_id") for case in cases if case.get("style_id")}
+    splits = {str(case.get("split")) for case in cases if case.get("split")}
+    durations = [
+        float(case["source_metadata"]["duration_s"])
+        for case in cases
+        if isinstance(case.get("source_metadata"), dict)
+        and case["source_metadata"].get("duration_s")
+    ]
+    resolutions = {
+        f"{case['source_metadata']['width']}x{case['source_metadata']['height']}"
+        for case in cases
+        if isinstance(case.get("source_metadata"), dict)
+        and case["source_metadata"].get("width")
+    }
+    warnings = sum(len(case.get("warnings", [])) for case in cases)
+    source = str(experiment.get("data_source") or experiment.get("notes") or "example")
+    return [
+        (s["data_count"], str(len(cases))),
+        (s["data_source"], source[:160]),
+        (s["content_count"], str(len(contents))),
+        (s["style_count"], str(len(styles))),
+        (s["splits"], ", ".join(sorted(splits)) or "—"),
+        (
+            s["mean_duration"],
+            f"{sum(durations) / len(durations):.2f} s" if durations else "—",
+        ),
+        (s["resolutions"], ", ".join(sorted(resolutions)) or "—"),
+        (s["data_warnings"], str(warnings)),
+    ]
+
+
+def metric_button(metric_id: str, label: str, lang: str) -> str:
+    definition = next(
+        (item for item in METRIC_DEFINITIONS if item["id"] == metric_id), None
+    )
+    if definition is None:
+        return html.escape(label)
+    return (
+        f"<button class='metric-link' data-name='{html.escape(label, quote=True)}' "
+        f"data-formula='{html.escape(definition['formula'], quote=True)}' "
+        f"data-why='{html.escape(definition[f'rationale_{lang}'], quote=True)}' "
+        f"data-caveat='{html.escape(definition[f'caveat_{lang}'], quote=True)}'>"
+        f"{html.escape(label)}</button>"
+    )
 
 
 def metric_definition_rows(
@@ -2178,15 +2251,6 @@ def configuration_rows(
     )
     rows: list[tuple[str, str]] = [
         (s["methods_list"], ", ".join(methods)),
-        (s["data_count"], str(len(metrics.get("cases", [])))),
-        (
-            s["data_source"],
-            (
-                str(experiment.get("data_source"))
-                if experiment.get("data_source")
-                else str(experiment.get("notes") or "example")[:160]
-            ),
-        ),
         (s["seed"], str(experiment.get("blind_seed", experiment.get("seed", "—")))),
         (s["sample_frames"], str(experiment.get("frame_limit", "—"))),
         (s["max_side"], f"{experiment.get('max_side', '—')} px"),
@@ -2343,12 +2407,38 @@ def markdown_report(
             "",
             f"### {s['metrics_by_category']}",
             "",
+            f"**{s['quantitative_metrics']}**",
+            "",
             f"| {s['family_metric']} | {s['metric']} |",
             "|---|---|",
         ]
     )
     for family, names in metric_classification_rows(metrics, lang):
         lines.append(f"| {family} | {names} |")
+    lines.extend(
+        [
+            "",
+            f"**{s['qualitative_metrics']}**",
+            "",
+            f"| {s['dimension']} | {s['value_label']} |",
+            "|---|---|",
+        ]
+    )
+    for dimension in REVIEW_DIMENSIONS:
+        lines.append(f"| {DIMENSION_LABELS[lang][dimension]} | 1-5 |")
+    lines.append(f"| {s['reviewers_count']} | {review_agg.get('reviewer_count', 0)} |")
+    lines.append("")
+
+    lines.extend(
+        [
+            f"### {s['data_config']}",
+            "",
+            f"| {s['setting']} | {s['value_label']} |",
+            "|---|---|",
+        ]
+    )
+    for label, value in data_profile_rows(metrics, lang):
+        lines.append(f"| {label} | {value} |")
     lines.append("")
 
     lines.extend(["", f"## {s['quantitative']}", ""])
@@ -2571,7 +2661,8 @@ def html_report(
         body_rows = []
         for row in table["rows"]:
             cells = [
-                f"{html.escape(row['label'])} {'↑' if row['higher_is_better'] else '↓'}"
+                f"{metric_button(row['metric'], row['label'], lang)} "
+                f"{'↑' if row['higher_is_better'] else '↓'}"
             ]
             for method_id in table["method_ids"]:
                 value = stat_without_n(row["summaries"].get(method_id))
@@ -2761,16 +2852,47 @@ def html_report(
             metrics, labels, lang, str(getattr(args, "metrics", ""))
         )
     )
-    classification_html = (
-        f"<section><h2>{html.escape(s['metrics_by_category'])}</h2>"
-        "<div class='table-wrap'><table><thead><tr>"
-        f"<th>{html.escape(s['family_metric'])}</th>"
-        f"<th>{html.escape(s['metric'])}</th></tr></thead><tbody>"
-        + "".join(
-            f"<tr><td>{html.escape(family)}</td><td>{html.escape(names)}</td></tr>"
-            for family, names in metric_classification_rows(metrics, lang)
+    quant_rows_html = "".join(
+        "<tr><td>"
+        + html.escape(family)
+        + "</td><td>"
+        + ", ".join(
+            metric_button(row["id"], row["label"], lang) for row in family_rows
         )
+        + "</td></tr>"
+        for family, family_rows in glance_by_family(metrics, lang)
+    )
+    qual_rows_html = "".join(
+        f"<tr><td>{html.escape(DIMENSION_LABELS[lang][dimension])}</td><td>1-5</td></tr>"
+        for dimension in REVIEW_DIMENSIONS
+    ) + (
+        f"<tr><td>{html.escape(s['reviewers_count'])}</td>"
+        f"<td>{review_agg.get('reviewer_count', 0)}</td></tr>"
+    )
+    metric_config_html = (
+        f"<section><h2>{html.escape(s['metrics_by_category'])}</h2>"
+        f"<h3>{html.escape(s['quantitative_metrics'])}</h3>"
+        "<div class='table-wrap'><table><thead><tr>"
+        f"<th>{html.escape(s['family_metric'])}</th><th>{html.escape(s['metric'])}</th>"
+        "</tr></thead><tbody>"
+        + quant_rows_html
+        + "</tbody></table></div>"
+        f"<h3>{html.escape(s['qualitative_metrics'])}</h3>"
+        "<div class='table-wrap'><table><thead><tr>"
+        f"<th>{html.escape(s['dimension'])}</th><th>{html.escape(s['value_label'])}</th>"
+        "</tr></thead><tbody>"
+        + qual_rows_html
         + "</tbody></table></div></section>"
+    )
+    data_rows_html = "".join(
+        f"<tr><td>{html.escape(label)}</td><td>{html.escape(str(value))}</td></tr>"
+        for label, value in data_profile_rows(metrics, lang)
+    )
+    data_config_html = (
+        f"<section><h2>{html.escape(s['data_config'])}</h2>"
+        "<div class='table-wrap'><table><thead><tr>"
+        f"<th>{html.escape(s['setting'])}</th><th>{html.escape(s['value_label'])}</th>"
+        f"</tr></thead><tbody>{data_rows_html}</tbody></table></div></section>"
     )
     key_rows = key_result_rows(
         metrics,
@@ -2883,6 +3005,15 @@ th,td {{ padding:10px 12px; border-bottom:1px solid var(--line); vertical-align:
 .key-table td.metric {{ font-weight:700; }}
 .key-table td.best {{ background:#e6f4ee; font-weight:800; }}
 .key-table td.second {{ background:#f3f8f7; font-weight:600; text-decoration:underline 2px; text-underline-offset:3px; }}
+.metric-link {{ background:none; border:0; padding:0; font:inherit; color:inherit; cursor:pointer; border-bottom:1px dotted var(--muted); }}
+.metric-link:hover {{ color:var(--accent); }}
+.metric-card {{ position:absolute; z-index:80; width:380px; max-width:calc(100vw - 24px); background:var(--panel);
+  border:1px solid var(--line); border-radius:14px; box-shadow:0 18px 40px rgba(15,30,40,.22); padding:16px 18px;
+  font-size:13px; color:var(--ink); display:none; }}
+.metric-card h4 {{ margin:0 0 8px; font-size:15px; color:var(--accent); }}
+.metric-card .mm-formula {{ background:#f0f4f5; border-radius:8px; padding:8px 10px; margin:8px 0;
+  font-family:"Cambria Math","Times New Roman",serif; font-size:12.5px; overflow-x:auto; }}
+.metric-card p {{ margin:6px 0; }}
 .repo-link {{ display:inline-flex; align-items:center; gap:6px; color:#fff; text-decoration:none; font-weight:700; }}
 .repo-link:hover {{ text-decoration:underline; }}
 .verdict {{ display:inline-block; padding:3px 10px; border-radius:999px; font-size:12px; font-weight:800; }}
@@ -2907,7 +3038,7 @@ th,td {{ padding:10px 12px; border-bottom:1px solid var(--line); vertical-align:
 </header>
 {key_table_html}
 <section><h2>{html.escape(s['protocol'])}</h2><div class="table-wrap"><table><thead><tr><th>{html.escape(s['setting'])}</th><th>{html.escape(s['value_label'])}</th></tr></thead><tbody>{protocol_rows_html}</tbody></table></div></section>
-{classification_html}
+{metric_config_html}{data_config_html}
 <section><h2>{html.escape(s['quantitative'])}</h2>{''.join(table_html)}{paired_html}<p class="small">{html.escape(s['metrics_note'])}</p></section>
 <section><h2>{html.escape(s['blind_review'])}</h2><div class="grid">{''.join(review_cards)}</div></section>
 {analysis_html}
@@ -2920,6 +3051,43 @@ th,td {{ padding:10px 12px; border-bottom:1px solid var(--line); vertical-align:
 <h3>{html.escape(s['appendix_failures'])}</h3><p>{html.escape(s['failure_text'])}</p>
 <h3>{html.escape(s['appendix_threats'])}</h3><ul>{''.join(f'<li>{html.escape(item)}</li>' for item in s['threats_list'])}</ul>
 </section>
+<script>
+(function () {{
+  if (window.__vstMetricCardInit) {{ return; }}
+  window.__vstMetricCardInit = true;
+  var card = document.createElement('div');
+  card.className = 'metric-card';
+  document.body.appendChild(card);
+  function hide() {{ card.style.display = 'none'; }}
+  function line(label, value) {{
+    var el = document.createElement('p');
+    el.textContent = label + ': ' + value;
+    return el;
+  }}
+  document.addEventListener('click', function (event) {{
+    var link = event.target.closest ? event.target.closest('.metric-link') : null;
+    if (!link) {{ hide(); return; }}
+    card.textContent = '';
+    var title = document.createElement('h4');
+    title.textContent = link.getAttribute('data-name') || '';
+    card.appendChild(title);
+    var formula = document.createElement('div');
+    formula.className = 'mm-formula';
+    formula.textContent = link.getAttribute('data-formula') || '';
+    card.appendChild(formula);
+    card.appendChild(line('Motivation', link.getAttribute('data-why') || ''));
+    card.appendChild(line('Caveat', link.getAttribute('data-caveat') || ''));
+    card.style.display = 'block';
+    var rect = link.getBoundingClientRect();
+    card.style.left = Math.max(12, Math.min(rect.left, window.innerWidth - 400)) + 'px';
+    card.style.top = (rect.bottom + window.scrollY + 8) + 'px';
+    event.stopPropagation();
+  }});
+  document.addEventListener('keydown', function (event) {{
+    if (event.key === 'Escape') {{ hide(); }}
+  }});
+}})();
+</script>
 </main></body></html>
 """
 
@@ -3287,6 +3455,7 @@ def pdf_report(
     )
 
     story.append(Paragraph(html.escape(s["metrics_by_category"]), styles["Subsection"]))
+    story.append(Paragraph(html.escape(s["quantitative_metrics"]), styles["BodySmall"]))
     story.append(
         pdf_table(
             [s["family_metric"], s["metric"]],
@@ -3294,6 +3463,34 @@ def pdf_report(
                 [family, names]
                 for family, names in metric_classification_rows(metrics, lang)
             ],
+            178 * mm,
+            font_regular=font_regular,
+            font_bold=font_bold,
+            lang=lang,
+        )
+    )
+    story.append(Paragraph(html.escape(s["qualitative_metrics"]), styles["BodySmall"]))
+    story.append(
+        pdf_table(
+            [s["dimension"], s["value_label"]],
+            [
+                *[
+                    [DIMENSION_LABELS[lang][dimension], "1-5"]
+                    for dimension in REVIEW_DIMENSIONS
+                ],
+                [s["reviewers_count"], str(review_agg.get("reviewer_count", 0))],
+            ],
+            178 * mm,
+            font_regular=font_regular,
+            font_bold=font_bold,
+            lang=lang,
+        )
+    )
+    story.append(Paragraph(html.escape(s["data_config"]), styles["Subsection"]))
+    story.append(
+        pdf_table(
+            [s["setting"], s["value_label"]],
+            [[label, value] for label, value in data_profile_rows(metrics, lang)],
             178 * mm,
             font_regular=font_regular,
             font_bold=font_bold,
@@ -3738,6 +3935,7 @@ def latex_report(
     )
     lines += [r"\bottomrule", r"\end{tabular}"]
     lines.append(rf"\subsection*{{{latex_escape(s['metrics_by_category'])}}}")
+    lines.append(rf"\noindent\textbf{{{latex_escape(s['quantitative_metrics'])}}}")
     lines += [
         r"\begin{tabular}{@{}ll@{}}",
         r"\toprule",
@@ -3747,6 +3945,34 @@ def latex_report(
     lines.extend(
         rf"{latex_escape(family)} & {latex_escape(names)} \\"
         for family, names in metric_classification_rows(metrics, lang)
+    )
+    lines += [r"\bottomrule", r"\end{tabular}"]
+    lines.append(rf"\noindent\textbf{{{latex_escape(s['qualitative_metrics'])}}}")
+    lines += [
+        r"\begin{tabular}{@{}ll@{}}",
+        r"\toprule",
+        rf"{latex_escape(s['dimension'])} & {latex_escape(s['value_label'])} \\",
+        r"\midrule",
+    ]
+    lines.extend(
+        rf"{latex_escape(DIMENSION_LABELS[lang][dimension])} & 1-5 \\"
+        for dimension in REVIEW_DIMENSIONS
+    )
+    lines.append(
+        rf"{latex_escape(s['reviewers_count'])} & "
+        rf"{review_agg.get('reviewer_count', 0)} \\"
+    )
+    lines += [r"\bottomrule", r"\end{tabular}"]
+    lines.append(rf"\subsection*{{{latex_escape(s['data_config'])}}}")
+    lines += [
+        r"\begin{tabular}{@{}ll@{}}",
+        r"\toprule",
+        rf"{latex_escape(s['setting'])} & {latex_escape(s['value_label'])} \\",
+        r"\midrule",
+    ]
+    lines.extend(
+        rf"{latex_escape(label)} & {latex_escape(str(value))} \\"
+        for label, value in data_profile_rows(metrics, lang)
     )
     lines += [r"\bottomrule", r"\end{tabular}"]
     lines.append(rf"\subsection*{{{latex_escape(s['key_results'])}}}")

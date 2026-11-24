@@ -18,7 +18,7 @@
 \begin{document}
 \title{Video Style Transfer Evaluation Report}
 \author{Automated Evaluation Report}
-\date{Report ID: \texttt{VST-20261124T115702-8c45376dabc9} \\ 2026-11-24 11:57:02 \\ Benchmark: \href{https://github.com/0x0addc001/video-style-transfer-eval}{video-style-transfer-eval}}
+\date{Report ID: \texttt{VST-20261124T133321-8c45376dabc9} \\ 2026-11-24 13:33:21 \\ Benchmark: \href{https://github.com/0x0addc001/video-style-transfer-eval}{video-style-transfer-eval}}
 \maketitle
 \begin{abstract}
 This report uses 3 synthetic cases to validate the evaluation pipeline and does not provide evidence of real model performance. The tables, perceptual analysis, and conclusions preserve multidimensional evidence and should not be interpreted as a benchmark ranking of EchoStyle or the proposed method.
@@ -29,8 +29,6 @@ This report uses 3 synthetic cases to validate the evaluation pipeline and does 
 Setting & Value \\
 \midrule
 Methods & Method 1, Method 2, Method 3 \\
-Data items & 3 \\
-Data source & example \\
 Seed & 2026 \\
 Sampled frames per video & 30 \\
 Maximum evaluation side & 320 px \\
@@ -38,7 +36,8 @@ Temporal offsets & [1, 5] \\
 Flow implementation & OpenCV Farneback \\
 \bottomrule
 \end{tabular}
-\subsection*{Metrics by category}
+\subsection*{Metric configuration}
+\noindent\textbf{Quantitative metrics}
 \begin{tabular}{@{}ll@{}}
 \toprule
 Family & Metric \\
@@ -49,6 +48,34 @@ Temporal & OFFSET 1 WARP RMSE, OFFSET 5 WARP RMSE, Detrended luminance flicker, 
 Motion & OFFSET 1 FLOW EPE, OFFSET 1 FLOW CORRELATION, VBench motion smoothness, VBench dynamic degree \\
 Video quality & VBench aesthetic quality, VBench imaging quality \\
 Cost & Runtime, Peak GPU memory \\
+\bottomrule
+\end{tabular}
+\noindent\textbf{Qualitative metrics}
+\begin{tabular}{@{}ll@{}}
+\toprule
+Dimension & Value \\
+\midrule
+Style adherence & 1-5 \\
+Content preservation & 1-5 \\
+Temporal stability & 1-5 \\
+Artifact control & 1-5 \\
+Overall visual quality & 1-5 \\
+VLM reviewers & 1 \\
+\bottomrule
+\end{tabular}
+\subsection*{Data configuration}
+\begin{tabular}{@{}ll@{}}
+\toprule
+Setting & Value \\
+\midrule
+Data items & 3 \\
+Data source & example \\
+Contents & 3 \\
+Styles & 3 \\
+Splits & synthetic\_demo \\
+Mean clip duration & 3.00 s \\
+Resolution & 384x216 \\
+Warnings & 0 \\
 \bottomrule
 \end{tabular}
 \subsection*{Key results}

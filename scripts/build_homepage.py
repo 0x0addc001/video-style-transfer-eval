@@ -69,6 +69,8 @@ def main() -> None:
 [data-theme="dark"] .bar-track {{ background:#223037; }}
 [data-theme="dark"] .table-note, [data-theme="dark"] .small {{ color:#9fb0bd; }}
 [data-theme="dark"] .pending {{ color:#9fb0bd; }}
+[data-theme="dark"] .metric-card {{ background:#152026; border-color:#26353d; }}
+[data-theme="dark"] .metric-card .mm-formula {{ background:#1b2a31; }}
 #lang-menu {{ position:absolute; right:0; top:52px; min-width:150px; background:#fff; border:1px solid #dbe2e9;
   border-radius:12px; box-shadow:0 12px 30px rgba(24,43,55,.18); padding:6px; display:none; }}
 #lang-menu.open {{ display:block; }}
