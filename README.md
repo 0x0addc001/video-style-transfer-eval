@@ -21,21 +21,22 @@ the evaluation workflow and is not a benchmark of any model.
 
 ## Sample report
 
-The screenshots below are rendered from the compiled English sample report.
-The full example is available in
-[`examples/sample_report`](examples/sample_report/).
+A bilingual, print-ready report is published at
+**[0x0addc001.github.io/video-style-transfer-eval](https://0x0addc001.github.io/video-style-transfer-eval/)**.
+It opens with the report ID, timestamp, evidence path and benchmark link, then
+shows the multi-method key-results matrix, evaluation configuration, metric
+configuration, quantitative tables and the qualitative (VLM) assessment, with
+the appendix carrying metric definition cards.
 
-![Standalone HTML report](docs/images/report-en-html.png)
+The same HTML is committed as [docs/index.html](docs/index.html). Regenerate the
+sample report and the homepage together with:
 
-*The standalone HTML report opens with the report ID, evidence path and benchmark link, followed by the multi-method key-results matrix, evaluation configuration, metric classification and quantitative tables.*
+```bash
+python scripts/sync_sample_report.py
+```
 
-![Metric definitions, formulas, and motivation](docs/images/report-en-metrics.png)
-
-*The appendix reports each metric with its formula, motivation, availability and interpretation caveat.*
-
-![Publication-style quantitative tables](docs/images/report-en-tables.png)
-
-*The report marks best and second-best means and separates per-metric results from paired comparisons.*
+The underlying run is a synthetic demonstration: clips and methods are made up,
+and the numbers illustrate the workflow rather than model performance.
 
 ## Features
 

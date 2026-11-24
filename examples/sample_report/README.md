@@ -32,7 +32,13 @@ The CSD/VBench rows are fabricated by
 [demo_evaluation/external_metrics_synthetic.json](demo_evaluation/external_metrics_synthetic.json)
 for workflow demonstration only; they are not model measurements.
 
-To rebuild (macOS, Linux, or Windows):
+To regenerate the sample report and the published homepage together:
+
+```bash
+python scripts/sync_sample_report.py
+```
+
+The detailed steps below are for rebuilding the run from scratch (macOS, Linux, or Windows):
 
 ```bash
 python examples/sample_report/build_demo.py

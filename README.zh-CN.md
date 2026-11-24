@@ -19,20 +19,18 @@ XeLaTeX 报告。
 
 ## 示例报告
 
-以下截图来自编译后的中文示例报告。完整示例位于
-[`examples/sample_report`](examples/sample_report/)。
+双语、可直接打印的报告发布在
+**[0x0addc001.github.io/video-style-transfer-eval](https://0x0addc001.github.io/video-style-transfer-eval/)**。
+报告以报告 ID、时间、证据路径和基准链接开头，之后是多方法关键结果矩阵、
+评估配置、指标配置、定量结果与定性评估（VLM），附录提供可点击的指标定义卡。
 
-![独立 HTML 报告](docs/images/report-zh-html.png)
+同一份 HTML 也已提交为 [docs/index.html](docs/index.html)。重新生成示例报告与主页：
 
-*独立 HTML 报告以报告 ID、时间、证据路径与基准链接开头，随后是多方法关键结果矩阵、评估配置、指标分类和定量结果表。*
+```bash
+python scripts/sync_sample_report.py
+```
 
-![指标定义、公式与设计动机](docs/images/report-zh-metrics.png)
-
-*附录中每个指标均给出公式、设计动机、可用性和解释注意事项。*
-
-![论文式定量结果表](docs/images/report-zh-tables.png)
-
-*多方法并排、带单位与偏好方向，最优加粗、次优下划线，并在表下给出结论。*
+示例数据为合成片段，方法也是模拟的，数字仅用于演示评估流程，不代表模型性能。
 
 ## 功能
 
