@@ -1,7 +1,7 @@
-# 视频风格迁移评估报告
+# 视频风格迁移评估报告（样例）
 
-**报告 ID:** `VST-20261124T162535-8c45376dabc9`  
-**时间:** 2026-11-24 16:25:35  
+**报告 ID:** `VST-20261124T164405-8c45376dabc9`  
+**时间:** 2026-11-24 16:44:05  
 **证据:** `/Users/jerryli/Documents/GitHub/0x0addc001/video-style-transfer-eval/examples/sample_report/demo_evaluation/metrics.json`  
 **基准:** [video-style-transfer-eval](https://github.com/0x0addc001/video-style-transfer-eval)
 
