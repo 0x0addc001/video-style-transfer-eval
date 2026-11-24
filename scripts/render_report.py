@@ -4437,6 +4437,7 @@ def print_pdf_with_chrome(
         "--headless=new",
         "--disable-gpu",
         "--no-pdf-header-footer",
+        "--virtual-time-budget=10000",
         f"--print-to-pdf={pdf_path}",
         html_path.resolve().as_uri(),
     ]
