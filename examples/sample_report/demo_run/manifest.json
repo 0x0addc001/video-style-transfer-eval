@@ -11,7 +11,7 @@
     ],
     "hardware": "Synthetic data generation only",
     "notes": "All clips and methods are synthetic. This run demonstrates the evaluation workflow and is not a benchmark of EchoStyle or a model.",
-    "data_source": "example"
+    "data_source": "https://huggingface.co/datasets/HiDream-ai/ReCo-Bench"
   },
   "methods": [
     {

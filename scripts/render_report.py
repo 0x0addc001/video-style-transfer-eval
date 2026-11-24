@@ -199,8 +199,8 @@ TEXT = {
         "report_id_label": "Report ID",
         "evidence_label": "Evidence",
         "methods_list": "Methods",
-        "data_count": "Data items",
-        "data_source": "Data source",
+        "data_count": "Count",
+        "data_source": "Source",
         "metrics_by_category": "Metric configuration",
         "quantitative_metrics": "Quantitative metrics",
         "qualitative_metrics": "Qualitative metrics",
@@ -344,8 +344,8 @@ TEXT = {
         "report_id_label": "报告 ID",
         "evidence_label": "证据",
         "methods_list": "与试方法",
-        "data_count": "数据数量",
-        "data_source": "数据来源",
+        "data_count": "数量",
+        "data_source": "来源",
         "metrics_by_category": "指标配置",
         "quantitative_metrics": "定量指标",
         "qualitative_metrics": "定性指标",
@@ -1000,13 +1000,11 @@ def data_profile_rows(
         (s["data_source"], source[:160]),
         (s["content_count"], str(len(contents))),
         (s["style_count"], str(len(styles))),
-        (s["splits"], ", ".join(sorted(splits)) or "—"),
         (
             s["mean_duration"],
             f"{sum(durations) / len(durations):.2f} s" if durations else "—",
         ),
         (s["resolutions"], ", ".join(sorted(resolutions)) or "—"),
-        (s["data_warnings"], str(warnings)),
     ]
 
 

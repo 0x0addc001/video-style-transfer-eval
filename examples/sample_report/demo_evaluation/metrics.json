@@ -17,7 +17,7 @@
     "blind": true,
     "blind_seed": 2026,
     "flow_implementation": "OpenCV Farneback (diagnostic proxy)",
-    "data_source": "example"
+    "data_source": "https://huggingface.co/datasets/HiDream-ai/ReCo-Bench"
   },
   "methods": [
     {

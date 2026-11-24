@@ -1,7 +1,7 @@
 # 视频风格迁移评估报告
 
-**报告 ID:** `VST-20261124T133321-8c45376dabc9`  
-**时间:** 2026-11-24 13:33:21  
+**报告 ID:** `VST-20261124T134543-8c45376dabc9`  
+**时间:** 2026-11-24 13:45:43  
 **证据:** `examples/sample_report/demo_evaluation/metrics.json`  
 **基准:** [video-style-transfer-eval](https://github.com/0x0addc001/video-style-transfer-eval)
 
@@ -55,14 +55,12 @@
 
 | 配置项 | 取值 |
 |---|---|
-| 数据数量 | 3 |
-| 数据来源 | example |
+| 数量 | 3 |
+| 来源 | https://huggingface.co/datasets/HiDream-ai/ReCo-Bench |
 | 内容数 | 3 |
 | 风格数 | 3 |
-| 划分 | synthetic_demo |
 | 平均时长 | 3.00 s |
 | 分辨率 | 384x216 |
-| 警告 | 0 |
 
 
 ## 定量结果

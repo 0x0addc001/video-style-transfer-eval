@@ -1,7 +1,7 @@
 # Video Style Transfer Evaluation Report
 
-**Report ID:** `VST-20261124T133321-8c45376dabc9`  
-**Date:** 2026-11-24 13:33:21  
+**Report ID:** `VST-20261124T134543-8c45376dabc9`  
+**Date:** 2026-11-24 13:45:43  
 **Evidence:** `examples/sample_report/demo_evaluation/metrics.json`  
 **Benchmark:** [video-style-transfer-eval](https://github.com/0x0addc001/video-style-transfer-eval)
 
@@ -55,14 +55,12 @@
 
 | Setting | Value |
 |---|---|
-| Data items | 3 |
-| Data source | example |
+| Count | 3 |
+| Source | https://huggingface.co/datasets/HiDream-ai/ReCo-Bench |
 | Contents | 3 |
 | Styles | 3 |
-| Splits | synthetic_demo |
 | Mean clip duration | 3.00 s |
 | Resolution | 384x216 |
-| Warnings | 0 |
 
 
 ## Quantitative results
