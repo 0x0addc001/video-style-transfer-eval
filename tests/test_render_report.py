@@ -111,11 +111,14 @@ class LocalizedRenderTest(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stderr)
             for suffix in ("md", "html", "pdf", "tex"):
                 for lang in ("en", "zh"):
-                    path = output_dir / f"report_{lang}.{suffix}"
+                    path = max(
+                        output_dir.glob(f"report_{lang}_VST-*.{suffix}"),
+                        key=lambda p: p.stat().st_mtime,
+                    )
                     self.assertTrue(path.is_file(), path)
                     self.assertGreater(path.stat().st_size, 100, path)
-            english_html = (output_dir / "report_en.html").read_text(encoding="utf-8")
-            chinese_html = (output_dir / "report_zh.html").read_text(encoding="utf-8")
+            english_html = max(output_dir.glob("report_en_VST-*.html"), key=lambda p: p.stat().st_mtime).read_text(encoding="utf-8")
+            chinese_html = max(output_dir.glob("report_zh_VST-*.html"), key=lambda p: p.stat().st_mtime).read_text(encoding="utf-8")
             self.assertIn("Quantitative results", english_html)
             self.assertIn("Analysis and discussion", english_html)
             self.assertIn("Key results", english_html)
@@ -123,8 +126,8 @@ class LocalizedRenderTest(unittest.TestCase):
             self.assertIn("Metric definitions and motivation", english_html)
             self.assertIn("定量结果", chinese_html)
             self.assertIn("本文方法", chinese_html)
-            english_tex = (output_dir / "report_en.tex").read_text(encoding="utf-8")
-            chinese_tex = (output_dir / "report_zh.tex").read_text(encoding="utf-8")
+            english_tex = max(output_dir.glob("report_en_VST-*.tex"), key=lambda p: p.stat().st_mtime).read_text(encoding="utf-8")
+            chinese_tex = max(output_dir.glob("report_zh_VST-*.tex"), key=lambda p: p.stat().st_mtime).read_text(encoding="utf-8")
             self.assertIn(r"\usepackage{booktabs}", english_tex)
             self.assertIn(r"\begin{table}[H]", english_tex)
             self.assertIn("A. Metric definitions and motivation", english_tex)

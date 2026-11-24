@@ -8,7 +8,8 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-REPORT = ROOT / "examples" / "sample_report" / "evaluation_report" / "report_zh.html"
+REPORT_DIR = ROOT / "examples" / "sample_report" / "evaluation_report"
+REPORT = max(REPORT_DIR.glob("report_zh_VST-*.html"), key=lambda p: p.stat().st_mtime)
 HOMEPAGE = ROOT / "docs" / "index.html"
 REPORT_ID = re.compile(r"VST-\d{8}T\d{6}-[0-9a-f]{12}")
 

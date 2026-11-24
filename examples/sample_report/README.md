@@ -15,10 +15,10 @@ or the user's proposed method.
 
 Open the polished samples (or the [bilingual homepage](../../docs/index.html)):
 
-- [English PDF](evaluation_report/report_en.pdf)
-- [Chinese PDF](evaluation_report/report_zh.pdf)
-- [English HTML](evaluation_report/report_en.html)
-- [Chinese HTML](evaluation_report/report_zh.html)
+- English PDF: `evaluation_report/report_en_<report-id>.pdf`
+- `evaluation_report/report_zh_<report-id>.pdf`
+- `evaluation_report/report_en_<report-id>.html`
+- `evaluation_report/report_zh_<report-id>.html`
 - [English LaTeX](evaluation_report/report_en.tex)
 - [Chinese LaTeX](evaluation_report/report_zh.tex)
 

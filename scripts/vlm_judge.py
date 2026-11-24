@@ -75,17 +75,51 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+TAG_ALIASES = {
+    "geometric_distortion": "geometry_melting",
+    "geometry_distortion": "geometry_melting",
+    "distortion": "geometry_melting",
+    "melting": "geometry_melting",
+    "temporal_flicker": "flicker",
+    "flickering": "flicker",
+    "texture_stick": "texture_sticking",
+    "ghosting": "edge_ghosting",
+    "identity": "identity_drift",
+}
+
+
+def normalise_tags(tags: list[str]) -> list[str]:
+    """Keep only validator-approved failure tags, mapping close synonyms."""
+    try:
+        from validate_review import FAILURE_TAGS
+    except Exception:  # pragma: no cover - validator should always be importable
+        return tags
+    cleaned = []
+    for tag in tags:
+        key = str(tag).strip().lower()
+        mapped = TAG_ALIASES.get(key, key)
+        if mapped in FAILURE_TAGS and mapped not in cleaned:
+            cleaned.append(mapped)
+    return cleaned
+
+
 def build_prompt(
     case_id: str,
     labels: list[str],
     style_prompt: str | None = None,
+    label_styles: dict[str, str] | None = None,
 ) -> str:
     label_list = ", ".join(labels)
-    style_line = (
-        f"The requested style/instruction is: {style_prompt}. "
-        if style_prompt
-        else ""
-    )
+    if label_styles:
+        style_line = "Requested styles: " + "; ".join(
+            f"{label}: {style}" for label, style in label_styles.items()
+        ) + ". "
+    else:
+        style_line = (
+            f"The requested style/instruction is: {style_prompt}. "
+            if style_prompt
+            else ""
+        )
     return (
         "You are a blinded reviewer of video style-transfer results. The image "
         "is a contact sheet: the STYLE reference (if present), several SOURCE "
@@ -206,12 +240,7 @@ def parse_scores(raw: str, case_id: str, labels: list[str]) -> list[dict[str, An
             value = int(item.get(dimension, 3))
             record[dimension] = max(1, min(5, value))
         record["confidence"] = str(item.get("confidence", "medium"))
-        tags = [
-            tag
-            for tag in item.get("failure_tags", [])
-            if tag in FAILURE_TAGS
-        ]
-        record["failure_tags"] = tags
+        record["failure_tags"] = normalise_tags(item.get("failure_tags", []))
         record["evidence"] = str(item.get("evidence", "VLM visual assessment."))
         record["comments"] = str(item.get("comments", ""))
         scores.append(record)
@@ -237,17 +266,20 @@ def main() -> int:
     args = parse_args()
     load_env_file(args.env_file)
     blind_map = json.loads(args.blind_map.read_text(encoding="utf-8"))
-    style_prompts: dict[str, str] = {}
+    style_prompts: dict[str, object] = {}
     if args.manifest:
         manifest_data = json.loads(args.manifest.read_text(encoding="utf-8"))
         for case in manifest_data.get("cases", []):
+            per_method = case.get("style_prompts")
             prompt = (
                 case.get("style_prompt")
                 or case.get("prompt")
                 or case.get("style_id")
                 or ""
             )
-            if prompt:
+            if isinstance(per_method, dict) and per_method:
+                style_prompts[str(case.get("id"))] = per_method
+            elif prompt:
                 style_prompts[str(case.get("id"))] = str(prompt)
     model = args.model or ("gemini-2.5-flash" if args.provider == "gemini" else "qwen-vl-max")
     reviews: list[dict[str, Any]] = []
@@ -257,7 +289,20 @@ def main() -> int:
 
     for case_id, label_map in cases:
         labels = sorted(label_map)
-        prompt = build_prompt(case_id, labels, style_prompts.get(case_id))
+        case_style = style_prompts.get(case_id)
+        label_styles = None
+        if isinstance(case_style, dict):
+            label_styles = {
+                label: case_style[method_id]
+                for label, method_id in blind_map.get(case_id, {}).items()
+                if case_style.get(method_id)
+            }
+        prompt = build_prompt(
+            case_id,
+            labels,
+            case_style if isinstance(case_style, str) else None,
+            label_styles,
+        )
         sheet = args.contact_sheets / f"{case_id}.jpg"
         if not sheet.is_file():
             print(f"[skip] missing contact sheet: {sheet}", file=sys.stderr)

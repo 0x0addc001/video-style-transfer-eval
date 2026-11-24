@@ -104,14 +104,14 @@ python scripts/render_report.py \
 
 ```text
 evaluation_report/
-  report_en.pdf
-  report_en.html
-  report_en.md
-  report_en.tex
-  report_zh.pdf
-  report_zh.html
-  report_zh.md
-  report_zh.tex
+  report_en_<report-id>.pdf
+  report_en_<report-id>.html
+  report_en_<report-id>.md
+  report_en_<report-id>.tex
+  report_zh_<report-id>.pdf
+  report_zh_<report-id>.html
+  report_zh_<report-id>.md
+  report_zh_<report-id>.tex
   assets/
 ```
 

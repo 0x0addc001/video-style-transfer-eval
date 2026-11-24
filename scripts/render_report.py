@@ -204,6 +204,8 @@ TEXT = {
         "metrics_by_category": "Metric configuration",
         "quantitative_metrics": "Quantitative metrics",
         "qualitative_metrics": "Qualitative metrics",
+        "by_style": "By style",
+        "style_label": "Style",
         "data_config": "Data configuration",
         "content_count": "Contents",
         "style_count": "Styles",
@@ -351,6 +353,8 @@ TEXT = {
         "metrics_by_category": "指标配置",
         "quantitative_metrics": "定量指标",
         "qualitative_metrics": "定性指标",
+        "by_style": "按风格拆分",
+        "style_label": "风格",
         "data_config": "数据配置",
         "content_count": "内容数",
         "style_count": "风格数",
@@ -984,6 +988,41 @@ def relative_bar(value: float | None, reference: float | None, width: int = 8) -
     scale = max(abs(value), abs(reference or 0.0), 1e-9)
     filled = max(1, int(round(abs(value) / scale * width)))
     return "█" * filled + "·" * (width - filled)
+
+
+def by_style_rows(metrics: dict[str, Any], lang: str) -> list[dict[str, Any]]:
+    """Per-method, per-style means, shown when a run mixes several styles."""
+    labels = {
+        method["id"]: method.get(f"label_{lang}") or method.get("label", method["id"])
+        for method in metrics.get("methods", [])
+    }
+    groups: dict[tuple[str, str], list[dict[str, Any]]] = {}
+    for case in metrics.get("cases", []):
+        style = str(case.get("style_id") or "—")
+        for method_id, record in case.get("methods", {}).items():
+            if not record.get("valid"):
+                continue
+            groups.setdefault((method_id, style), []).append(record.get("metrics", {}))
+    rows = []
+    for (method_id, style), values in sorted(groups.items()):
+        def stat(key: str) -> tuple[float, float] | None:
+            xs = [float(v[key]) for v in values if v.get(key) is not None]
+            if not xs:
+                return None
+            return float(np.mean(xs)), float(np.std(xs, ddof=1)) if len(xs) > 1 else 0.0
+
+        rows.append(
+            {
+                "method": labels.get(method_id, method_id),
+                "style": STYLE_LABELS[lang].get(style, style),
+                "n": len(values),
+                "ssim": stat("ssim"),
+                "psnr": stat("psnr"),
+                "flicker": stat("luminance_flicker"),
+                "warp": stat("offset_1_warp_rmse"),
+            }
+        )
+    return rows
 
 
 def data_profile_rows(
@@ -2382,6 +2421,25 @@ def repo_name_from_url(url: str) -> str:
     return url.rstrip("/").rsplit("/", 1)[-1] or url
 
 
+STYLE_LABELS = {
+    "zh": {
+        "ghibli": "吉卜力",
+        "van_gogh": "梵高",
+        "sketch": "素描",
+        "watercolor": "水彩",
+        "monet": "莫奈",
+        "paper_cutting": "剪纸",
+        "american_cartoon": "美式卡通",
+        "irasutoya": "Irasutoya 插画",
+        "jojo": "JoJo",
+        "ukiyo_e": "浮世绘",
+        "simpsons": "辛普森",
+        "3d_chibi": "3D Q 版",
+    },
+    "en": {},
+}
+
+
 def report_notes(args: argparse.Namespace, lang: str) -> list[str]:
     zh_notes = getattr(args, "note_zh", None)
     if lang == "zh" and zh_notes:
@@ -2605,6 +2663,32 @@ def markdown_report(
             lines.append(
                 f"| {row['label']} | {format_number(row['mean_difference_favors_primary'])} "
                 f"| {format_number(row['effect_size_dz'])} | {ci} | {row['n']} |"
+            )
+        lines.append("")
+    style_rows = by_style_rows(metrics, lang)
+    if len({row["style"] for row in style_rows}) > 1:
+        lines.extend(
+            [
+                "",
+                f"### {s['by_style']}",
+                "",
+                f"| {s['method']} | {s['style_label']} | n | SSIM ↑ | PSNR ↑ | "
+                + ("亮度闪烁 ↓ | 重映射 RMSE Δ1 ↓ |" if lang == "zh" else "Flicker ↓ | Warp RMSE Δ1 ↓ |"),
+                "|---|---|---|---|---|---|---|",
+            ]
+        )
+        for row in style_rows:
+            lines.append(
+                f"| {row['method']} | {row['style']} | {row['n']} | "
+                + " | ".join(
+                    [
+                        "—" if row["ssim"] is None else f"{row['ssim'][0]:.4f} ± {row['ssim'][1]:.4f}",
+                        "—" if row["psnr"] is None else f"{row['psnr'][0]:.4f} ± {row['psnr'][1]:.4f}",
+                        "—" if row["flicker"] is None else f"{row['flicker'][0]:.4f} ± {row['flicker'][1]:.4f}",
+                        "—" if row["warp"] is None else f"{row['warp'][0]:.4f} ± {row['warp'][1]:.4f}",
+                    ]
+                )
+                + " |"
             )
         lines.append("")
     lines.extend(
@@ -3008,6 +3092,30 @@ def html_report(
         f"<tr><td>{html.escape(label)}</td><td>{html.escape(str(value))}</td></tr>"
         for label, value in data_profile_rows(metrics, lang)
     )
+    style_rows = by_style_rows(metrics, lang)
+    style_html = ""
+    if len({row["style"] for row in style_rows}) > 1:
+        def fmt(pair: tuple[float, float] | None) -> str:
+            return "—" if pair is None else f"{pair[0]:.4f} ± {pair[1]:.4f}"
+
+        body = "".join(
+            "<tr><td>"
+            + html.escape(row["method"])
+            + "</td><td>"
+            + html.escape(row["style"])
+            + f"</td><td>{row['n']}</td><td>{fmt(row['ssim'])}</td>"
+            + f"<td>{fmt(row['psnr'])}</td><td>{fmt(row['flicker'])}</td>"
+            + f"<td>{fmt(row['warp'])}</td></tr>"
+            for row in style_rows
+        )
+        style_html = (
+            f"<section><h2>{html.escape(s['by_style'])}</h2>"
+            "<div class='table-wrap'><table><thead><tr>"
+            f"<th>{html.escape(s['method'])}</th><th>{html.escape(s['style_label'])}</th>"
+            "<th>n</th><th>SSIM ↑</th><th>PSNR ↑</th>"
+            + ("<th>亮度闪烁 ↓</th><th>重映射 RMSE Δ1 ↓</th>" if lang == "zh" else "<th>Flicker ↓</th><th>Warp RMSE Δ1 ↓</th>")
+            + "</tr></thead><tbody>" + body + "</tbody></table></div></section>"
+        )
     notes_html = ""
     if report_notes(args, lang):
         notes_html = (
@@ -3172,6 +3280,7 @@ window.MathJax = {{ tex: {{ inlineMath: [['$', '$']], displayMath: [['$$', '$$']
 <section><h2>{html.escape(s['protocol'])}</h2><div class="table-wrap"><table><thead><tr><th>{html.escape(s['setting'])}</th><th>{html.escape(s['value_label'])}</th></tr></thead><tbody>{protocol_rows_html}</tbody></table></div></section>
 {metric_config_html}{data_config_html}
 <section><h2>{html.escape(s['quantitative'])}</h2>{''.join(table_html)}{paired_html}<p class="small">{html.escape(s['metrics_note'])}</p></section>
+{style_html}
 <section><h2>{html.escape(s['blind_review'])}</h2><div class="grid">{''.join(review_cards)}</div></section>
 {analysis_html}
 <section><h2>{html.escape(s['conclusion'])}</h2><p>{html.escape(conclusion)}</p></section>
@@ -3726,6 +3835,41 @@ def pdf_report(
         )
 
     story.append(PageBreak())
+    style_rows = by_style_rows(metrics, lang)
+    if len({row["style"] for row in style_rows}) > 1:
+        def fmt(pair: tuple[float, float] | None) -> str:
+            return "—" if pair is None else f"{pair[0]:.4f} ± {pair[1]:.4f}"
+
+        story.append(Paragraph(html.escape(s["by_style"]), styles["Subsection"]))
+        story.append(
+            pdf_table(
+                [
+                    s["method"],
+                    s["style_label"],
+                    "n",
+                    "SSIM ↑",
+                    "PSNR ↑",
+                    "Flicker ↓" if lang == "en" else "闪烁 ↓",
+                    "Warp RMSE Δ1 ↓" if lang == "en" else "重映射 RMSE ↓",
+                ],
+                [
+                    [
+                        row["method"],
+                        row["style"],
+                        str(row["n"]),
+                        fmt(row["ssim"]),
+                        fmt(row["psnr"]),
+                        fmt(row["flicker"]),
+                        fmt(row["warp"]),
+                    ]
+                    for row in style_rows
+                ],
+                178 * mm,
+                font_regular=font_regular,
+                font_bold=font_bold,
+                lang=lang,
+            )
+        )
     story.append(Paragraph(html.escape(s["blind_review"]), styles["Section"]))
     if review_agg["scored_count"]:
         rows = []
@@ -4533,11 +4677,13 @@ def main() -> None:
             if args.primary and args.baseline
             else []
         )
+        report_id, _ = report_identity(render_args, metrics)
         suffix = f"_{lang}" if args.language == "both" else ""
-        markdown_path = args.output_dir / f"report{suffix}.md"
-        html_path = args.output_dir / f"report{suffix}.html"
-        pdf_path = args.output_dir / f"report{suffix}.pdf"
-        latex_path = args.output_dir / f"report{suffix}.tex"
+        stem = f"report{suffix}_{report_id}"
+        markdown_path = args.output_dir / f"{stem}.md"
+        html_path = args.output_dir / f"{stem}.html"
+        pdf_path = args.output_dir / f"{stem}.pdf"
+        latex_path = args.output_dir / f"{stem}.tex"
         markdown = markdown_report(
             metrics,
             labels,

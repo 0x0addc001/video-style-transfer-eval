@@ -43,12 +43,14 @@ def run(command: list[str]) -> None:
 
 def main() -> None:
     run([sys.executable, "scripts/render_report.py", *ARGS])
+    en_html = max(REPORT_DIR.glob("report_en_VST-*.html"), key=lambda p: p.stat().st_mtime)
+    zh_html = max(REPORT_DIR.glob("report_zh_VST-*.html"), key=lambda p: p.stat().st_mtime)
     run(
         [
             sys.executable,
             "scripts/build_homepage.py",
-            "--en", str(REPORT_DIR / "report_en.html"),
-            "--zh", str(REPORT_DIR / "report_zh.html"),
+            "--en", str(en_html),
+            "--zh", str(zh_html),
             "--output", str(ROOT / "docs" / "index.html"),
             "--assets", str(REPORT_DIR / "assets"),
             "--default-language", "zh",
