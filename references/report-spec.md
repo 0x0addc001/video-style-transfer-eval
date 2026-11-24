@@ -1,121 +1,123 @@
 # Evaluation Report Specification
 
-The report must make the evidence behind each conclusion inspectable, without
-burying the argument. Use a **two-tier structure**: a short core body that a
+The report must make the evidence behind each conclusion inspectable without
+slowing the reader down. Use a **two-tier structure**: a short core body that a
 reviewer can read in a few minutes, and an appendix that carries the full
-definitions, per-case evidence, and limitations.
+definitions and per-case evidence. The section order below is fixed.
 
-Generate Chinese and English variants from the same metrics and review export. The translations must preserve section order, numbers, sample counts, evidence gates, method identities, and limitations. Use manifest `label_zh` values for method names when Chinese wording would otherwise remain ambiguous; never retranslate or silently alter technical metric names.
+Generate Chinese and English variants from the same metrics and review export.
+Translations must preserve section order, numbers, sample counts, method
+identities, and limitations. Use manifest `label_zh` values for method names.
+Never retranslate or silently alter technical metric names.
 
-Every language variant must also have a standalone XeLaTeX source. Use `booktabs` rules, captions above tables, units and preferred directions, mean and dispersion, best/second-best marking, and appendix-level per-case evidence. Keep tables copyable into a CVPR-style paper; avoid dashboard-only visual encodings that disappear in print.
+Every language variant must also have a standalone XeLaTeX source and a
+standalone HTML report. The PDF is printed from the HTML (headless Chrome) so the
+two stay visually identical.
 
 ## Core body
 
-### 1. Header and Claim Status
+### 1. Header and traceability
 
-Include project, run name, date, evaluator, schema version, split, and one status:
+Show, in this order:
 
-- `Exploratory`: synthetic or development-only evidence.
-- `Provisional`: diagnostic metrics complete, visual review or paper-grade metrics incomplete.
-- `Comparative`: paired held-out evidence and appropriate uncertainty are present.
-- `Paper-ready`: all required evidence for the stated claim is present and traceable.
+- **Report ID** — timestamp plus the evidence hash prefix, e.g.
+  `VST-20261124T112910-8c45376dabc9`;
+- **Time** — generation timestamp, precise to the second;
+- **Evidence** — path to the `metrics.json` that produced the report;
+- **Benchmark / tool** — linked repository name with a GitHub icon; do not print
+  the raw URL.
 
-State the claim in one sentence. Do not write "Method A is better" without naming the dimension, dataset, and comparison.
+Do not print a claim-status badge, a claim sentence, or a dataset disclaimer in
+the header.
 
-### 2. Executive Verdict
+### 2. Key results
 
-Provide 3-5 findings:
+One comparison table only:
 
-- observed advantage or regression;
-- evidence size and uncertainty;
-- strongest failure mode;
-- cost implication;
-- recommended next experiment.
+- rows: evidence dimension (style, content, temporal, video quality, cost) and
+  its headline metric;
+- columns: **every tested method**, then nothing else — no verdict column and no
+  configuration line above the table;
+- best mean in bold with a light accent background; second best underlined and
+  semi-bold; all values as mean ± standard deviation.
 
-Never create an overall scalar score when the dimensions disagree. A recommendation may be conditional on the intended use.
+The table must let a reader compare methods left to right in one pass.
 
-### 3. Protocol and Reproducibility
+### 3. Evaluation configuration
 
-List manifest path/hash, method seed, checkpoint or commit, inference resolution, sampling plan, hardware, runtime, peak memory, metric implementations, reviewer model/version, frame sampling, and missing data. Keep this compact: one gate table plus a short bullet list.
+A two-column table (`setting`, `value`) with the reproduction details:
 
-Then include **Metrics at a glance**: a one-screen table with metric name, dimension, preferred direction and unit for every metric present in this run. Do not put formulas and caveats here; they belong in Appendix A.
+- tested methods (display names);
+- number of data items (clips);
+- data source;
+- seed;
+- sampled frames per video;
+- maximum evaluation side;
+- temporal offsets;
+- flow implementation.
 
-### 4. Quantitative Results
+Then a separate **metric classification** table: one row per family
+(style, content, temporal, motion, video quality, cost) and the metric names in
+that family. Do not repeat the family prefix inside the configuration table.
 
-Separate tables:
+### 4. Quantitative results
 
-- style;
-- content;
-- temporal/motion;
-- video quality (no-reference VBench dimensions);
-- cost.
+One table per family, with the unit and preferred direction in the metric label
+(e.g. `SSIM ↑ (dB)`). Mark best and second-best means, show `n`, and add one
+`Comment` line under each table stating the comparison for its headline metric.
+Show paired differences and confidence intervals once `n >= 5`.
 
-Use arrows to show preferred direction. Show `n`, mean, dispersion, and missing cases. For comparisons, show paired difference and confidence interval once `n >= 5`.
+### 5. Qualitative assessment (VLM)
 
-For paper-facing tables, mark the best and second-best means, explain the marking in the caption, and distinguish a direction-adjusted paired difference from the raw metric difference. Report standardized paired effect size only as descriptive evidence when the sample is small.
-
-### 5. Blinded Visual Review
-
-Report reviewer identity/model, blinding, input type, and agreement across reviewers. Keep the five dimensions separate. Show failure-tag counts and pairwise preferences with supporting frame ranges. Label contact sheets as evidence, not ground truth.
+Per-method scores for the five rubric dimensions, failure-tag counts, reviewer
+count and model. This section is always called **Qualitative assessment (VLM)**;
+do not use "blinded review" as the section name.
 
 ### 6. Discussion
 
-Interpret the observed effects dimension by dimension: style, content, motion and
-temporal stability, video quality, cost, and the synthesis. A style-preservation
-trade-off must be described as a trade-off, not as universal dominance.
+Interpret style, content, motion and temporal stability, video quality and cost
+separately, then state whether the evidence shows a trade-off.
 
-### 7. Conclusion and Recommendation
+### 7. Conclusion
 
-Repeat only claims supported by the earlier tables. Distinguish observed evidence, practical recommendation, and unverified hypothesis.
-
-The conclusion must state whether any method dominates across style, content, motion, and cost. If dimensions disagree, report a trade-off and avoid a universal superiority claim. Explicitly identify when the sample size does not support stable confidence intervals.
+Conclusion only. Do not add a separate recommendation section; fold any
+recommendation into the conclusion when it follows directly from the evidence.
 
 ## Appendix
 
-The appendix starts on a new page (or after a horizontal rule) and repeats every
-item needed to audit the core claims.
-
 ### A. Metric definitions and motivation
 
-For every metric shown or proposed for paper-grade evaluation, state the formula,
-motivation, current-run availability, and interpretation/reporting caveat. This
-includes SSIM, PSNR, LPIPS, CLIP-F, CLIP-I, FID, ArtFID, LAB palette distance,
-warping error, EPE, flow correlation, tLP, CLIP-CONS, CSD-S, CSD-C, VBench
-subject/background consistency, VBench temporal flickering, VBench motion
-smoothness, VBench dynamic degree, VBench aesthetic quality, VBench imaging
-quality, luminance flicker, VLM aggregation, and runtime/peak-memory cost. Do not
-hide unavailable metrics; mark them as extensions while retaining their definitions.
+Formula, motivation, availability and interpretation caveat for every metric
+shown or proposed for paper-grade evaluation. List unavailable metrics too,
+marked as extensions.
 
 ### B. Dataset and pairing
 
-State number of independent clips, content identities, styles, split, temporal offsets, maximum sampled frames, and the per-case pairing table. Confirm every compared method was paired. Identify external baselines whose numbers were copied rather than rerun.
+Independent clip count, content and style identities, split, temporal offsets,
+per-case pairing table, and which baselines were copied rather than rerun.
 
-### C. Per-case outcomes
+### C. Case study
 
-For each case, show source, style, methods, metrics, review result, and the
-contact sheet. Flag cases where models rank differently from aggregate trends. Do
-not drop inconvenient cases without a documented validity failure.
+Per case: source, style, every method's metrics, review result, contact sheet.
+Flag cases whose ranking differs from the aggregate.
 
 ### D. Ablations and trade-offs
 
-Present controlled effects, not just the best configuration. Use style strength on one axis and preservation/motion on the other. Identify matched-style comparisons.
+Controlled effects at matched style strength.
 
 ### E. Failure gallery
 
-Include at least one representative artifact against the intended reason. Give timestamp/frame, method, and evidence. If no failure was found, state the sampled scope; do not imply universal robustness.
+Representative artifacts with timestamp, method and evidence.
 
 ### F. Threats to validity
 
-At minimum discuss content/style leakage, single-reference FID misuse, pixel metrics after stylization, VLM position bias, non-identical baseline settings, compression, flow-estimator mismatch, small sample size, and stochasticity. Also state that VBench custom-input scores are not leaderboard-comparable, and that CSD and VBench consistency dimensions reward static clips unless dynamic degree is reported alongside.
+Content/style leakage, single-reference FID misuse, pixel metrics after
+stylization, VLM bias, non-identical baselines, compression, flow-estimator
+mismatch, sample size, stochasticity, VBench custom-input comparability, and the
+static-clip bias of consistency metrics.
 
-## Evidence Gates
+## Traceability rules
 
-Apply these gates in the report:
-
-- `Comparative` requires paired held-out methods and at least two independent source/style pairs.
-- A quantitative ranking over multiple clips should include uncertainty.
-- A style-preservation claim requires matched style strength or an explicit confound.
-- A paper-grade claim requires named, fixed implementations for perceptual metrics.
-- VLM statements require blinded review records; otherwise label them author observations.
-- Failures require a linked contact sheet or clip with timestamps.
-- Synthetic/demo values must be labeled prominently and never presented as model benchmark results.
+- The report ID must resolve to the evidence path and hash shown in the header.
+- Synthetic or demo runs must state `example` as the data source.
+- The same numbers must appear in Markdown, HTML, PDF and LaTeX.

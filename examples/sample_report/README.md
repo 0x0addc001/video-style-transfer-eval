@@ -4,16 +4,16 @@ This sample demonstrates the full `video-style-transfer-eval` workflow:
 
 1. paired synthetic source/style/output manifest;
 2. source-flow temporal diagnostics;
-3. blinded visual review packet;
+3. qualitative (VLM) review packet;
 4. validated VLM scores;
 5. merged CSD/VBench video-quality evidence (synthetic stand-in values);
-6. Markdown, HTML, and PDF report generation.
+6. Markdown, HTML, PDF (printed from HTML with headless Chrome) and LaTeX report generation.
 
-The clips and methods are synthetic and deliberately contain different style,
+The methods are labelled Method 1-3 (方法1-3). The clips and methods are synthetic and deliberately contain different style,
 content, and temporal trade-offs. They are not measurements of EchoStyle, UniVST,
 or the user's proposed method.
 
-Open the polished samples:
+Open the polished samples (or the [bilingual homepage](../../docs/index.html)):
 
 - [English PDF](evaluation_report/report_en.pdf)
 - [Chinese PDF](evaluation_report/report_zh.pdf)

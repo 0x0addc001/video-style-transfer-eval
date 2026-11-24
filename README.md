@@ -27,11 +27,11 @@ The full example is available in
 
 ![Standalone HTML report](docs/images/report-en-html.png)
 
-*The standalone HTML report includes the executive verdict, evidence gates, formatted metric definitions, quantitative tables, analysis, conclusions, and per-case evidence.*
+*The standalone HTML report opens with the report ID, evidence path and benchmark link, followed by the multi-method key-results matrix, evaluation configuration, metric classification and quantitative tables.*
 
 ![Metric definitions, formulas, and motivation](docs/images/report-en-metrics.png)
 
-*Each metric is reported with its formula, motivation, availability, and interpretation caveat.*
+*The appendix reports each metric with its formula, motivation, availability and interpretation caveat.*
 
 ![Publication-style quantitative tables](docs/images/report-en-tables.png)
 
@@ -43,6 +43,7 @@ The full example is available in
 - Deterministic diagnostics: SSIM, PSNR, LAB palette distance, Farneback flow
   EPE, source-flow warping error, flow correlation, and luminance flicker.
 - Blinded contact sheets with per-case randomized method labels.
+- Qualitative assessment (VLM) with per-method scores and failure tags.
 - A 1-5 VLM/human rubric for style, content, temporal stability, artifacts, and
   overall quality.
 - A strict review validator and evidence tags.
@@ -50,8 +51,8 @@ The full example is available in
   ArtFID, tLP, CLIP-CONS, CSD style/content consistency, and VBench video
   quality.
 - English and Chinese Markdown, standalone HTML, PDF, and XeLaTeX reports.
-- Per-case evidence, uncertainty caveats, failure analysis, and claim-status
-  gates.
+- Case study appendix, uncertainty caveats, failure analysis, and report /
+  evidence IDs that trace back to the metrics JSON.
 
 ## Install
 
