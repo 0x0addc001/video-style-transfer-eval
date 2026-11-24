@@ -48,17 +48,25 @@ The table must let a reader compare methods left to right in one pass.
 A two-column table (`setting`, `value`) with the reproduction details:
 
 - tested methods (display names);
-- number of data items (clips);
-- data source;
 - seed;
 - sampled frames per video;
 - maximum evaluation side;
 - temporal offsets;
 - flow implementation.
 
-Then a separate **metric classification** table: one row per family
-(style, content, temporal, motion, video quality, cost) and the metric names in
-that family. Do not repeat the family prefix inside the configuration table.
+Then **metric configuration**, split into:
+
+- quantitative metrics: one row per family (style, content, temporal, motion,
+  video quality, cost) with the metric names in that family;
+- qualitative metrics: the five VLM rubric dimensions on a 1-5 scale plus the
+  reviewer count.
+
+Finally a separate **data configuration** profile: number of clips, data source,
+content count, style count, splits, mean clip duration, resolution and warning
+count. Do not put data size or source back into the evaluation configuration.
+
+In HTML, every metric name is clickable and opens a card with its formula,
+motivation and caveat.
 
 ### 4. Quantitative results
 
