@@ -1,120 +1,112 @@
-# Video Style Transfer Evaluation - Synthetic Workflow Demonstration
+# Video Style Transfer Evaluation Report
 
-**Claim status:** Exploratory  
-**Date:** 2026-11-23  
-**Claim:** Demonstrate a reproducible style-content-motion evaluation workflow without presenting synthetic clips as model benchmark evidence.
+**Report ID:** `VST-20261124T115702-8c45376dabc9`  
+**Date:** 2026-11-24 11:57:02  
+**Evidence:** `examples/sample_report/demo_evaluation/metrics.json`  
+**Benchmark:** [video-style-transfer-eval](https://github.com/0x0addc001/video-style-transfer-eval)
 
-## Executive verdict
+## Key results
 
-- SSIM ↑: Simulated balanced 0.9290 vs Simulated flicker 0.8111 (better; n=3).
-- LAB palette W1 ↓: Simulated balanced 9.0208 vs Simulated flicker 7.4201 (worse; n=3).
-- CSD-S style consistency ↑: Simulated balanced 0.9300 vs Simulated flicker 0.8118 (better; n=3).
-- OFFSET 1 WARP RMSE ↓: Simulated balanced 31.70 vs Simulated flicker 47.77 (better; n=3).
-- OFFSET 1 FLOW EPE ↓: Simulated balanced 0.2438 vs Simulated flicker 0.5426 (better; n=3).
-- Runtime ↓: Simulated balanced 18.80 vs Simulated flicker 15.00 (worse; n=3).
-- Blinded VLM review: Simulated balanced has the highest mean overall visual quality (4.00/5 across 1 reviewer(s)); this is perceptual evidence, not benchmark ground truth.
-- Most frequent visual failure tag: detail loss (3 occurrence(s)).
-- VBench video quality for Simulated balanced: VBench motion smoothness 0.9854 ± 0.0074; VBench aesthetic quality 0.5302 ± 0.0135; VBench imaging quality 61.11 ± 0.3670. These scores use VBench custom_input mode and are not leaderboard-comparable.
-- The diagnostic style metric measures palette alignment only; texture and brushwork claims require perceptual evidence.
+| Dimension | Headline metric | Method 1 | Method 2 | Method 3 |
+|---|---|---|---|---|
+| Style | CSD-S style consistency | **0.9300 ± 0.0086** | 0.8118 ± 0.0073 | <u>0.8813 ± 0.0109</u> |
+| Content | SSIM | **0.9290 ± 0.0165** | <u>0.8111 ± 0.0326</u> | 0.7153 ± 0.0149 |
+| Temporal | OFFSET 1 WARP RMSE | **31.70 ± 6.7038** | <u>47.77 ± 10.70</u> | 63.87 ± 6.8744 |
+| Video quality | VBench aesthetic quality | **0.5302 ± 0.0135** | <u>0.4643 ± 0.0164</u> | 0.3957 ± 0.0270 |
+| Cost | Runtime | 18.80 ± 0.4000 | **15.00 ± 0.4000** | <u>16.50 ± 0.4000</u> |
 
-## Protocol and reproducibility
+## Evaluation configuration
 
-| Gate | Value | Status |
-|---|---|---|
-| Paired valid cases | 3 | Pass |
-| Methods | 3 | Pass |
-| Blinded VLM review | Present | Pass |
-| Paper-grade perceptual metrics | Partially present | Pass |
-| Claim status | Exploratory | Caveat |
 
-- Flow implementation: OpenCV Farneback (diagnostic proxy)
-- Manifest SHA-256: `8c45376dabc97d2fa9e622d26ee8aad963bf4fb802fed099fd52ad8de1c6fa47`
-- Sampled frames per video: 30
-- Maximum evaluation side: 320 px
-- Temporal offsets: [1, 5]
-- Blinding: True
+| Setting | Value |
+|---|---|
+| Methods | Method 1, Method 2, Method 3 |
+| Data items | 3 |
+| Data source | example |
+| Seed | 2026 |
+| Sampled frames per video | 30 |
+| Maximum evaluation side | 320 px |
+| Temporal offsets | [1, 5] |
+| Flow implementation | OpenCV Farneback |
 
-### Metrics at a glance
+### Metrics by category
 
-| Metric | Dimension | Direction | Unit |
-|---|---|---|---|
-| CSD-S style consistency | Style | ↑ | cosine |
-| SSIM | Content | ↑ | — |
-| PSNR | Content | ↑ | dB |
-| CSD-C content consistency | Content | ↑ | cosine |
-| LAB palette W1 | Style | ↓ | normalized x100 |
-| LAB chroma palette W1 | Style | ↓ | normalized x100 |
-| OFFSET 1 WARP RMSE | Temporal | ↓ | RGB levels |
-| OFFSET 5 WARP RMSE | Temporal | ↓ | RGB levels |
-| OFFSET 1 FLOW EPE | Motion | ↓ | px |
-| OFFSET 1 FLOW CORRELATION | Motion | ↑ | — |
-| Detrended luminance flicker | Temporal | ↓ | gray levels |
-| VBench subject consistency | Temporal | ↑ | 0-1 |
-| VBench background consistency | Temporal | ↑ | 0-1 |
-| VBench temporal flickering | Temporal | ↑ | 0-1 |
-| VBench motion smoothness | Motion | ↑ | 0-1 |
-| VBench dynamic degree | Motion | ↑ | 0-1 |
-| VBench aesthetic quality | Video quality | ↑ | 0-1 |
-| VBench imaging quality | Video quality | ↑ | MUSIQ 0-100 |
-| Runtime | Cost | ↓ | s |
-| Peak GPU memory | Cost | ↓ | GB |
+| Family | Metric |
+|---|---|
+| Style | CSD-S style consistency, LAB palette W1, LAB chroma palette W1 |
+| Content | SSIM, PSNR, CSD-C content consistency |
+| Temporal | OFFSET 1 WARP RMSE, OFFSET 5 WARP RMSE, Detrended luminance flicker, VBench subject consistency, VBench background consistency, VBench temporal flickering |
+| Motion | OFFSET 1 FLOW EPE, OFFSET 1 FLOW CORRELATION, VBench motion smoothness, VBench dynamic degree |
+| Video quality | VBench aesthetic quality, VBench imaging quality |
+| Cost | Runtime, Peak GPU memory |
+
 
 ## Quantitative results
 
 ### Style
 
-| Metric | Simulated balanced | Simulated flicker | Simulated overlay |
+| Metric | Method 1 | Method 2 | Method 3 |
 |---|---|---|---|
-| CSD-S style consistency ↑ | **0.9300 ± 0.0086** | 0.8118 ± 0.0073 | <u>0.8813 ± 0.0109</u> |
-| LAB palette W1 ↓ | 9.0208 ± 0.5445 | **7.4201 ± 0.5347** | <u>8.0416 ± 0.9411</u> |
-| LAB chroma palette W1 ↓ | <u>3.1765 ± 1.3380</u> | **1.8824 ± 1.0178** | 4.6879 ± 0.4238 |
+| CSD-S style consistency (cosine) ↑ | **0.9300 ± 0.0086** | 0.8118 ± 0.0073 | <u>0.8813 ± 0.0109</u> |
+| LAB palette W1 (normalized x100) ↓ | 9.0208 ± 0.5445 | **7.4201 ± 0.5347** | <u>8.0416 ± 0.9411</u> |
+| LAB chroma palette W1 (normalized x100) ↓ | <u>3.1765 ± 1.3380</u> | **1.8824 ± 1.0178** | 4.6879 ± 0.4238 |
 
 Best and second-best mean values are shown in bold and underlined, respectively. Valid clips: balanced: 3; flicker: 3; overlay: 3.
+
+*Conclusion:* CSD-S style consistency ↑: Method 1 0.9300 vs Method 2 0.8118 (better; n=3).
 
 ### Content
 
-| Metric | Simulated balanced | Simulated flicker | Simulated overlay |
+| Metric | Method 1 | Method 2 | Method 3 |
 |---|---|---|---|
 | SSIM ↑ | **0.9290 ± 0.0165** | <u>0.8111 ± 0.0326</u> | 0.7153 ± 0.0149 |
-| PSNR ↑ | **22.58 ± 0.9018** | <u>17.54 ± 0.3337</u> | 14.90 ± 0.3931 |
-| CSD-C content consistency ↑ | **0.9036 ± 0.0177** | <u>0.8440 ± 0.0098</u> | 0.8007 ± 0.0147 |
+| PSNR (dB) ↑ | **22.58 ± 0.9018** | <u>17.54 ± 0.3337</u> | 14.90 ± 0.3931 |
+| CSD-C content consistency (cosine) ↑ | **0.9036 ± 0.0177** | <u>0.8440 ± 0.0098</u> | 0.8007 ± 0.0147 |
 
 Best and second-best mean values are shown in bold and underlined, respectively. Valid clips: balanced: 3; flicker: 3; overlay: 3.
+
+*Conclusion:* SSIM ↑: Method 1 0.9290 vs Method 2 0.8111 (better; n=3).
 
 ### Temporal and motion
 
-| Metric | Simulated balanced | Simulated flicker | Simulated overlay |
+| Metric | Method 1 | Method 2 | Method 3 |
 |---|---|---|---|
-| OFFSET 1 WARP RMSE ↓ | **31.70 ± 6.7038** | <u>47.77 ± 10.70</u> | 63.87 ± 6.8744 |
-| OFFSET 5 WARP RMSE ↓ | **33.20 ± 5.2688** | <u>46.18 ± 10.55</u> | 63.70 ± 7.5960 |
-| OFFSET 1 FLOW EPE ↓ | <u>0.2438 ± 0.0558</u> | 0.5426 ± 0.3239 | **0.1874 ± 0.0547** |
+| OFFSET 1 WARP RMSE (RGB levels) ↓ | **31.70 ± 6.7038** | <u>47.77 ± 10.70</u> | 63.87 ± 6.8744 |
+| OFFSET 5 WARP RMSE (RGB levels) ↓ | **33.20 ± 5.2688** | <u>46.18 ± 10.55</u> | 63.70 ± 7.5960 |
+| OFFSET 1 FLOW EPE (px) ↓ | <u>0.2438 ± 0.0558</u> | 0.5426 ± 0.3239 | **0.1874 ± 0.0547** |
 | OFFSET 1 FLOW CORRELATION ↑ | **0.4268 ± 0.2381** | 0.2267 ± 0.0923 | <u>0.2662 ± 0.1339</u> |
-| Detrended luminance flicker ↓ | <u>0.1035 ± 0.0619</u> | 12.43 ± 0.4689 | **0.0822 ± 0.0217** |
-| VBench subject consistency ↑ | **0.9425 ± 0.0136** | 0.8377 ± 0.0176 | <u>0.8927 ± 0.0116</u> |
-| VBench background consistency ↑ | **0.9355 ± 0.0019** | 0.8661 ± 0.0181 | <u>0.8791 ± 0.0076</u> |
-| VBench temporal flickering ↑ | **0.9607 ± 0.0175** | 0.7808 ± 0.0130 | <u>0.9182 ± 0.0121</u> |
-| VBench motion smoothness ↑ | **0.9854 ± 0.0074** | 0.9101 ± 0.0119 | <u>0.9438 ± 0.0060</u> |
-| VBench dynamic degree ↑ | <u>0.6688 ± 0.0417</u> | 0.6407 ± 0.0451 | **0.6759 ± 0.0569** |
+| Detrended luminance flicker (gray levels) ↓ | <u>0.1035 ± 0.0619</u> | 12.43 ± 0.4689 | **0.0822 ± 0.0217** |
+| VBench subject consistency (0-1) ↑ | **0.9425 ± 0.0136** | 0.8377 ± 0.0176 | <u>0.8927 ± 0.0116</u> |
+| VBench background consistency (0-1) ↑ | **0.9355 ± 0.0019** | 0.8661 ± 0.0181 | <u>0.8791 ± 0.0076</u> |
+| VBench temporal flickering (0-1) ↑ | **0.9607 ± 0.0175** | 0.7808 ± 0.0130 | <u>0.9182 ± 0.0121</u> |
+| VBench motion smoothness (0-1) ↑ | **0.9854 ± 0.0074** | 0.9101 ± 0.0119 | <u>0.9438 ± 0.0060</u> |
+| VBench dynamic degree (0-1) ↑ | <u>0.6688 ± 0.0417</u> | 0.6407 ± 0.0451 | **0.6759 ± 0.0569** |
 
 Best and second-best mean values are shown in bold and underlined, respectively. Valid clips: balanced: 3; flicker: 3; overlay: 3.
+
+*Conclusion:* OFFSET 1 WARP RMSE ↓: Method 1 31.70 vs Method 2 47.77 (better; n=3).
 
 ### Video quality
 
-| Metric | Simulated balanced | Simulated flicker | Simulated overlay |
+| Metric | Method 1 | Method 2 | Method 3 |
 |---|---|---|---|
-| VBench aesthetic quality ↑ | **0.5302 ± 0.0135** | <u>0.4643 ± 0.0164</u> | 0.3957 ± 0.0270 |
-| VBench imaging quality ↑ | **61.11 ± 0.3670** | <u>53.92 ± 2.0326</u> | 48.08 ± 2.1455 |
+| VBench aesthetic quality (0-1) ↑ | **0.5302 ± 0.0135** | <u>0.4643 ± 0.0164</u> | 0.3957 ± 0.0270 |
+| VBench imaging quality (MUSIQ 0-100) ↑ | **61.11 ± 0.3670** | <u>53.92 ± 2.0326</u> | 48.08 ± 2.1455 |
 
 Best and second-best mean values are shown in bold and underlined, respectively. Valid clips: balanced: 3; flicker: 3; overlay: 3.
+
+*Conclusion:* VBench aesthetic quality ↑: Method 1 0.5302 vs Method 2 0.4643 (better; n=3).
 
 ### Cost
 
-| Metric | Simulated balanced | Simulated flicker | Simulated overlay |
+| Metric | Method 1 | Method 2 | Method 3 |
 |---|---|---|---|
-| Runtime ↓ | 18.80 ± 0.4000 | **15.00 ± 0.4000** | <u>16.50 ± 0.4000</u> |
-| Peak GPU memory ↓ | 12.70 ± 0.0000 | **9.8000 ± 0.0000** | <u>10.40 ± 0.0000</u> |
+| Runtime (s) ↓ | 18.80 ± 0.4000 | **15.00 ± 0.4000** | <u>16.50 ± 0.4000</u> |
+| Peak GPU memory (GB) ↓ | 12.70 ± 0.0000 | **9.8000 ± 0.0000** | <u>10.40 ± 0.0000</u> |
 
 Best and second-best mean values are shown in bold and underlined, respectively. Valid clips: balanced: 3; flicker: 3; overlay: 3.
+
+*Conclusion:* Runtime ↓: Method 1 18.80 vs Method 2 15.00 (worse; n=3).
 
 ### Paired comparison against the primary baseline
 
@@ -133,13 +125,13 @@ Best and second-best mean values are shown in bold and underlined, respectively.
 
 Mean ± sample standard deviation over valid paired clips; the clip is the statistical unit. Bold and underlined values denote the best and second-best means. Arrows show preferred direction. n is listed in the evidence notes.
 
-## Blinded visual review
+## Qualitative assessment (VLM)
 
 | Method | Style | Content | Temporal | Artifacts | Overall |
 |---|---|---|---|---|---|
-| Simulated balanced | 4.00/5 | 4.67/5 | 3.67/5 | 3.33/5 | 4.00/5 |
-| Simulated flicker | 4.67/5 | 3.67/5 | 2.00/5 | 2.00/5 | 2.33/5 |
-| Simulated overlay | 3.33/5 | 3.00/5 | 3.00/5 | 2.00/5 | 2.00/5 |
+| Method 1 | 4.00/5 | 4.67/5 | 3.67/5 | 3.33/5 | 4.00/5 |
+| Method 2 | 4.67/5 | 3.67/5 | 2.00/5 | 2.00/5 | 2.33/5 |
+| Method 3 | 3.33/5 | 3.00/5 | 3.00/5 | 2.00/5 | 2.00/5 |
 
 Failure tags: detail loss (3), texture sticking (3), flicker (3), edge ghosting (2), temporal jump (2), texture drift (1), geometry melting (1).
 
@@ -149,40 +141,36 @@ Reviewer records: 1. Scored case/method records: 9. VLM scores are perceptual ev
 
 ### Style fidelity
 
-The available indicators collectively favor Simulated flicker. Reported diagnostics: CSD-S style consistency 0.9300 ± 0.0086; LAB palette W1 9.0208 ± 0.5445; LAB chroma palette W1 3.1765 ± 1.3380. The blinded style-adherence score is 4.00/5.
+The available indicators collectively favor Method 2. Reported diagnostics: CSD-S style consistency 0.9300 ± 0.0086; LAB palette W1 9.0208 ± 0.5445; LAB chroma palette W1 3.1765 ± 1.3380. The blinded style-adherence score is 4.00/5.
 
 ### Content preservation
 
-The available indicators collectively favor Simulated balanced. Reported diagnostics: CSD-C content consistency 0.9036 ± 0.0177; SSIM 0.9290 ± 0.0165; PSNR 22.58 ± 0.9018.
+The available indicators collectively favor Method 1. Reported diagnostics: CSD-C content consistency 0.9036 ± 0.0177; SSIM 0.9290 ± 0.0165; PSNR 22.58 ± 0.9018.
 
 ### Motion and temporal stability
 
-The available indicators collectively favor Simulated balanced. Reported diagnostics: OFFSET 1 WARP RMSE 31.70 ± 6.7038; OFFSET 5 WARP RMSE 33.20 ± 5.2688; OFFSET 1 FLOW EPE 0.2438 ± 0.0558; Detrended luminance flicker 0.1035 ± 0.0619; VBench subject consistency 0.9425 ± 0.0136; VBench background consistency 0.9355 ± 0.0019; VBench temporal flickering 0.9607 ± 0.0175; VBench motion smoothness 0.9854 ± 0.0074.
+The available indicators collectively favor Method 1. Reported diagnostics: OFFSET 1 WARP RMSE 31.70 ± 6.7038; OFFSET 5 WARP RMSE 33.20 ± 5.2688; OFFSET 1 FLOW EPE 0.2438 ± 0.0558; Detrended luminance flicker 0.1035 ± 0.0619; VBench subject consistency 0.9425 ± 0.0136; VBench background consistency 0.9355 ± 0.0019; VBench temporal flickering 0.9607 ± 0.0175; VBench motion smoothness 0.9854 ± 0.0074.
 
 ### Video quality (VBench)
 
-The available indicators collectively favor Simulated balanced. Reported video-quality metrics: VBench aesthetic quality 0.5302 ± 0.0135; VBench imaging quality 61.11 ± 0.3670.
+The available indicators collectively favor Method 1. Reported video-quality metrics: VBench aesthetic quality 0.5302 ± 0.0135; VBench imaging quality 61.11 ± 0.3670.
 
 ### Perceptual review and failure modes
 
-The blinded review gives the highest overall visual quality to Simulated balanced (4.00/5 across 1 reviewer(s)). This reflects preference on the reviewed sample rather than ground-truth quality. The leading failure modes are detail loss (3), texture sticking (3), flicker (3).
+The blinded review gives the highest overall visual quality to Method 1 (4.00/5 across 1 reviewer(s)). This reflects preference on the reviewed sample rather than ground-truth quality. The leading failure modes are detail loss (3), texture sticking (3), flicker (3).
 
 ### Computational cost
 
-The available indicators collectively favor Simulated flicker. The primary method uses runtime 18.80 ± 0.4000 s and peak memory 12.70 ± 0.0000 GB.
+The available indicators collectively favor Method 2. The primary method uses runtime 18.80 ± 0.4000 s and peak memory 12.70 ± 0.0000 GB.
 
 ### Synthesis
 
 The results show a multidimensional trade-off rather than universal dominance; the current evidence does not support a claim that one method is uniformly superior.
 
 
-## Conclusion and recommendation
+## Conclusion
 
 This report uses 3 synthetic cases to validate the evaluation pipeline and does not provide evidence of real model performance. The tables, perceptual analysis, and conclusions preserve multidimensional evidence and should not be interpreted as a benchmark ranking of EchoStyle or the proposed method.
-
-### Recommendation
-
-Use these results to validate the evaluation pipeline and choose the next experiment. Do not treat the synthetic run as model evidence.
 
 ## Appendix
 
@@ -442,9 +430,9 @@ $$Imaging = (1/T) * sum_t MUSIQ(I_t)$$
 
 | Case | Content | Style | Split | Valid methods | Warnings |
 |---|---|---|---|---|---|
-| demo_case_01 | content_01 | style_01 | synthetic_demo | Simulated balanced, Simulated flicker, Simulated overlay | None |
-| demo_case_02 | content_02 | style_02 | synthetic_demo | Simulated balanced, Simulated flicker, Simulated overlay | None |
-| demo_case_03 | content_03 | style_03 | synthetic_demo | Simulated balanced, Simulated flicker, Simulated overlay | None |
+| demo_case_01 | content_01 | style_01 | synthetic_demo | Method 1, Method 2, Method 3 | None |
+| demo_case_02 | content_02 | style_02 | synthetic_demo | Method 1, Method 2, Method 3 | None |
+| demo_case_03 | content_03 | style_03 | synthetic_demo | Method 1, Method 2, Method 3 | None |
 
 ### C. Per-case outcomes
 
@@ -452,9 +440,9 @@ $$Imaging = (1/T) * sum_t MUSIQ(I_t)$$
 
 | Method | SSIM ↑ | Palette W1 ↓ | Warp RMSE Δ1 ↓ | Flow EPE Δ1 ↓ |
 |---|---|---|---|---|
-| Simulated balanced | 0.9395 | 8.8136 | 28.61 | 0.2963 |
-| Simulated flicker | 0.8270 | 7.3344 | 44.06 | 0.5494 |
-| Simulated overlay | 0.7122 | 8.1708 | 65.43 | 0.1389 |
+| Method 1 | 0.9395 | 8.8136 | 28.61 | 0.2963 |
+| Method 2 | 0.8270 | 7.3344 | 44.06 | 0.5494 |
+| Method 3 | 0.7122 | 8.1708 | 65.43 | 0.1389 |
 
 ![Contact sheet for demo_case_01](assets/demo_case_01.jpg)
 
@@ -462,9 +450,9 @@ $$Imaging = (1/T) * sum_t MUSIQ(I_t)$$
 
 | Method | SSIM ↑ | Palette W1 ↓ | Warp RMSE Δ1 ↓ | Flow EPE Δ1 ↓ |
 |---|---|---|---|---|
-| Simulated balanced | 0.9101 | 8.6103 | 39.39 | 0.2500 |
-| Simulated flicker | 0.7736 | 6.9334 | 59.84 | 0.8630 |
-| Simulated overlay | 0.7315 | 7.0425 | 69.83 | 0.2467 |
+| Method 1 | 0.9101 | 8.6103 | 39.39 | 0.2500 |
+| Method 2 | 0.7736 | 6.9334 | 59.84 | 0.8630 |
+| Method 3 | 0.7315 | 7.0425 | 69.83 | 0.2467 |
 
 ![Contact sheet for demo_case_02](assets/demo_case_02.jpg)
 
@@ -472,9 +460,9 @@ $$Imaging = (1/T) * sum_t MUSIQ(I_t)$$
 
 | Method | SSIM ↑ | Palette W1 ↓ | Warp RMSE Δ1 ↓ | Flow EPE Δ1 ↓ |
 |---|---|---|---|---|
-| Simulated balanced | 0.9376 | 9.6385 | 27.09 | 0.1852 |
-| Simulated flicker | 0.8327 | 7.9925 | 39.42 | 0.2154 |
-| Simulated overlay | 0.7022 | 8.9114 | 56.35 | 0.1766 |
+| Method 1 | 0.9376 | 9.6385 | 27.09 | 0.1852 |
+| Method 2 | 0.8327 | 7.9925 | 39.42 | 0.2154 |
+| Method 3 | 0.7022 | 8.9114 | 56.35 | 0.1766 |
 
 ![Contact sheet for demo_case_03](assets/demo_case_03.jpg)
 

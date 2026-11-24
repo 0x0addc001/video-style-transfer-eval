@@ -16,70 +16,53 @@
 \newcommand{\best}[1]{\textbf{#1}}
 \newcommand{\second}[1]{\underline{#1}}
 \begin{document}
-\title{视频风格迁移评估 - 合成流程演示}
+\title{视频风格迁移评估报告}
 \author{自动生成评估报告}
-\date{2026-11-23 \quad \textbf{结论状态: 探索性}}
+\date{报告 ID: \texttt{VST-20261124T115702-8c45376dabc9} \\ 2026-11-24 11:57:02 \\ 基准: \href{https://github.com/0x0addc001/video-style-transfer-eval}{video-style-transfer-eval}}
 \maketitle
 \begin{abstract}
-演示可复现的风格、内容与运动评估流程，并明确合成片段不能作为模型基准证据。
-\par
 本报告用 3 个合成案例验证了评估流程，未提供真实模型性能证据。结果表、感知分析和结论仍保留多维证据，不应被解释为 EchoStyle 或本文方法的基准排名。
 \end{abstract}
-\section*{评估设置与可复现性}
-\textbf{证据完整性检查}
-\begin{center}
-\small
-\begin{tabular}{@{}lll@{}}
+\section*{评估配置}
+\begin{tabular}{@{}ll@{}}
 \toprule
-检查项 & 结果 & 状态 \\
+配置项 & 取值 \\
 \midrule
-有效配对案例 & 3 & 通过 \\
-方法数量 & 3 & 通过 \\
-盲评 VLM 记录 & 已提供 & 通过 \\
-论文级感知指标 & 部分提供 & 通过 \\
-结论状态 & 探索性 & 需说明限制 \\
+与试方法 & 方法1, 方法2, 方法3 \\
+数据数量 & 3 \\
+数据来源 & example \\
+随机种子 & 2026 \\
+每个视频采样帧数 & 30 \\
+最大评估边长 & 320 px \\
+时序偏移 & [1, 5] \\
+光流实现 & OpenCV Farneback \\
 \bottomrule
 \end{tabular}
-\end{center}
-\begin{itemize}
-\item 光流实现: OpenCV Farneback (diagnostic proxy)
-\item 每个视频采样帧数: 30
-\item 时序偏移: [1, 5]
-\item 盲评: True
-\end{itemize}
-\subsection*{指标速览}
-\begin{table}[H]
-\centering
-\caption{本次运行的指标、维度、偏好方向与单位。}
-\label{tab:metrics-glance}
-\small
-\begin{tabular}{@{}llll@{}}
+\subsection*{分类指标}
+\begin{tabular}{@{}ll@{}}
 \toprule
-指标 & 维度 & 方向 & 单位 \\
+指标族 & 指标 \\
 \midrule
-CSD-S 风格一致性 & 风格 & ↑ & cosine \\
-SSIM 结构相似度 & 内容 & ↑ & -- \\
-PSNR 峰值信噪比 & 内容 & ↑ & dB \\
-CSD-C 内容一致性 & 内容 & ↑ & cosine \\
-LAB 调色板 W1 & 风格 & ↓ & normalized x100 \\
-LAB 色度 W1 & 风格 & ↓ & normalized x100 \\
-重映射 RMSE Δ1 & 时序 & ↓ & RGB levels \\
-重映射 RMSE Δ5 & 时序 & ↓ & RGB levels \\
-光流端点误差 Δ1 & 运动 & ↓ & px \\
-光流相关性 Δ1 & 运动 & ↑ & -- \\
-亮度闪烁 & 时序 & ↓ & gray levels \\
-VBench 主体一致性 & 时序 & ↑ & 0-1 \\
-VBench 背景一致性 & 时序 & ↑ & 0-1 \\
-VBench 时序闪烁 & 时序 & ↑ & 0-1 \\
-VBench 运动平滑度 & 运动 & ↑ & 0-1 \\
-VBench 动态程度 & 运动 & ↑ & 0-1 \\
-VBench 美学质量 & 视频质量 & ↑ & 0-1 \\
-VBench 成像质量 & 视频质量 & ↑ & MUSIQ 0-100 \\
-运行时间 & 成本 & ↓ & s \\
-峰值 GPU 显存 & 成本 & ↓ & GB \\
+风格 & CSD-S 风格一致性, LAB 调色板 W1, LAB 色度 W1 \\
+内容 & SSIM 结构相似度, PSNR 峰值信噪比, CSD-C 内容一致性 \\
+时序 & 重映射 RMSE Δ1, 重映射 RMSE Δ5, 亮度闪烁, VBench 主体一致性, VBench 背景一致性, VBench 时序闪烁 \\
+运动 & 光流端点误差 Δ1, 光流相关性 Δ1, VBench 运动平滑度, VBench 动态程度 \\
+视频质量 & VBench 美学质量, VBench 成像质量 \\
+成本 & 运行时间, 峰值 GPU 显存 \\
 \bottomrule
 \end{tabular}
-\end{table}
+\subsection*{关键结果}
+\begin{tabular}{@{}lllll@{}}
+\toprule
+维度 & 代表指标 & 方法1 & 方法2 & 方法3 \\
+\midrule
+风格 & CSD-S 风格一致性 & \textbf{0.9300 ± 0.0086} & 0.8118 ± 0.0073 & \underline{0.8813 ± 0.0109} \\
+内容 & SSIM 结构相似度 & \textbf{0.9290 ± 0.0165} & \underline{0.8111 ± 0.0326} & 0.7153 ± 0.0149 \\
+时序 & 重映射 RMSE Δ1 & \textbf{31.70 ± 6.7038} & \underline{47.77 ± 10.70} & 63.87 ± 6.8744 \\
+视频质量 & VBench 美学质量 & \textbf{0.5302 ± 0.0135} & \underline{0.4643 ± 0.0164} & 0.3957 ± 0.0270 \\
+成本 & 运行时间 & 18.80 ± 0.4000 & \textbf{15.00 ± 0.4000} & \underline{16.50 ± 0.4000} \\
+\bottomrule
+\end{tabular}
 \section*{实验结果}
 \begin{table}[H]
 \centering
@@ -89,15 +72,16 @@ VBench 成像质量 & 视频质量 & ↑ & MUSIQ 0-100 \\
 \resizebox{\linewidth}{!}{%
 \begin{tabular}{@{}lccc@{}}
 \toprule
-指标 & 模拟平衡方法 & 模拟闪烁方法 & 模拟覆盖方法 \\
+指标 & 方法1 & 方法2 & 方法3 \\
 \midrule
-CSD-S 风格一致性 $\uparrow$ & \textbf{$0.9300 \pm 0.0086$} & $0.8118 \pm 0.0073$ & \underline{$0.8813 \pm 0.0109$} \\
-LAB 调色板 W1 $\downarrow$ & $9.0208 \pm 0.5445$ & \textbf{$7.4201 \pm 0.5347$} & \underline{$8.0416 \pm 0.9411$} \\
-LAB 色度 W1 $\downarrow$ & \underline{$3.1765 \pm 1.3380$} & \textbf{$1.8824 \pm 1.0178$} & $4.6879 \pm 0.4238$ \\
+CSD-S 风格一致性 (cosine) $\uparrow$ & \textbf{$0.9300 \pm 0.0086$} & $0.8118 \pm 0.0073$ & \underline{$0.8813 \pm 0.0109$} \\
+LAB 调色板 W1 (normalized x100) $\downarrow$ & $9.0208 \pm 0.5445$ & \textbf{$7.4201 \pm 0.5347$} & \underline{$8.0416 \pm 0.9411$} \\
+LAB 色度 W1 (normalized x100) $\downarrow$ & \underline{$3.1765 \pm 1.3380$} & \textbf{$1.8824 \pm 1.0178$} & $4.6879 \pm 0.4238$ \\
 \bottomrule
 \end{tabular}%
 }
 \end{table}
+\noindent\textit{点评：CSD-S 风格一致性 ↑：方法1 0.9300 对 方法2 0.8118（更优；n=3）。}
 \begin{table}[H]
 \centering
 \caption{内容保持结果。表中为有效配对片段上的均值和样本标准差。最优和次优均值分别以粗体和下划线标出。箭头表示指标偏好方向。有效片段数：balanced: 3; flicker: 3; overlay: 3。}
@@ -106,15 +90,16 @@ LAB 色度 W1 $\downarrow$ & \underline{$3.1765 \pm 1.3380$} & \textbf{$1.8824 \
 \resizebox{\linewidth}{!}{%
 \begin{tabular}{@{}lccc@{}}
 \toprule
-指标 & 模拟平衡方法 & 模拟闪烁方法 & 模拟覆盖方法 \\
+指标 & 方法1 & 方法2 & 方法3 \\
 \midrule
 SSIM 结构相似度 $\uparrow$ & \textbf{$0.9290 \pm 0.0165$} & \underline{$0.8111 \pm 0.0326$} & $0.7153 \pm 0.0149$ \\
-PSNR 峰值信噪比 $\uparrow$ & \textbf{$22.58 \pm 0.9018$} & \underline{$17.54 \pm 0.3337$} & $14.90 \pm 0.3931$ \\
-CSD-C 内容一致性 $\uparrow$ & \textbf{$0.9036 \pm 0.0177$} & \underline{$0.8440 \pm 0.0098$} & $0.8007 \pm 0.0147$ \\
+PSNR 峰值信噪比 (dB) $\uparrow$ & \textbf{$22.58 \pm 0.9018$} & \underline{$17.54 \pm 0.3337$} & $14.90 \pm 0.3931$ \\
+CSD-C 内容一致性 (cosine) $\uparrow$ & \textbf{$0.9036 \pm 0.0177$} & \underline{$0.8440 \pm 0.0098$} & $0.8007 \pm 0.0147$ \\
 \bottomrule
 \end{tabular}%
 }
 \end{table}
+\noindent\textit{点评：SSIM 结构相似度 ↑：方法1 0.9290 对 方法2 0.8111（更优；n=3）。}
 \begin{table}[H]
 \centering
 \caption{时序与运动结果。表中为有效配对片段上的均值和样本标准差。最优和次优均值分别以粗体和下划线标出。箭头表示指标偏好方向。有效片段数：balanced: 3; flicker: 3; overlay: 3。}
@@ -123,22 +108,23 @@ CSD-C 内容一致性 $\uparrow$ & \textbf{$0.9036 \pm 0.0177$} & \underline{$0.
 \resizebox{\linewidth}{!}{%
 \begin{tabular}{@{}lccc@{}}
 \toprule
-指标 & 模拟平衡方法 & 模拟闪烁方法 & 模拟覆盖方法 \\
+指标 & 方法1 & 方法2 & 方法3 \\
 \midrule
-重映射 RMSE Δ1 $\downarrow$ & \textbf{$31.70 \pm 6.7038$} & \underline{$47.77 \pm 10.70$} & $63.87 \pm 6.8744$ \\
-重映射 RMSE Δ5 $\downarrow$ & \textbf{$33.20 \pm 5.2688$} & \underline{$46.18 \pm 10.55$} & $63.70 \pm 7.5960$ \\
-光流端点误差 Δ1 $\downarrow$ & \underline{$0.2438 \pm 0.0558$} & $0.5426 \pm 0.3239$ & \textbf{$0.1874 \pm 0.0547$} \\
+重映射 RMSE Δ1 (RGB levels) $\downarrow$ & \textbf{$31.70 \pm 6.7038$} & \underline{$47.77 \pm 10.70$} & $63.87 \pm 6.8744$ \\
+重映射 RMSE Δ5 (RGB levels) $\downarrow$ & \textbf{$33.20 \pm 5.2688$} & \underline{$46.18 \pm 10.55$} & $63.70 \pm 7.5960$ \\
+光流端点误差 Δ1 (px) $\downarrow$ & \underline{$0.2438 \pm 0.0558$} & $0.5426 \pm 0.3239$ & \textbf{$0.1874 \pm 0.0547$} \\
 光流相关性 Δ1 $\uparrow$ & \textbf{$0.4268 \pm 0.2381$} & $0.2267 \pm 0.0923$ & \underline{$0.2662 \pm 0.1339$} \\
-亮度闪烁 $\downarrow$ & \underline{$0.1035 \pm 0.0619$} & $12.43 \pm 0.4689$ & \textbf{$0.0822 \pm 0.0217$} \\
-VBench 主体一致性 $\uparrow$ & \textbf{$0.9425 \pm 0.0136$} & $0.8377 \pm 0.0176$ & \underline{$0.8927 \pm 0.0116$} \\
-VBench 背景一致性 $\uparrow$ & \textbf{$0.9355 \pm 0.0019$} & $0.8661 \pm 0.0181$ & \underline{$0.8791 \pm 0.0076$} \\
-VBench 时序闪烁 $\uparrow$ & \textbf{$0.9607 \pm 0.0175$} & $0.7808 \pm 0.0130$ & \underline{$0.9182 \pm 0.0121$} \\
-VBench 运动平滑度 $\uparrow$ & \textbf{$0.9854 \pm 0.0074$} & $0.9101 \pm 0.0119$ & \underline{$0.9438 \pm 0.0060$} \\
-VBench 动态程度 $\uparrow$ & \underline{$0.6688 \pm 0.0417$} & $0.6407 \pm 0.0451$ & \textbf{$0.6759 \pm 0.0569$} \\
+亮度闪烁 (gray levels) $\downarrow$ & \underline{$0.1035 \pm 0.0619$} & $12.43 \pm 0.4689$ & \textbf{$0.0822 \pm 0.0217$} \\
+VBench 主体一致性 (0-1) $\uparrow$ & \textbf{$0.9425 \pm 0.0136$} & $0.8377 \pm 0.0176$ & \underline{$0.8927 \pm 0.0116$} \\
+VBench 背景一致性 (0-1) $\uparrow$ & \textbf{$0.9355 \pm 0.0019$} & $0.8661 \pm 0.0181$ & \underline{$0.8791 \pm 0.0076$} \\
+VBench 时序闪烁 (0-1) $\uparrow$ & \textbf{$0.9607 \pm 0.0175$} & $0.7808 \pm 0.0130$ & \underline{$0.9182 \pm 0.0121$} \\
+VBench 运动平滑度 (0-1) $\uparrow$ & \textbf{$0.9854 \pm 0.0074$} & $0.9101 \pm 0.0119$ & \underline{$0.9438 \pm 0.0060$} \\
+VBench 动态程度 (0-1) $\uparrow$ & \underline{$0.6688 \pm 0.0417$} & $0.6407 \pm 0.0451$ & \textbf{$0.6759 \pm 0.0569$} \\
 \bottomrule
 \end{tabular}%
 }
 \end{table}
+\noindent\textit{点评：重映射 RMSE Δ1 ↓：方法1 31.70 对 方法2 47.77（更优；n=3）。}
 \begin{table}[H]
 \centering
 \caption{视频质量结果。表中为有效配对片段上的均值和样本标准差。最优和次优均值分别以粗体和下划线标出。箭头表示指标偏好方向。有效片段数：balanced: 3; flicker: 3; overlay: 3。}
@@ -147,14 +133,15 @@ VBench 动态程度 $\uparrow$ & \underline{$0.6688 \pm 0.0417$} & $0.6407 \pm 0
 \resizebox{\linewidth}{!}{%
 \begin{tabular}{@{}lccc@{}}
 \toprule
-指标 & 模拟平衡方法 & 模拟闪烁方法 & 模拟覆盖方法 \\
+指标 & 方法1 & 方法2 & 方法3 \\
 \midrule
-VBench 美学质量 $\uparrow$ & \textbf{$0.5302 \pm 0.0135$} & \underline{$0.4643 \pm 0.0164$} & $0.3957 \pm 0.0270$ \\
-VBench 成像质量 $\uparrow$ & \textbf{$61.11 \pm 0.3670$} & \underline{$53.92 \pm 2.0326$} & $48.08 \pm 2.1455$ \\
+VBench 美学质量 (0-1) $\uparrow$ & \textbf{$0.5302 \pm 0.0135$} & \underline{$0.4643 \pm 0.0164$} & $0.3957 \pm 0.0270$ \\
+VBench 成像质量 (MUSIQ 0-100) $\uparrow$ & \textbf{$61.11 \pm 0.3670$} & \underline{$53.92 \pm 2.0326$} & $48.08 \pm 2.1455$ \\
 \bottomrule
 \end{tabular}%
 }
 \end{table}
+\noindent\textit{点评：VBench 美学质量 ↑：方法1 0.5302 对 方法2 0.4643（更优；n=3）。}
 \begin{table}[H]
 \centering
 \caption{计算成本结果。表中为有效配对片段上的均值和样本标准差。最优和次优均值分别以粗体和下划线标出。箭头表示指标偏好方向。有效片段数：balanced: 3; flicker: 3; overlay: 3。}
@@ -163,14 +150,15 @@ VBench 成像质量 $\uparrow$ & \textbf{$61.11 \pm 0.3670$} & \underline{$53.92
 \resizebox{\linewidth}{!}{%
 \begin{tabular}{@{}lccc@{}}
 \toprule
-指标 & 模拟平衡方法 & 模拟闪烁方法 & 模拟覆盖方法 \\
+指标 & 方法1 & 方法2 & 方法3 \\
 \midrule
-运行时间 $\downarrow$ & $18.80 \pm 0.4000$ & \textbf{$15.00 \pm 0.4000$} & \underline{$16.50 \pm 0.4000$} \\
-峰值 GPU 显存 $\downarrow$ & $12.70 \pm 0.0000$ & \textbf{$9.8000 \pm 0.0000$} & \underline{$10.40 \pm 0.0000$} \\
+运行时间 (s) $\downarrow$ & $18.80 \pm 0.4000$ & \textbf{$15.00 \pm 0.4000$} & \underline{$16.50 \pm 0.4000$} \\
+峰值 GPU 显存 (GB) $\downarrow$ & $12.70 \pm 0.0000$ & \textbf{$9.8000 \pm 0.0000$} & \underline{$10.40 \pm 0.0000$} \\
 \bottomrule
 \end{tabular}%
 }
 \end{table}
+\noindent\textit{点评：运行时间 ↓：方法1 18.80 对 方法2 15.00（较差；n=3）。}
 \begin{table}[H]
 \centering
 \caption{相对主基线的配对比较。差值为方向校正后的结果，正值支持主方法。dz 为描述性配对标准化效应量；当 n 小于五时不报告置信区间。}
@@ -193,7 +181,7 @@ VBench 成像质量 & 7.1882 & 3.5071 & -- & 3 \\
 \bottomrule
 \end{tabular}
 \end{table}
-\section*{盲评视觉分析}
+\section*{定性结果（VLM）}
 \begin{table}[H]
 \centering
 \caption{盲评视觉评分（1--5），所有维度均为越高越好。}
@@ -204,9 +192,9 @@ VBench 成像质量 & 7.1882 & 3.5071 & -- & 3 \\
 \toprule
 方法 & 风格一致性 & 内容保持 & 时序稳定性 & 伪影控制 & 整体视觉质量 \\
 \midrule
-模拟平衡方法 & 4.00 & 4.67 & 3.67 & 3.33 & 4.00 \\
-模拟闪烁方法 & 4.67 & 3.67 & 2.00 & 2.00 & 2.33 \\
-模拟覆盖方法 & 3.33 & 3.00 & 3.00 & 2.00 & 2.00 \\
+方法1 & 4.00 & 4.67 & 3.67 & 3.33 & 4.00 \\
+方法2 & 4.67 & 3.67 & 2.00 & 2.00 & 2.33 \\
+方法3 & 3.33 & 3.00 & 3.00 & 2.00 & 2.00 \\
 \bottomrule
 \end{tabular}%
 }
@@ -214,23 +202,21 @@ VBench 成像质量 & 7.1882 & 3.5071 & -- & 3 \\
 \noindent\textbf{失败标签:} 细节损失 (3), 纹理附着/粘连 (3), 闪烁 (3), 边缘重影 (2), 时序跳变 (2), 纹理漂移 (1), 几何融化 (1)\par
 \section*{分析与讨论}
 \subsection*{风格保真度}
-现有指标总体上更支持 模拟闪烁方法。 已报告的诊断值为：CSD-S 风格一致性 0.9300 ± 0.0086；LAB 调色板 W1 9.0208 ± 0.5445；LAB 色度 W1 3.1765 ± 1.3380。 盲评风格一致性为 4.00/5。
+现有指标总体上更支持 方法2。 已报告的诊断值为：CSD-S 风格一致性 0.9300 ± 0.0086；LAB 调色板 W1 9.0208 ± 0.5445；LAB 色度 W1 3.1765 ± 1.3380。 盲评风格一致性为 4.00/5。
 \subsection*{内容保持}
-现有指标总体上更支持 模拟平衡方法。 已报告的诊断值为：CSD-C 内容一致性 0.9036 ± 0.0177；SSIM 结构相似度 0.9290 ± 0.0165；PSNR 峰值信噪比 22.58 ± 0.9018。
+现有指标总体上更支持 方法1。 已报告的诊断值为：CSD-C 内容一致性 0.9036 ± 0.0177；SSIM 结构相似度 0.9290 ± 0.0165；PSNR 峰值信噪比 22.58 ± 0.9018。
 \subsection*{运动与时序稳定性}
-现有指标总体上更支持 模拟平衡方法。 已报告的诊断值为：重映射 RMSE Δ1 31.70 ± 6.7038；重映射 RMSE Δ5 33.20 ± 5.2688；光流端点误差 Δ1 0.2438 ± 0.0558；亮度闪烁 0.1035 ± 0.0619；VBench 主体一致性 0.9425 ± 0.0136；VBench 背景一致性 0.9355 ± 0.0019；VBench 时序闪烁 0.9607 ± 0.0175；VBench 运动平滑度 0.9854 ± 0.0074。
+现有指标总体上更支持 方法1。 已报告的诊断值为：重映射 RMSE Δ1 31.70 ± 6.7038；重映射 RMSE Δ5 33.20 ± 5.2688；光流端点误差 Δ1 0.2438 ± 0.0558；亮度闪烁 0.1035 ± 0.0619；VBench 主体一致性 0.9425 ± 0.0136；VBench 背景一致性 0.9355 ± 0.0019；VBench 时序闪烁 0.9607 ± 0.0175；VBench 运动平滑度 0.9854 ± 0.0074。
 \subsection*{视频质量（VBench）}
-现有指标总体上更支持 模拟平衡方法。 已报告的视频质量指标为：VBench 美学质量 0.5302 ± 0.0135；VBench 成像质量 61.11 ± 0.3670。
+现有指标总体上更支持 方法1。 已报告的视频质量指标为：VBench 美学质量 0.5302 ± 0.0135；VBench 成像质量 61.11 ± 0.3670。
 \subsection*{感知审查与失败模式}
-盲评中整体视觉质量最高的是 模拟平衡方法（4.00/5，1 位审查者）。该结果仅代表当前审查样本中的感知偏好，不等同于真实标签。 主要失败模式为细节损失（3）、纹理附着/粘连（3）、闪烁（3）。
+盲评中整体视觉质量最高的是 方法1（4.00/5，1 位审查者）。该结果仅代表当前审查样本中的感知偏好，不等同于真实标签。 主要失败模式为细节损失（3）、纹理附着/粘连（3）、闪烁（3）。
 \subsection*{计算成本}
-现有指标总体上更支持 模拟闪烁方法。 主方法的运行时间 18.80 ± 0.4000 秒、峰值显存 12.70 ± 0.0000 GB。
+现有指标总体上更支持 方法2。 主方法的运行时间 18.80 ± 0.4000 秒、峰值显存 12.70 ± 0.0000 GB。
 \subsection*{综合判断}
 结果呈现明显的多维权衡，没有方法在所有维度上占优；因此不能据此声称单一方法的普遍优越性。
 \section*{结论}
 本报告用 3 个合成案例验证了评估流程，未提供真实模型性能证据。结果表、感知分析和结论仍保留多维证据，不应被解释为 EchoStyle 或本文方法的基准排名。
-\subsection*{建议}
-请使用当前结果验证评估流程并设计下一组实验。不要把这个合成演示作为模型性能证据。
 \clearpage
 \section*{附录}
 \subsection*{A. 指标定义与设计动机}
@@ -419,9 +405,9 @@ F=\sqrt{\frac{1}{T}\sum_t\left(l_t-(at+b)\right)^2},\quad l_t=\operatorname{mean
 \toprule
 案例 & 内容 / 风格 & 数据划分 & 有效方法 \\
 \midrule
-demo\_case\_01 & content\_01 / style\_01 & synthetic\_demo & 模拟平衡方法, 模拟闪烁方法, 模拟覆盖方法 \\
-demo\_case\_02 & content\_02 / style\_02 & synthetic\_demo & 模拟平衡方法, 模拟闪烁方法, 模拟覆盖方法 \\
-demo\_case\_03 & content\_03 / style\_03 & synthetic\_demo & 模拟平衡方法, 模拟闪烁方法, 模拟覆盖方法 \\
+demo\_case\_01 & content\_01 / style\_01 & synthetic\_demo & 方法1, 方法2, 方法3 \\
+demo\_case\_02 & content\_02 / style\_02 & synthetic\_demo & 方法1, 方法2, 方法3 \\
+demo\_case\_03 & content\_03 / style\_03 & synthetic\_demo & 方法1, 方法2, 方法3 \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -435,9 +421,9 @@ demo\_case\_03 & content\_03 / style\_03 & synthetic\_demo & 模拟平衡方法,
 \toprule
 方法 & SSIM 越高越好 & 调色板 W1 越低越好 & 重映射 RMSE Δ1 越低越好 & 光流 EPE Δ1 越低越好 \\
 \midrule
-模拟平衡方法 & 0.9395 & 8.8136 & 28.61 & 0.2963 \\
-模拟闪烁方法 & 0.8270 & 7.3344 & 44.06 & 0.5494 \\
-模拟覆盖方法 & 0.7122 & 8.1708 & 65.43 & 0.1389 \\
+方法1 & 0.9395 & 8.8136 & 28.61 & 0.2963 \\
+方法2 & 0.8270 & 7.3344 & 44.06 & 0.5494 \\
+方法3 & 0.7122 & 8.1708 & 65.43 & 0.1389 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -455,9 +441,9 @@ demo\_case\_03 & content\_03 / style\_03 & synthetic\_demo & 模拟平衡方法,
 \toprule
 方法 & SSIM 越高越好 & 调色板 W1 越低越好 & 重映射 RMSE Δ1 越低越好 & 光流 EPE Δ1 越低越好 \\
 \midrule
-模拟平衡方法 & 0.9101 & 8.6103 & 39.39 & 0.2500 \\
-模拟闪烁方法 & 0.7736 & 6.9334 & 59.84 & 0.8630 \\
-模拟覆盖方法 & 0.7315 & 7.0425 & 69.83 & 0.2467 \\
+方法1 & 0.9101 & 8.6103 & 39.39 & 0.2500 \\
+方法2 & 0.7736 & 6.9334 & 59.84 & 0.8630 \\
+方法3 & 0.7315 & 7.0425 & 69.83 & 0.2467 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -475,9 +461,9 @@ demo\_case\_03 & content\_03 / style\_03 & synthetic\_demo & 模拟平衡方法,
 \toprule
 方法 & SSIM 越高越好 & 调色板 W1 越低越好 & 重映射 RMSE Δ1 越低越好 & 光流 EPE Δ1 越低越好 \\
 \midrule
-模拟平衡方法 & 0.9376 & 9.6385 & 27.09 & 0.1852 \\
-模拟闪烁方法 & 0.8327 & 7.9925 & 39.42 & 0.2154 \\
-模拟覆盖方法 & 0.7022 & 8.9114 & 56.35 & 0.1766 \\
+方法1 & 0.9376 & 9.6385 & 27.09 & 0.1852 \\
+方法2 & 0.8327 & 7.9925 & 39.42 & 0.2154 \\
+方法3 & 0.7022 & 8.9114 & 56.35 & 0.1766 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -500,5 +486,4 @@ demo\_case\_03 & content\_03 / style\_03 & synthetic\_demo & 模拟平衡方法,
 \item 直接引用论文的外部基线数值可能没有统一推理设置。
 \item 少于五个片段时，比较置信区间不稳定。
 \end{itemize}
-\textit{本报告由 video-style-transfer-eval 自动生成。}
 \end{document}

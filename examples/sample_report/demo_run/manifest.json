@@ -10,27 +10,28 @@
       5
     ],
     "hardware": "Synthetic data generation only",
-    "notes": "All clips and methods are synthetic. This run demonstrates the evaluation workflow and is not a benchmark of EchoStyle or a model."
+    "notes": "All clips and methods are synthetic. This run demonstrates the evaluation workflow and is not a benchmark of EchoStyle or a model.",
+    "data_source": "example"
   },
   "methods": [
     {
       "id": "balanced",
-      "label": "Simulated balanced",
-      "label_zh": "模拟平衡方法",
+      "label": "Method 1",
+      "label_zh": "方法1",
       "seed": 42,
       "checkpoint": "synthetic"
     },
     {
       "id": "flicker",
-      "label": "Simulated flicker",
-      "label_zh": "模拟闪烁方法",
+      "label": "Method 2",
+      "label_zh": "方法2",
       "seed": 42,
       "checkpoint": "synthetic"
     },
     {
       "id": "overlay",
-      "label": "Simulated overlay",
-      "label_zh": "模拟覆盖方法",
+      "label": "Method 3",
+      "label_zh": "方法3",
       "seed": 42,
       "checkpoint": "synthetic"
     }
