@@ -65,10 +65,12 @@ main > section ul { padding-left: 22px !important; }
   display: flex; justify-content: space-between;
   font-size: 12px; color: #8394a8; letter-spacing: 0.02em;
 }
-.case-slide .case-card { border: 0 !important; box-shadow: none !important; padding: 0 !important; margin: 0 !important; background: transparent !important; }
-.case-slide img { width: 100% !important; height: auto !important; border-radius: 12px !important; }
-.case-slide h3 { margin-bottom: 14px !important; }
-.case-slide .case-card h3 { font-size: 20px !important; font-weight: 500 !important; color: #6b7f94 !important; margin: 0 0 8px !important; }
+.case-grid { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 14px !important; }
+.case-grid .case-card { border: 1px solid #e3e9f1 !important; border-radius: 12px !important; padding: 10px 12px !important; margin: 0 !important; background: #ffffff !important; box-shadow: none !important; overflow: hidden !important; }
+.case-grid .case-card h3 { font-size: 13px !important; font-weight: 600 !important; color: #123e4a !important; margin: 0 0 6px !important; white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; }
+.case-grid table { font-size: 10.5px !important; }
+.case-grid th, .case-grid td { padding: 2px 4px !important; }
+.case-grid img { width: 100% !important; height: auto !important; border-radius: 8px !important; margin-top: 6px !important; }
 """
 
 SLIDE_JS = r"""
@@ -83,34 +85,40 @@ SLIDE_JS = r"""
     }
   });
 
-  // keep two representative case studies from the appendix gallery
+  // full case gallery from the appendix, four cases per page, before the conclusion
   const appendix = document.querySelector('main > section.appendix');
-  let casePicks = [];
+  let caseCards = [];
   if (appendix) {
-    const cards = [...appendix.querySelectorAll('article.case-card')];
-    const scored = cards.map((card) => {
-      const cells = card.querySelectorAll('tbody td');
-      const value = parseFloat((cells[1] || {}).textContent || '');
-      return { card, value };
-    }).filter((item) => !Number.isNaN(item.value));
-    scored.sort((a, b) => b.value - a.value);
-    if (scored.length) {
-      casePicks = [scored[0], scored[scored.length - 1]];
-    }
+    caseCards = [...appendix.querySelectorAll('article.case-card')];
     appendix.remove();
   }
-  casePicks.forEach((pick, index) => {
-    const page = document.createElement('section');
-    page.className = 'case-slide';
-    const heading = document.createElement('h3');
+  if (caseCards.length) {
+    const sections = [...document.querySelectorAll('main > section')];
+    const conclusion = sections.find((section) => {
+      const heading = section.querySelector('h2');
+      return heading && /结论|Conclusion/i.test(heading.textContent || '');
+    });
+    const perPage = 4;
+    const total = Math.ceil(caseCards.length / perPage);
     const zh = (document.documentElement.lang || 'en').startsWith('zh');
-    heading.textContent = index === 0
-      ? (zh ? '案例研究：SSIM 最高' : 'Case study: highest SSIM')
-      : (zh ? '案例研究：SSIM 最低' : 'Case study: lowest SSIM');
-    page.appendChild(heading);
-    page.appendChild(pick.card.cloneNode(true));
-    document.querySelector('main').appendChild(page);
-  });
+    for (let index = 0; index < total; index += 1) {
+      const page = document.createElement('section');
+      page.className = 'case-slide';
+      const heading = document.createElement('h3');
+      heading.textContent = zh
+        ? `案例研究（${index + 1} / ${total}）`
+        : `Case studies (${index + 1} / ${total})`;
+      page.appendChild(heading);
+      const grid = document.createElement('div');
+      grid.className = 'case-grid';
+      caseCards.slice(index * perPage, (index + 1) * perPage).forEach((card) => {
+        grid.appendChild(card.cloneNode(true));
+      });
+      page.appendChild(grid);
+      if (conclusion) conclusion.before(page);
+      else document.querySelector('main').appendChild(page);
+    }
+  }
 
   const pages = [...document.querySelectorAll('main > header, main > section')];
   pages.forEach((page) => {
