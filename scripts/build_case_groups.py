@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compose one grouped case-study image per source video from the actual videos."""
+"""One grouped case image per source video: 3 source frames + 12 styles."""
 
 from __future__ import annotations
 
@@ -30,8 +30,7 @@ def sample_frames(path: Path, count: int, width: int, height: int) -> list[Image
     total = int(capture.get(cv2.CAP_PROP_FRAME_COUNT)) or 0
     frames: list[Image.Image] = []
     if total > 0:
-        indices = np.linspace(0, max(total - 1, 0), count).astype(int)
-        for index in indices:
+        for index in np.linspace(0, max(total - 1, 0), count).astype(int):
             capture.set(cv2.CAP_PROP_POS_FRAMES, int(index))
             ok, frame = capture.read()
             if not ok:
@@ -43,66 +42,33 @@ def sample_frames(path: Path, count: int, width: int, height: int) -> list[Image
 
 
 def compose(video: str, source: Path, entries: list[tuple[str, Path]], out_path: Path) -> None:
-    width, margin, gap = 1600, 24, 12
-    frame_w, frame_h = 306, 172        # source frames (5 across)
-    cell_w, cell_h = 170, 96           # style frames (3 across, 3 columns)
-    label_font = ImageFont.truetype(FONT, 17)
+    frame_w, frame_h = 150, 84
+    cols = 3
+    rows = max(1, (len(entries) + cols - 1) // cols)
+    gap = 6
+    col_gap = 18
+    margin = 24
+    label_font = ImageFont.truetype(FONT, 18)
     small_font = ImageFont.truetype(FONT, 15)
-
-    cols, rows = 3, 2
-    grid_w = width - 2 * margin
-    source_total = 5 * frame_w + 4 * gap
-    grid_top = margin + 26 + frame_h + 26
-    row_h = cell_h + 26
-    height = grid_top + rows * row_h + margin + 10
-    canvas = Image.new("RGB", (width, height), "#f6f8fb")
-    draw = ImageDraw.Draw(canvas)
-    draw.text((margin, margin - 2), f"SOURCE · {video}", font=label_font, fill="#123e4a")
-
-    x = margin
-    for frame in sample_frames(source, 5, frame_w, frame_h):
-        canvas.paste(frame, (x, margin + 26))
-        x += frame_w + gap
-
-    for index, (style, output) in enumerate(entries):
-        row, col = divmod(index, cols)
-        col_w = (grid_w - (cols - 1) * 14) // cols
-        x = margin + col * (col_w + 14)
-        y = grid_top + row * row_h
-        draw.text((x, y), style_label(style), font=small_font, fill="#1d5c63")
-        strip = sample_frames(output, 3, cell_w, cell_h)
-        for frame_index, frame in enumerate(strip):
-            canvas.paste(frame, (x + frame_index * (cell_w + 6), y + 22))
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    canvas.save(out_path, quality=93)
-    print("wrote", out_path)
-
-
-def compose_full(video: str, source: Path, entries: list[tuple[str, Path]], out_path: Path) -> None:
-    width, margin, gap = 1600, 24, 10
-    frame_w, frame_h = 260, 146
-    cell_w, cell_h = 198, 111
-    label_font = ImageFont.truetype(FONT, 17)
-    small_font = ImageFont.truetype(FONT, 15)
-    cols, rows = 2, 6
-    grid_top = margin + 26 + frame_h + 30
-    row_h = cell_h + 26
+    col_w = 3 * frame_w + 2 * gap
+    width = 2 * margin + cols * col_w + (cols - 1) * col_gap
+    grid_top = margin + 28 + frame_h + 22
+    row_h = frame_h + 28
     height = grid_top + rows * row_h + margin
     canvas = Image.new("RGB", (width, height), "#f6f8fb")
     draw = ImageDraw.Draw(canvas)
     draw.text((margin, margin - 2), f"SOURCE · {video}", font=label_font, fill="#123e4a")
     x = margin
-    for frame in sample_frames(source, 5, frame_w, frame_h):
+    for frame in sample_frames(source, 3, frame_w, frame_h):
         canvas.paste(frame, (x, margin + 26))
         x += frame_w + gap
     for index, (style, output) in enumerate(entries):
         row, col = divmod(index, cols)
-        cell_x = margin + col * (3 * cell_w + 2 * 5 + 40)
+        cell_x = margin + col * (col_w + col_gap)
         y = grid_top + row * row_h
         draw.text((cell_x, y), style_label(style), font=small_font, fill="#1d5c63")
-        strip = sample_frames(output, 3, cell_w, cell_h)
-        for frame_index, frame in enumerate(strip):
-            canvas.paste(frame, (cell_x + frame_index * (cell_w + 5), y + 21))
+        for frame_index, frame in enumerate(sample_frames(output, 3, frame_w, frame_h)):
+            canvas.paste(frame, (cell_x + frame_index * (frame_w + gap), y + 22))
     out_path.parent.mkdir(parents=True, exist_ok=True)
     canvas.save(out_path, quality=93)
     print("wrote", out_path)
@@ -128,18 +94,10 @@ def main() -> None:
     manifest = []
     for video, entries in sorted(groups.items()):
         entries.sort(key=lambda item: style_label(item[0]))
-        compose_full(video, sources[video], entries, Path(out_dir) / f"{video}.jpg")
-        manifest.append({"video": video, "part": 0, "total": 1, "image": f"{video}.jpg"})
-        chunks = [entries[start:start + 6] for start in range(0, len(entries), 6)]
-        for part, chunk in enumerate(chunks, start=1):
-            label = f"{video}（{part}/{len(chunks)}）" if len(chunks) > 1 else video
-            name = f"{video}__{part}.jpg" if len(chunks) > 1 else f"{video}.jpg"
-            compose(label, sources[video], chunk, Path(out_dir) / name)
-            manifest.append(
-                {"video": video, "part": part, "total": len(chunks), "image": name}
-            )
-
-
+        name = f"{video}.jpg"
+        compose(video, sources[video], entries, Path(out_dir) / name)
+        manifest.append({"video": video, "image": name})
+    Path(out_dir).mkdir(parents=True, exist_ok=True)
     (Path(out_dir) / "manifest.json").write_text(
         json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8"
     )
