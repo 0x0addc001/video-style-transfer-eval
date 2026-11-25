@@ -3004,35 +3004,23 @@ def markdown_report(
         )
 
     lines.extend(["", f"### {s['appendix_per_case']}", ""])
-    for case in metrics.get("cases", []):
-        lines.append(f"#### {case.get('id')}")
+    for video, cases in grouped_cases(metrics).items():
+        lines.append(f"#### {video}")
         lines.append("")
-        lines.append("| " + " | ".join(s["per_case_headers"]) + " |")
-        lines.append("|---|---|---|---|---|")
-        for method_id, result in case.get("methods", {}).items():
-            if not result.get("valid"):
+        lines.append("| " + " | ".join(["风格" if lang == "zh" else "Style", *s["per_case_headers"]]) + " |")
+        lines.append("|---|---|---|---|---|---|")
+        for case in cases:
+            for method_id, result in case.get("methods", {}).items():
+                values = result.get("metrics", {}) if result.get("valid") else {}
                 lines.append(
-                    f"| {labels.get(method_id, method_id)} | {s['invalid']} | "
-                    f"{s['invalid']} | {s['invalid']} | {s['invalid']} |"
+                    f"| {case.get('style_id')} | {labels.get(method_id, method_id)} | "
+                    f"{format_number(values.get('ssim'))} | "
+                    f"{format_number(values.get('lab_palette_w1'))} | "
+                    f"{format_number(values.get('offset_1_warp_rmse'))} | "
+                    f"{format_number(values.get('offset_1_flow_epe'))} |"
                 )
-                continue
-            values = result.get("metrics", {})
-            lines.append(
-                f"| {labels.get(method_id, method_id)} | "
-                f"{format_number(values.get('ssim'))} | "
-                f"{format_number(values.get('lab_palette_w1'))} | "
-                f"{format_number(values.get('offset_1_warp_rmse'))} | "
-                f"{format_number(values.get('offset_1_flow_epe'))} |"
-            )
-        if case.get("contact_sheet"):
-            name = asset_name(case["contact_sheet"])
-            lines.extend(
-                [
-                    "",
-                    f"![{s['contact_sheet']} {case.get('id')}](assets/{name})",
-                ]
-            )
-        lines.append("")
+        name = Path(str(cases[0].get("source_video", ""))).stem + ".jpg"
+        lines.extend(["", f"![{s['contact_sheet']} {video}](assets/{name})", ""])
 
     lines.extend(
         [
@@ -3165,27 +3153,30 @@ def html_report(
         )
 
     case_sections = []
-    for case in metrics.get("cases", []):
+    for video, cases in grouped_cases(metrics).items():
         rows = []
-        for method_id, result in case.get("methods", {}).items():
-            metrics_values = result.get("metrics", {}) if result.get("valid") else {}
-            rows.append(
-                "<tr>"
-                f"<td>{html.escape(labels.get(method_id, method_id))}</td>"
-                f"<td>{html.escape(format_number(metrics_values.get('ssim')))}</td>"
-                f"<td>{html.escape(format_number(metrics_values.get('lab_palette_w1')))}</td>"
-                f"<td>{html.escape(format_number(metrics_values.get('offset_1_warp_rmse')))}</td>"
-                f"<td>{html.escape(format_number(metrics_values.get('offset_1_flow_epe')))}</td>"
-                "</tr>"
-            )
+        for case in cases:
+            for method_id, result in case.get("methods", {}).items():
+                values = result.get("metrics", {}) if result.get("valid") else {}
+                rows.append(
+                    "<tr>"
+                    f"<td>{html.escape(str(case.get('style_id', '')))}</td>"
+                    f"<td>{html.escape(labels.get(method_id, method_id))}</td>"
+                    f"<td>{html.escape(format_number(values.get('ssim')))}</td>"
+                    f"<td>{html.escape(format_number(values.get('lab_palette_w1')))}</td>"
+                    f"<td>{html.escape(format_number(values.get('offset_1_warp_rmse')))}</td>"
+                    f"<td>{html.escape(format_number(values.get('offset_1_flow_epe')))}</td>"
+                    "</tr>"
+                )
         image = ""
-        if case.get("contact_sheet"):
-            name = asset_name(case["contact_sheet"])
-            image = f"<img src='assets/{html.escape(name)}' alt='Contact sheet {html.escape(case.get('id', ''))}'>"
+        if (Path(str(cases[0].get("source_video", ""))).stem + ".jpg"):
+            name = Path(str(cases[0].get("source_video", ""))).stem + ".jpg"
+            image = f"<img src='assets/{html.escape(name)}' alt='Case group {html.escape(video)}'>"
         case_sections.append(
-            "<article class='case-card'>"
-            f"<h3>{html.escape(case.get('id', ''))}</h3>"
+            "<article class='case-group'>"
+            f"<h3>{html.escape(video)}</h3>"
             "<table><thead><tr>"
+            f"<th>{html.escape('风格' if lang == 'zh' else 'Style')}</th>"
             + "".join(f"<th>{html.escape(header)}</th>" for header in s["per_case_headers"])
             + "</tr></thead>"
             f"<tbody>{''.join(rows)}</tbody></table>{image}</article>"
@@ -3436,7 +3427,7 @@ th,td {{ padding:10px 12px; border-bottom:1px solid var(--line); vertical-align:
 .review-card {{ border:1px solid var(--line); border-radius:12px; padding:20px; }}
 .bar-row {{ display:grid; grid-template-columns:160px 1fr 42px; gap:12px; align-items:center; margin:10px 0; }}
 .bar-track {{ height:9px; border-radius:999px; background:#e8edf0; overflow:hidden; }} .bar-fill {{ height:100%; background:linear-gradient(90deg,#2f8f78,#6db59b); }}
-.case-card h3 {{ margin-top:0; }} .case-card img {{ width:100%; display:block; margin-top:18px; border-radius:9px; border:1px solid var(--line); }}
+.case-card h3 {{ margin-top:0; }} .case-card img, .case-group img {{ width:100%; display:block; margin-top:14px; border-radius:9px; border:1px solid var(--line); }} .case-group h3 {{ margin-top:0; }} .case-group table {{ font-size:12.5px; }} .case-group th, .case-group td {{ padding:5px 7px; }}
 .pending {{ color:var(--muted); font-style:italic; }} .recommendation {{ background:#fff8ef; border-color:#ecd3b4; }}
 .small {{ color:var(--muted); font-size:13px; }}
 .table-note {{ color:var(--muted); font-size:12px; margin:10px 0 0; }}
@@ -3480,7 +3471,7 @@ th,td {{ padding:10px 12px; border-bottom:1px solid var(--line); vertical-align:
 .metric-definition:first-of-type {{ border-top:0; padding-top:0; }}
 .availability {{ display:inline-block; color:var(--accent); background:#eef6f5; border-radius:999px; padding:2px 9px; font-size:12px; font-weight:700; }}
 .formula {{ margin:10px 0; padding:20px 18px; border-radius:10px; background:#f0f4f5; text-align:center; font:15px/1.6 "Cambria Math","Times New Roman",serif; overflow-x:auto; }}
-@media print {{ body {{ background:#fff; }} main {{ max-width:none; padding:0; }} header {{ padding:28px 30px; border-radius:0; }} section {{ box-shadow:none; }} .kpi, .review-card, .case-card, tr {{ break-inside:avoid; }} }}
+@media print {{ body {{ background:#fff; }} main {{ max-width:none; padding:0; }} header {{ padding:28px 30px; border-radius:0; }} section {{ box-shadow:none; }} .kpi, .review-card, .case-card, .case-group, tr {{ break-inside:avoid; }} .table-wrap {{ overflow:visible; }} }}
 @media (max-width:700px) {{ main {{ padding:20px 12px 50px; }} header {{ padding:30px 22px; }} header h1 {{ font-size:31px; }} section,.case-card {{ padding:20px; }} .bar-row {{ grid-template-columns:110px 1fr 36px; font-size:12px; }} }}
 </style>
 <script>
@@ -4787,12 +4778,24 @@ def latex_report(
     return "\n".join(lines)
 
 
+def grouped_cases(metrics: dict[str, Any]) -> dict[str, list[dict[str, Any]]]:
+    groups: dict[str, list[dict[str, Any]]] = {}
+    for case in metrics.get("cases", []):
+        source = Path(str(case.get("source_video", ""))).stem or case.get("id", "")
+        groups.setdefault(source, []).append(case)
+    return groups
+
+
 def copy_contact_sheets(
     metrics: dict[str, Any],
     assets_dir: Path,
     metrics_dir: Path,
 ) -> None:
     assets_dir.mkdir(parents=True, exist_ok=True)
+    group_dir = metrics_dir / "case_groups"
+    if group_dir.is_dir():
+        for image in group_dir.glob("*.jpg"):
+            shutil.copy2(image, assets_dir / image.name)
     for case in metrics.get("cases", []):
         source = case.get("contact_sheet")
         if not source:

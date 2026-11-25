@@ -65,12 +65,10 @@ main > section ul { padding-left: 22px !important; }
   display: flex; justify-content: space-between;
   font-size: 12px; color: #8394a8; letter-spacing: 0.02em;
 }
-.case-grid { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 14px !important; }
-.case-grid .case-card { border: 1px solid #e3e9f1 !important; border-radius: 12px !important; padding: 10px 12px !important; margin: 0 !important; background: #ffffff !important; box-shadow: none !important; overflow: hidden !important; }
-.case-grid .case-card h3 { font-size: 13px !important; font-weight: 600 !important; color: #123e4a !important; margin: 0 0 6px !important; white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; }
-.case-grid table { font-size: 10.5px !important; }
-.case-grid th, .case-grid td { padding: 2px 4px !important; }
-.case-grid img { width: 100% !important; height: auto !important; border-radius: 8px !important; margin-top: 6px !important; }
+.case-slide .case-group h3 { font-size: 18px !important; font-weight: 500 !important; color: #6b7f94 !important; margin: 0 0 8px !important; }
+.case-slide .case-group table { font-size: 12px !important; }
+.case-slide .case-group th, .case-slide .case-group td { padding: 3px 5px !important; }
+.case-slide .case-group img { width: 100% !important; height: auto !important; border-radius: 10px !important; margin: 12px auto 0 !important; display: block !important; }
 """
 
 SLIDE_JS = r"""
@@ -85,39 +83,35 @@ SLIDE_JS = r"""
     }
   });
 
-  // full case gallery from the appendix, four cases per page, before the conclusion
+  // grouped case study: one page per source video, all twelve styles shown together
   const appendix = document.querySelector('main > section.appendix');
-  let caseCards = [];
+  let caseGroups = [];
   if (appendix) {
-    caseCards = [...appendix.querySelectorAll('article.case-card')];
+    caseGroups = [...appendix.querySelectorAll('article.case-group')];
     appendix.remove();
   }
-  if (caseCards.length) {
+  if (caseGroups.length) {
     const sections = [...document.querySelectorAll('main > section')];
     const conclusion = sections.find((section) => {
       const heading = section.querySelector('h2');
       return heading && /结论|Conclusion/i.test(heading.textContent || '');
     });
-    const perPage = 4;
-    const total = Math.ceil(caseCards.length / perPage);
     const zh = (document.documentElement.lang || 'en').startsWith('zh');
-    for (let index = 0; index < total; index += 1) {
+    caseGroups.forEach((group, index) => {
       const page = document.createElement('section');
       page.className = 'case-slide';
       const heading = document.createElement('h3');
       heading.textContent = zh
-        ? `案例研究（${index + 1} / ${total}）`
-        : `Case studies (${index + 1} / ${total})`;
+        ? `案例研究（${index + 1} / ${caseGroups.length}）`
+        : `Case studies (${index + 1} / ${caseGroups.length})`;
       page.appendChild(heading);
-      const grid = document.createElement('div');
-      grid.className = 'case-grid';
-      caseCards.slice(index * perPage, (index + 1) * perPage).forEach((card) => {
-        grid.appendChild(card.cloneNode(true));
-      });
-      page.appendChild(grid);
+      const clone = group.cloneNode(true);
+      const table = clone.querySelector('table');
+      if (table) table.remove();
+      page.appendChild(clone);
       if (conclusion) conclusion.before(page);
       else document.querySelector('main').appendChild(page);
-    }
+    });
   }
 
   const pages = [...document.querySelectorAll('main > header, main > section')];
