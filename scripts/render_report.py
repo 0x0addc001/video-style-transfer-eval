@@ -1907,7 +1907,8 @@ def table_sample_note(table: dict[str, Any]) -> str:
             for row in table["rows"]
             if row["summaries"].get(method_id)
         }
-        n_text = ", ".join(str(value) for value in sorted(n_values) if value is not None)
+        n_values = [value for value in n_values if value is not None]
+        n_text = ", ".join(str(value) for value in sorted(n_values))
         if n_text:
             notes.append(f"{method_id}: {n_text}")
     return "; ".join(notes)
