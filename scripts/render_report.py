@@ -2981,28 +2981,6 @@ def markdown_report(
             ]
         )
 
-    lines.extend(
-        [
-            f"### {s['appendix_dataset']}",
-            "",
-            f"| {s['case']} | {s['content']} | {s['style']} | {s['split']} | "
-            f"{s['valid_methods']} | {s['warnings']} |",
-            "|---|---|---|---|---|---|",
-        ]
-    )
-    for case in metrics.get("cases", []):
-        valid = [
-            labels.get(method_id, method_id)
-            for method_id, result in case.get("methods", {}).items()
-            if result.get("valid")
-        ]
-        warnings = "; ".join(case.get("warnings", [])) or s["none"]
-        lines.append(
-            f"| {case.get('id')} | {case.get('content_id') or na} | "
-            f"{case.get('style_id') or na} | {case.get('split')} | "
-            f"{', '.join(valid)} | {warnings} |"
-        )
-
     lines.extend(["", f"### {s['appendix_per_case']}", ""])
     for chunk in grouped_case_chunks(metrics):
         video = chunk["video"]
@@ -3177,7 +3155,11 @@ def html_report(
                     f"<td>{html.escape(format_number(values.get('offset_1_flow_epe')))}</td>"
                     "</tr>"
                 )
-        name = f"{video}__{chunk['part']}.jpg"
+        name = (
+            f"{video}__{chunk['part']}.jpg"
+            if chunk["total"] > 1
+            else f"{video}.jpg"
+        )
         image = f"<img src='assets/{html.escape(name)}' alt='Case group {html.escape(video)}'>"
         case_sections.append(
             "<article class='case-group'>"
@@ -3506,7 +3488,6 @@ window.MathJax = {{ tex: {{ inlineMath: [['$', '$']], displayMath: [['$$', '$$']
 {notes_html}
 <section class="appendix"><h2>{html.escape(s['appendix'])}</h2>
 <h3>{html.escape(s['appendix_metric_definitions'])}</h3>{metric_defs_html}
-{dataset_html}
 <h3>{html.escape(s['appendix_per_case'])}</h3><p class="small">{html.escape(s['per_case_note'])}</p>{''.join(case_sections)}
 <h3>{html.escape(s['appendix_ablations'])}</h3><p>{html.escape(s['ablation_text'])}</p>
 <h3>{html.escape(s['appendix_failures'])}</h3><p>{html.escape(s['failure_text'])}</p>
@@ -4795,7 +4776,7 @@ def grouped_cases(metrics: dict[str, Any]) -> dict[str, list[dict[str, Any]]]:
     return groups
 
 
-def grouped_case_chunks(metrics: dict[str, Any], size: int = 6) -> list[dict[str, Any]]:
+def grouped_case_chunks(metrics: dict[str, Any], size: int = 12) -> list[dict[str, Any]]:
     chunks = []
     for video, cases in grouped_cases(metrics).items():
         total = (len(cases) + size - 1) // size
@@ -5046,6 +5027,7 @@ def main() -> None:
                 "--report-html", str(html_files[-1]),
                 "--out-dir", str(slides_dir),
                 "--language", lang_code,
+                "--case-manifest", str(args.metrics.parent / "case_groups" / "manifest.json"),
             ]
             result = subprocess.run(command, check=False)
             if result.returncode != 0:

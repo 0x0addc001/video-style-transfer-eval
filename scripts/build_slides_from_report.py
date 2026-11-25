@@ -83,36 +83,9 @@ SLIDE_JS = r"""
     }
   });
 
-  // grouped case study: one page per source video, all twelve styles shown together
+  // the appendix stays in the report; case pages come from the manifest
   const appendix = document.querySelector('main > section.appendix');
-  let caseGroups = [];
-  if (appendix) {
-    caseGroups = [...appendix.querySelectorAll('article.case-group')];
-    appendix.remove();
-  }
-  if (caseGroups.length) {
-    const sections = [...document.querySelectorAll('main > section')];
-    const conclusion = sections.find((section) => {
-      const heading = section.querySelector('h2');
-      return heading && /结论|Conclusion/i.test(heading.textContent || '');
-    });
-    const zh = (document.documentElement.lang || 'en').startsWith('zh');
-    caseGroups.forEach((group, index) => {
-      const page = document.createElement('section');
-      page.className = 'case-slide';
-      const heading = document.createElement('h3');
-      heading.textContent = zh
-        ? `案例研究（${index + 1} / ${caseGroups.length}）`
-        : `Case studies (${index + 1} / ${caseGroups.length})`;
-      page.appendChild(heading);
-      const clone = group.cloneNode(true);
-      const table = clone.querySelector('table');
-      if (table) table.remove();
-      page.appendChild(clone);
-      if (conclusion) conclusion.before(page);
-      else document.querySelector('main').appendChild(page);
-    });
-  }
+  if (appendix) appendix.remove();
 
   const pages = [...document.querySelectorAll('main > header, main > section')];
   pages.forEach((page) => {
@@ -145,8 +118,39 @@ SLIDE_JS = r"""
 """
 
 
-def build(report_html: Path, out_dir: Path, lang: str) -> Path:
+
+def inject_cases(html_text: str, case_manifest: Path, lang: str) -> str:
+    import json
+    import re
+
+    entries = json.loads(case_manifest.read_text(encoding="utf-8"))
+    slides = [entry for entry in entries if entry.get("total", 1) > 1]
+    if not slides:
+        slides = entries
+    zh = lang == "zh"
+    blocks = []
+    for index, entry in enumerate(slides, start=1):
+        heading = (
+            f"案例研究（{index} / {len(slides)}）"
+            if zh
+            else f"Case studies ({index} / {len(slides)})"
+        )
+        blocks.append(
+            "<section class='case-slide'>"
+            f"<h3>{heading}</h3>"
+            f"<img src='assets/{entry['image']}' alt='case study'>"
+            "</section>"
+        )
+    match = re.search(r"<section><h2>(?:结论|Conclusion)", html_text)
+    if not match:
+        return html_text
+    return html_text[: match.start()] + "".join(blocks) + html_text[match.start():]
+
+
+def build(report_html: Path, out_dir: Path, lang: str, case_manifest: Path | None = None) -> Path:
     html_text = report_html.read_text(encoding="utf-8")
+    if case_manifest and case_manifest.is_file():
+        html_text = inject_cases(html_text, case_manifest, lang)
     html_text = html_text.replace("</head>", f"<style>{PAGE_CSS}</style></head>", 1)
     html_text = html_text.replace("</body>", f"<script>{SLIDE_JS}</script></body>", 1)
 
@@ -184,8 +188,9 @@ def main() -> None:
     parser.add_argument("--report-html", required=True, type=Path)
     parser.add_argument("--out-dir", required=True, type=Path)
     parser.add_argument("--language", choices=["zh", "en"], required=True)
+    parser.add_argument("--case-manifest", type=Path)
     args = parser.parse_args()
-    build(args.report_html, args.out_dir, args.language)
+    build(args.report_html, args.out_dir, args.language, args.case_manifest)
 
 
 if __name__ == "__main__":

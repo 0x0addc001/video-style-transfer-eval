@@ -78,6 +78,36 @@ def compose(video: str, source: Path, entries: list[tuple[str, Path]], out_path:
     print("wrote", out_path)
 
 
+def compose_full(video: str, source: Path, entries: list[tuple[str, Path]], out_path: Path) -> None:
+    width, margin, gap = 1600, 24, 10
+    frame_w, frame_h = 260, 146
+    cell_w, cell_h = 198, 111
+    label_font = ImageFont.truetype(FONT, 17)
+    small_font = ImageFont.truetype(FONT, 15)
+    cols, rows = 2, 6
+    grid_top = margin + 26 + frame_h + 30
+    row_h = cell_h + 26
+    height = grid_top + rows * row_h + margin
+    canvas = Image.new("RGB", (width, height), "#f6f8fb")
+    draw = ImageDraw.Draw(canvas)
+    draw.text((margin, margin - 2), f"SOURCE · {video}", font=label_font, fill="#123e4a")
+    x = margin
+    for frame in sample_frames(source, 5, frame_w, frame_h):
+        canvas.paste(frame, (x, margin + 26))
+        x += frame_w + gap
+    for index, (style, output) in enumerate(entries):
+        row, col = divmod(index, cols)
+        cell_x = margin + col * (3 * cell_w + 2 * 5 + 40)
+        y = grid_top + row * row_h
+        draw.text((cell_x, y), style_label(style), font=small_font, fill="#1d5c63")
+        strip = sample_frames(output, 3, cell_w, cell_h)
+        for frame_index, frame in enumerate(strip):
+            canvas.paste(frame, (cell_x + frame_index * (cell_w + 5), y + 21))
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    canvas.save(out_path, quality=93)
+    print("wrote", out_path)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--metrics", required=True, type=Path)
@@ -95,13 +125,24 @@ def main() -> None:
             continue
         groups.setdefault(source.stem, []).append((case["style_id"], Path(output)))
         sources[source.stem] = source
+    manifest = []
     for video, entries in sorted(groups.items()):
         entries.sort(key=lambda item: style_label(item[0]))
+        compose_full(video, sources[video], entries, Path(out_dir) / f"{video}.jpg")
+        manifest.append({"video": video, "part": 0, "total": 1, "image": f"{video}.jpg"})
         chunks = [entries[start:start + 6] for start in range(0, len(entries), 6)]
         for part, chunk in enumerate(chunks, start=1):
             label = f"{video}（{part}/{len(chunks)}）" if len(chunks) > 1 else video
             name = f"{video}__{part}.jpg" if len(chunks) > 1 else f"{video}.jpg"
             compose(label, sources[video], chunk, Path(out_dir) / name)
+            manifest.append(
+                {"video": video, "part": part, "total": len(chunks), "image": name}
+            )
+
+
+    (Path(out_dir) / "manifest.json").write_text(
+        json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
 
 
 if __name__ == "__main__":
