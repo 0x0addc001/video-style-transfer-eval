@@ -168,19 +168,6 @@ __OVERVIEW__ \\
         cost_rows += f"运行时长 & {fmt(cost['runtime_s'], 1)} s / 条 \\\\\n"
     if cost.get("peak_memory_gb") is not None:
         cost_rows += f"峰值显存 & {fmt(cost['peak_memory_gb'], 1)} GB / 卡 \\\\\n"
-    vbench = spec.get("vbench", {})
-    vbench_rows = ""
-    for key, label in [
-        ("subject_consistency", "VBench 主体一致 $\\uparrow$"),
-        ("background_consistency", "VBench 背景一致 $\\uparrow$"),
-        ("temporal_flickering", "VBench 时序闪烁 $\\uparrow$"),
-        ("motion_smoothness", "VBench 运动平滑 $\\uparrow$"),
-        ("aesthetic_quality", "VBench 美学 $\\uparrow$"),
-        ("imaging_quality", "VBench 成像 $\\uparrow$"),
-        ("dynamic_degree", "VBench 动态度 $\\rightarrow$"),
-    ]:
-        if vbench.get(key) is not None:
-            vbench_rows += f"{label} & {fmt(vbench[key], 3)} \\\\\\n"
     csd_rows = ""
     if csd.get("csd_s") is not None:
         csd_rows += f"CSD-S 风格一致性 $\\uparrow$ & {fmt(csd['csd_s'], 4)} \\\\\n"
@@ -359,6 +346,36 @@ __STYLE_ROWS__
         extra["SSIM_DELTA"] = fmt(ssim_delta)
         extra["FLICKER_DELTA"] = fmt(abs(flicker_delta), 2)
 
+    if spec.get("vbench"):
+        vbench = spec["vbench"]
+        rows = []
+        for key, label, direction in [
+            ("subject_consistency", "主体一致性", "越高越好"),
+            ("background_consistency", "背景一致性", "越高越好"),
+            ("temporal_flickering", "时序闪烁", "越高越好"),
+            ("motion_smoothness", "运动平滑度", "越高越好"),
+            ("aesthetic_quality", "美学质量", "越高越好"),
+            ("imaging_quality", "成像质量", "越高越好"),
+            ("dynamic_degree", "动态程度", "越接近 0.5 越好"),
+        ]:
+            if vbench.get(key) is not None:
+                rows.append(f"{label} & {fmt(vbench[key], 4)} & {direction} \\\\")
+        frames.append(r"""
+\begin{frame}{VBench 七维}
+\small
+\begin{tabular}{lrl}
+\toprule
+\rowcolor{navy}\headrow{维度} & \headrow{均分} & \headrow{方向} \\
+\midrule
+__VBENCH_ROWS__
+\bottomrule
+\end{tabular}
+\par\vspace{0.3em}
+{\scriptsize\color{muted} VBench 0.1.5，custom\_input 模式，60 条 81 帧/720p 输出；分数已按 VBench 归一化。\par}
+\end{frame}
+""")
+        extra["VBENCH_ROWS"] = "\n".join(rows)
+
     frames.append(r"""
 \begin{frame}{定性评估（VLM）}
 \small
@@ -424,7 +441,7 @@ __CONCLUSION__
         "FLICKER": f"{fmt(aggregate['luminance_flicker']['mean'], 3)} $\\pm$ {fmt(aggregate['luminance_flicker']['std'], 3)}",
         "WARP": f"{fmt(aggregate['offset_1_warp_rmse']['mean'], 2)} $\\pm$ {fmt(aggregate['offset_1_warp_rmse']['std'], 2)}",
         "COST": cost_rows,
-        "CSD": csd_rows + vbench_rows,
+        "CSD": csd_rows,
         "KEY_BULLETS": bullets(spec["key_bullets"]),
         "STYLE_TITLE": spec["style_title"],
         "TABLE_FONT": table_font,
@@ -495,8 +512,8 @@ if __name__ == "__main__":
             ("运动一致性：", "重映射误差 56.1 vs 56.8，差异主要在外观与时序。"),
             ("限制：", "20 对、41 帧、832×480，不能与 81 帧/720p 混比。"),
         ],
-        "cost": cost,
-        "csd": csd,
+        "cost": {},
+        "csd": {},
     })
 
     build({
@@ -531,5 +548,6 @@ if __name__ == "__main__":
             ("限制：", "5 条视频、单方法、单评审模型；基线尚未运行。"),
         ],
         "cost": cost,
+        "vbench": json.loads(Path("/tmp/vbench_summary.json").read_text()) if Path("/tmp/vbench_summary.json").is_file() else {},
         "csd": csd,
     })
