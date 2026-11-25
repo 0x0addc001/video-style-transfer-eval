@@ -109,8 +109,8 @@ FIXED_EN = {
     "Contact sheet：源视频帧与盲化候选。": "Contact sheet: source frames and blinded candidates.",
     "Contact sheet：源视频帧 + 吉卜力风格候选。": "Contact sheet: source frames and Ghibli candidates.",
     "Contact sheet：舞蹈视频的吉卜力风格候选。": "Contact sheet: Ghibli candidates for the dance clip.",
-    "VBench 0.1.5，custom\\_input 模式，60 条 81 帧/720p 输出；分数已按 VBench 归一化。":
-        "VBench 0.1.5, custom\\_input mode, 60 outputs at 81 frames / 720p; scores are normalised by VBench.",
+    "VBench 0.1.5，custom\\_input 模式；分数已按 VBench 归一化。":
+        "VBench 0.1.5, custom\\_input mode; scores are normalised by VBench.",
 }
 
 TAG_ZH = {
@@ -615,9 +615,9 @@ __CONCLUSION__
         "CSD": csd_rows,
         "KEY_BULLETS": bullets(spec["key_bullets"]),
         "VBENCH_NOTE": (
-            "VBench 0.1.5，custom\\_input 模式，60 条 81 帧/720p 输出；分数已按 VBench 归一化。"
+            "VBench 0.1.5，custom\\_input 模式；分数已按 VBench 归一化。"
             if lang == "zh"
-            else "VBench 0.1.5, custom\\_input mode, 60 outputs at 81 frames / 720p; scores are normalised by VBench."
+            else "VBench 0.1.5, custom\\_input mode; scores are normalised by VBench."
         ),
         "LEGEND": (
             "金色底：SSIM 最优；红色底：SSIM 最差；SSIM 越高越好，闪烁与重映射越低越好。"
