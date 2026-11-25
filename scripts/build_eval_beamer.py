@@ -256,12 +256,14 @@ __MISSING_ROWS__
 \fill[navy] (current page.south west) rectangle (current page.north east);
 \end{tikzpicture}
 \vspace{2.2cm}
+\begin{center}
 {\fontsize{20}{26}\selectfont\bfseries\color{white} __TITLE__\par}
 \vspace{0.9cm}
 
 {\large\color{white} __SUBTITLE__\par}
 \vspace{0.25cm}
 {\small\color{white!70!navy} 报告 ID：__REPORT_ID__\quad·\quad 2026-11-24}\par
+\end{center}
 \end{frame}
 """)
 

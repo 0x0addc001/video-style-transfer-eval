@@ -2818,7 +2818,7 @@ def markdown_report(
         lines.extend(
             [
                 "",
-                f"### {s['by_style']}",
+                f"**{s['by_style']}**",
                 "",
                 f"| {s['method']} | {s['style_label']} | n | SSIM ↑ | PSNR ↑ | "
                 + ("亮度闪烁 ↓ | 重映射 RMSE Δ1 ↓ |" if lang == "zh" else "Flicker ↓ | Warp RMSE Δ1 ↓ |"),
@@ -3257,12 +3257,12 @@ def html_report(
             for row in style_rows
         )
         style_html = (
-            f"<section><h2>{html.escape(s['by_style'])}</h2>"
+            f"<p class='small'><b>{html.escape(s['by_style'])}</b></p>"
             "<div class='table-wrap'><table><thead><tr>"
             f"<th>{html.escape(s['method'])}</th><th>{html.escape(s['style_label'])}</th>"
             "<th>n</th><th>SSIM ↑</th><th>PSNR ↑</th>"
             + ("<th>亮度闪烁 ↓</th><th>重映射 RMSE Δ1 ↓</th>" if lang == "zh" else "<th>Flicker ↓</th><th>Warp RMSE Δ1 ↓</th>")
-            + "</tr></thead><tbody>" + body + "</tbody></table></div></section>"
+            + "</tr></thead><tbody>" + body + "</tbody></table></div>"
         )
     notes_html = ""
     if report_notes(args, lang):
@@ -3986,7 +3986,7 @@ def pdf_report(
         def fmt(pair: tuple[float, float] | None) -> str:
             return "—" if pair is None else f"{pair[0]:.4f} ± {pair[1]:.4f}"
 
-        story.append(Paragraph(html.escape(s["by_style"]), styles["Subsection"]))
+        story.append(Paragraph(f"<b>{html.escape(s['by_style'])}</b>", styles["BodySmall"]))
         story.append(
             pdf_table(
                 [
