@@ -252,18 +252,16 @@ __MISSING_ROWS__
 
     frames.append(r"""
 \begin{frame}[plain]
-\begin{tikzpicture}[remember picture,overlay]
-\fill[navy] (current page.south west) rectangle (current page.north east);
-\end{tikzpicture}
-\vspace{2.2cm}
+\vfill
 \begin{center}
-{\fontsize{20}{26}\selectfont\bfseries\color{white} __TITLE__\par}
+{\fontsize{20}{26}\selectfont\bfseries\color{navy} __TITLE__\par}
 \vspace{0.9cm}
 
-{\large\color{white} __SUBTITLE__\par}
+{\large\color{navy} __SUBTITLE__\par}
 \vspace{0.25cm}
-{\small\color{white!70!navy} 报告 ID：__REPORT_ID__\quad·\quad 2026-11-24}\par
+{\small\color{muted} 报告 ID：__REPORT_ID__\quad·\quad 2026-11-24}\par
 \end{center}
+\vfill
 \end{frame}
 """)
 
@@ -589,13 +587,11 @@ __CONCLUSION__
 
     frames.append(r"""
 \begin{frame}[plain]
-\begin{tikzpicture}[remember picture,overlay]
-\fill[navy] (current page.south west) rectangle (current page.north east);
-\end{tikzpicture}
-\vspace{2.8cm}
+\vfill
 \begin{center}
-{\Huge\color{white} 谢谢！}
+{\Huge\color{navy} 谢谢！}
 \end{center}
+\vfill
 \end{frame}
 """)
 
