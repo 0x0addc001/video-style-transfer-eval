@@ -56,6 +56,63 @@ STYLE_ZH = {
     "irasutoya": "Irasutoya", "jojo": "JoJo", "ukiyo_e": "浮世绘",
     "simpsons": "辛普森", "3d_chibi": "3D Q 版",
 }
+STYLE_EN = {
+    "ghibli": "Ghibli", "van_gogh": "Van Gogh", "sketch": "Sketch", "watercolor": "Watercolor",
+    "monet": "Monet", "paper_cutting": "Paper cutting", "american_cartoon": "American cartoon",
+    "irasutoya": "Irasutoya", "jojo": "JoJo", "ukiyo_e": "Ukiyo-e",
+    "simpsons": "Simpsons", "3d_chibi": "3D chibi",
+}
+TAG_EN = {
+    "flicker": "flicker", "texture_sticking": "texture sticking", "detail_loss": "detail loss",
+    "geometry_melting": "geometry melting", "color_bleed": "colour bleed",
+    "edge_ghosting": "edge ghosting", "temporal_jump": "temporal jump", "identity_drift": "identity drift",
+}
+
+FIXED_EN = {
+    "报告 ID": "Report ID",
+    "评估概览": "Evaluation overview",
+    "关键结果": "Key results",
+    "按风格结果（12 种）": "Results by style (12)",
+    "按风格结果": "Results by style",
+    "按风格对比": "Comparison by style",
+    "各风格 SSIM": "SSIM by style",
+    "关键对比": "Key comparison",
+    "SSIM（越高越好）": "SSIM (higher is better)",
+    "亮度闪烁（越低越好）": "Luminance flicker (lower is better)",
+    "SSIM 差距": "SSIM gap",
+    "闪烁差距": "Flicker gap",
+    "（吉卜力更低）": "(Ghibli lower)",
+    "定性评估（VLM）": "Qualitative assessment (VLM)",
+    "VBench 七维": "VBench (7 dimensions)",
+    "维度": "Dimension",
+    "均分": "Mean",
+    "说明": "Description",
+    "方向": "Direction",
+    "评审设置": "Review setup",
+    "单盲 contact sheet，每条只给目标风格。": "single-blind contact sheets with the target style.",
+    "失败标签": "Failure tags",
+    "示例": "Example",
+    "结论与限制": "Conclusion and limitations",
+    "谢谢！": "Thank you!",
+    "越高越好": "higher is better",
+    "越接近 0.5 越好": "closer to 0.5 is better",
+    "金色底：SSIM 最优；红色底：SSIM 最差；SSIM 越高越好，闪烁与重映射越低越好。":
+        "Gold: best SSIM; red: worst SSIM; higher SSIM is better, lower flicker and warping are better.",
+    "项目": "Item",
+    "内容": "Content",
+    "指标": "Metric",
+    "数值": "Value",
+    "风格": "Style",
+    "闪烁": "Flicker",
+    "重映射": "Warp",
+    "方法": "Method",
+    "Contact sheet：源视频帧与盲化候选。": "Contact sheet: source frames and blinded candidates.",
+    "Contact sheet：源视频帧 + 吉卜力风格候选。": "Contact sheet: source frames and Ghibli candidates.",
+    "Contact sheet：舞蹈视频的吉卜力风格候选。": "Contact sheet: Ghibli candidates for the dance clip.",
+    "VBench 0.1.5，custom\\_input 模式，60 条 81 帧/720p 输出；分数已按 VBench 归一化。":
+        "VBench 0.1.5, custom\\_input mode, 60 outputs at 81 frames / 720p; scores are normalised by VBench.",
+}
+
 TAG_ZH = {
     "flicker": "闪烁", "texture_sticking": "纹理粘连", "detail_loss": "细节损失",
     "geometry_melting": "几何融化", "color_bleed": "颜色渗漏", "edge_ghosting": "边缘重影",
@@ -111,6 +168,7 @@ def bullets(items) -> str:
 
 
 def build(spec: dict) -> Path:
+    lang = spec.get("lang", "zh")
     directory = Path(spec["dir"])
     metrics = spec.get("metrics")
     if metrics is None:
@@ -136,6 +194,61 @@ def build(spec: dict) -> Path:
 
     frames = []
     extra: dict[str, object] = {}
+    missing_rows: list[tuple[str, str]] = []
+    has_style_image = any(case.get("style_image") for case in metrics.get("cases", []))
+    if lang == "zh":
+        if not has_style_image:
+            missing_rows.append(("LAB 调色板 W1 / 色度 W1", "无风格参考图（文本驱动方法）"))
+        if cost.get("runtime_s") is None:
+            missing_rows.append(("运行时长", "未记录逐条推理耗时"))
+        if cost.get("peak_memory_gb") is None:
+            missing_rows.append(("峰值显存", "未采样峰值显存"))
+        if not csd:
+            missing_rows.append(("CSD-S / CSD-C", "未运行 CSD 外部评测器"))
+        if not spec.get("vbench"):
+            missing_rows.append(("VBench 七维", "未运行 VBench"))
+    else:
+        if not has_style_image:
+            missing_rows.append(("LAB palette W1 / chroma W1", "no style reference image (text-driven method)"))
+        if cost.get("runtime_s") is None:
+            missing_rows.append(("Runtime", "per-clip runtime not recorded"))
+        if cost.get("peak_memory_gb") is None:
+            missing_rows.append(("Peak GPU memory", "peak memory not sampled"))
+        if not csd:
+            missing_rows.append(("CSD-S / CSD-C", "CSD evaluator not run"))
+        if not spec.get("vbench"):
+            missing_rows.append(("VBench dimensions", "VBench not run"))
+    if missing_rows:
+        if lang == "zh":
+            body_rows = "\n".join(f"{name} & {reason} \\\\" for name, reason in missing_rows)
+            frames.append(r"""
+\begin{frame}{缺失指标及原因}
+\small
+\begin{tabular}{p{5.2cm}p{8.2cm}}
+\toprule
+\rowcolor{navy}\headrow{指标} & \headrow{原因} \\
+\midrule
+__MISSING_ROWS__
+\bottomrule
+\end{tabular}
+\end{frame}
+""")
+        else:
+            body_rows = "\n".join(f"{name} & {reason} \\\\" for name, reason in missing_rows)
+            frames.append(r"""
+\begin{frame}{Missing metrics and reasons}
+\small
+\begin{tabular}{p{5.6cm}p{7.8cm}}
+\toprule
+\rowcolor{navy}\headrow{Metric} & \headrow{Reason} \\
+\midrule
+__MISSING_ROWS__
+\bottomrule
+\end{tabular}
+\end{frame}
+""")
+        extra["MISSING_ROWS"] = body_rows
+
 
     frames.append(r"""
 \begin{frame}[plain]
@@ -143,7 +256,7 @@ def build(spec: dict) -> Path:
 \fill[navy] (current page.south west) rectangle (current page.north east);
 \end{tikzpicture}
 \vspace{2.2cm}
-{\usebeamerfont{title}\color{white} __TITLE__\par}
+{\fontsize{30}{36}\selectfont\bfseries\color{white} __TITLE__\par}
 \vspace{0.45cm}
 {\color{gold}\rule{6cm}{2pt}}
 \vspace{0.55cm}
@@ -154,8 +267,8 @@ def build(spec: dict) -> Path:
 \end{frame}
 """)
 
-    overview_rows = " \\\\\n".join(
-        f"{label} & {value}" for label, value in spec["overview"]
+    overview_rows = "\n".join(
+        f"{label} & {value} \\\\" for label, value in spec["overview"]
     )
     frames.append(r"""
 \begin{frame}{评估概览}
@@ -170,17 +283,38 @@ __OVERVIEW__ \\
 \end{frame}
 """)
 
-    cost_rows = ""
+    cost_items = []
     if cost.get("runtime_s") is not None:
-        cost_rows += f"运行时长 & {fmt(cost['runtime_s'], 1)} s / 条 \\\\\n"
+        cost_items.append(f"运行时长 & {fmt(cost['runtime_s'], 1)} s / 条 \\\\")
     if cost.get("peak_memory_gb") is not None:
-        cost_rows += f"峰值显存 & {fmt(cost['peak_memory_gb'], 1)} GB / 卡 \\\\\n"
-    csd_rows = ""
+        cost_items.append(f"峰值显存 & {fmt(cost['peak_memory_gb'], 1)} GB / 卡 \\\\")
     if csd.get("csd_s") is not None:
-        csd_rows += f"CSD-S 风格一致性 $\\uparrow$ & {fmt(csd['csd_s'], 4)} \\\\\n"
+        cost_items.append(f"CSD-S 风格一致性 $\\uparrow$ & {fmt(csd['csd_s'], 4)} \\\\")
     if csd.get("csd_c") is not None:
-        csd_rows += f"CSD-C 内容一致性 $\\uparrow$ & {fmt(csd['csd_c'], 4)} \\\\\n"
-
+        cost_items.append(f"CSD-C 内容一致性 $\\uparrow$ & {fmt(csd['csd_c'], 4)} \\\\")
+    cost_rows = "\n".join(cost_items)
+    csd_rows = ""
+    key_items = []
+    key_items.append(("SSIM $\\uparrow$", f"{fmt(aggregate['ssim']['mean'], 4)} $\\pm$ {fmt(aggregate['ssim']['std'], 4)}"))
+    key_items.append(("PSNR $\\uparrow$", f"{fmt(aggregate['psnr']['mean'], 2)} $\\pm$ {fmt(aggregate['psnr']['std'], 2)} dB"))
+    if lang == "zh":
+        flicker_label, warp_label = "亮度闪烁 $\\downarrow$", "重映射 RMSE $\\downarrow$"
+        runtime_label, memory_label = "运行时长", "峰值显存"
+        csd_s_label, csd_c_label = "CSD-S 风格一致性 $\\uparrow$", "CSD-C 内容一致性 $\\uparrow$"
+    else:
+        flicker_label, warp_label = "Luminance flicker $\\downarrow$", "Warp RMSE $\\downarrow$"
+        runtime_label, memory_label = "Runtime", "Peak GPU memory"
+        csd_s_label, csd_c_label = "CSD-S style consistency $\\uparrow$", "CSD-C content consistency $\\uparrow$"
+    key_items.append((flicker_label, f"{fmt(aggregate['luminance_flicker']['mean'], 3)} $\\pm$ {fmt(aggregate['luminance_flicker']['std'], 3)}"))
+    key_items.append((warp_label, f"{fmt(aggregate['offset_1_warp_rmse']['mean'], 2)} $\\pm$ {fmt(aggregate['offset_1_warp_rmse']['std'], 2)}"))
+    if cost.get("runtime_s") is not None:
+        key_items.append((runtime_label, f"{fmt(cost['runtime_s'], 1)} s / clip"))
+    if cost.get("peak_memory_gb") is not None:
+        key_items.append((memory_label, f"{fmt(cost['peak_memory_gb'], 1)} GB"))
+    if csd.get("csd_s") is not None:
+        key_items.append((csd_s_label, fmt(csd["csd_s"], 4)))
+    if csd.get("csd_c") is not None:
+        key_items.append((csd_c_label, fmt(csd["csd_c"], 4)))
     frames.append(r"""
 \begin{frame}{关键结果}
 \begin{columns}[T]
@@ -190,11 +324,7 @@ __OVERVIEW__ \\
 \toprule
 \rowcolor{navy}\headrow{指标} & \headrow{数值} \\
 \midrule
-SSIM $\uparrow$ & __SSIM__ \\
-PSNR $\uparrow$ & __PSNR__ \\
-亮度闪烁 $\downarrow$ & __FLICKER__ \\
-重映射 RMSE $\downarrow$ & __WARP__ \\
-__COST____CSD__
+__KEY_ROWS__
 \bottomrule
 \end{tabular}
 \end{column}
@@ -209,11 +339,13 @@ __KEY_BULLETS__
 """)
 
     rows = []
+    names = STYLE_ZH if lang == "zh" else STYLE_EN
+    tag_names = TAG_ZH if lang == "zh" else TAG_EN
     best_style = max(order, key=lambda s: styles[s]["ssim"])
     worst_style = min(order, key=lambda s: styles[s]["ssim"])
     for style in order:
         value = styles[style]
-        name = STYLE_ZH.get(style, style)
+        name = names.get(style, style)
         if style == best_style:
             prefix = r"\rowcolor{gold!22}"
             name = rf"\textbf{{{name}}}"
@@ -229,6 +361,7 @@ __KEY_BULLETS__
             f"{fmt(value['flicker'], 2)} & {fmt(value['warp'], 1)} \\\\"
         )
     table_font = r"\scriptsize" if len(order) > 6 else r"\small"
+
     frames.append(r"""
 \begin{frame}{__STYLE_TITLE__}
 __TABLE_FONT__
@@ -241,7 +374,7 @@ __STYLE_ROWS__
 \bottomrule
 \end{tabular}
 \par\vspace{0.25em}
-{\scriptsize\color{muted} 金色底：SSIM 最优；红色底：SSIM 最差；SSIM 越高越好，闪烁与重映射越低越好。\par}
+{\scriptsize\color{muted} __LEGEND__\par}
 \end{frame}
 """)
 
@@ -250,7 +383,7 @@ __STYLE_ROWS__
         coords = " ".join(
             f"({fmt(styles[s]['ssim'])},{i})" for i, s in enumerate(chart_styles)
         )
-        labels = ", ".join(STYLE_ZH.get(s, s) for s in chart_styles)
+        labels = ", ".join(names.get(s, s) for s in chart_styles)
         best_index = chart_styles.index(best_style)
         worst_index = chart_styles.index(worst_style)
         frames.append(r"""
@@ -284,17 +417,27 @@ __STYLE_ROWS__
         extra["WORST_I"] = worst_index
 
     tag_text = "；".join(
-        f"{TAG_ZH.get(k, k)} {v}" for k, v in sorted(tags.items(), key=lambda x: -x[1])
+        f"{tag_names.get(k, k)} {v}" for k, v in sorted(tags.items(), key=lambda x: -x[1])
     )
-    vlm_rows = " \\\\\n".join(
-        f"{label} & {fmt(vlm[key], 2)} / 5 & {note}"
-        for key, label, note in [
+    if lang == "zh":
+        vlm_labels = [
             ("style_adherence", "风格遵循", "是否达到目标风格"),
             ("content_preservation", "内容保持", "主体与场景是否保留"),
             ("temporal_stability", "时序稳定", "闪烁与抖动"),
             ("artifact_control", "伪影控制", "纹理粘连、重影等"),
             ("overall_visual_quality", "整体质量", "综合偏好"),
         ]
+    else:
+        vlm_labels = [
+            ("style_adherence", "Style adherence", "reaches the target style"),
+            ("content_preservation", "Content preservation", "subject and scene retained"),
+            ("temporal_stability", "Temporal stability", "flicker and jitter"),
+            ("artifact_control", "Artifact control", "texture sticking, ghosting"),
+            ("overall_visual_quality", "Overall quality", "holistic preference"),
+        ]
+    vlm_rows = "\n".join(
+        f"{label} & {fmt(vlm[key], 2)} / 5 & {note} \\\\"
+        for key, label, note in vlm_labels
     )
     if spec.get("comparison"):
         ghibli = styles.get("ghibli", {})
@@ -355,18 +498,30 @@ __STYLE_ROWS__
 
     if spec.get("vbench"):
         vbench = spec["vbench"]
-        rows = []
-        for key, label, direction in [
-            ("subject_consistency", "主体一致性", "越高越好"),
-            ("background_consistency", "背景一致性", "越高越好"),
-            ("temporal_flickering", "时序闪烁", "越高越好"),
-            ("motion_smoothness", "运动平滑度", "越高越好"),
-            ("aesthetic_quality", "美学质量", "越高越好"),
-            ("imaging_quality", "成像质量", "越高越好"),
-            ("dynamic_degree", "动态程度", "越接近 0.5 越好"),
-        ]:
+        vbench_rows_list = []
+        if lang == "zh":
+            vbench_labels = [
+                ("subject_consistency", "主体一致性", "越高越好"),
+                ("background_consistency", "背景一致性", "越高越好"),
+                ("temporal_flickering", "时序闪烁", "越高越好"),
+                ("motion_smoothness", "运动平滑度", "越高越好"),
+                ("aesthetic_quality", "美学质量", "越高越好"),
+                ("imaging_quality", "成像质量", "越高越好"),
+                ("dynamic_degree", "动态程度", "越接近 0.5 越好"),
+            ]
+        else:
+            vbench_labels = [
+                ("subject_consistency", "Subject consistency", "higher is better"),
+                ("background_consistency", "Background consistency", "higher is better"),
+                ("temporal_flickering", "Temporal flickering", "higher is better"),
+                ("motion_smoothness", "Motion smoothness", "higher is better"),
+                ("aesthetic_quality", "Aesthetic quality", "higher is better"),
+                ("imaging_quality", "Imaging quality", "higher is better"),
+                ("dynamic_degree", "Dynamic degree", "closer to 0.5"),
+            ]
+        for key, label, direction in vbench_labels:
             if vbench.get(key) is not None:
-                rows.append(f"{label} & {fmt(vbench[key], 4)} & {direction} \\\\")
+                vbench_rows_list.append(f"{label} & {fmt(vbench[key], 4)} & {direction} \\\\")
         frames.append(r"""
 \begin{frame}{VBench 七维}
 \small
@@ -378,36 +533,30 @@ __VBENCH_ROWS__
 \bottomrule
 \end{tabular}
 \par\vspace{0.3em}
-{\scriptsize\color{muted} VBench 0.1.5，custom\_input 模式，60 条 81 帧/720p 输出；分数已按 VBench 归一化。\par}
+{\scriptsize\color{muted} __VBENCH_NOTE__\par}
 \end{frame}
 """)
-        extra["VBENCH_ROWS"] = "\n".join(rows)
+        extra["VBENCH_ROWS"] = "\n".join(vbench_rows_list)
 
     frames.append(r"""
 \begin{frame}{定性评估（VLM）}
 \small
-\begin{columns}[T]
-\begin{column}{0.56\textwidth}
 \begin{tabular}{lrl}
 \toprule
 \rowcolor{navy}\headrow{维度} & \headrow{均分} & \headrow{说明} \\
 \midrule
-__VLM_ROWS__ \\
+__VLM_ROWS__
 \bottomrule
 \end{tabular}
-\end{column}
-\begin{column}{0.40\textwidth}
-\footnotesize
-\textbf{评审设置}\par
-Qwen3-VL-Plus，单盲 contact sheet，每条只给目标风格。\par\medskip
-\textbf{失败标签}\par
-__TAG_TEXT__
-\end{column}
-\end{columns}
+\par\vspace{0.5em}
+{\footnotesize
+\textbf{评审设置}\quad Qwen3-VL-Plus，单盲 contact sheet，每条只给目标风格。\par\vspace{0.2em}
+\textbf{失败标签}\quad __TAG_TEXT__\par}
 \end{frame}
 """)
 
-    frames.append(r"""
+    if spec.get("image"):
+      frames.append(r"""
 \begin{frame}{示例}
 \begin{center}
 \includegraphics[width=0.96\textwidth]{__IMAGE__}
@@ -438,6 +587,21 @@ __CONCLUSION__
 \end{frame}
 """)
 
+    missing_frames = [
+        frame for frame in frames
+        if "Missing metrics" in frame or "缺失指标及原因" in frame
+    ]
+    if missing_frames:
+        frames = [frame for frame in frames if frame not in missing_frames]
+        vlm_index = next(
+            (
+                index for index, frame in enumerate(frames)
+                if "定性评估" in frame or "Qualitative assessment" in frame
+            ),
+            len(frames),
+        )
+        frames[vlm_index:vlm_index] = missing_frames
+
     values = {
         "TITLE": spec["title"],
         "SUBTITLE": spec["subtitle"],
@@ -450,6 +614,17 @@ __CONCLUSION__
         "COST": cost_rows,
         "CSD": csd_rows,
         "KEY_BULLETS": bullets(spec["key_bullets"]),
+        "VBENCH_NOTE": (
+            "VBench 0.1.5，custom\\_input 模式，60 条 81 帧/720p 输出；分数已按 VBench 归一化。"
+            if lang == "zh"
+            else "VBench 0.1.5, custom\\_input mode, 60 outputs at 81 frames / 720p; scores are normalised by VBench."
+        ),
+        "LEGEND": (
+            "金色底：SSIM 最优；红色底：SSIM 最差；SSIM 越高越好，闪烁与重映射越低越好。"
+            if lang == "zh"
+            else "Gold: best SSIM; red: worst SSIM; higher SSIM is better, lower flicker and warping are better."
+        ),
+        "KEY_ROWS": "\n".join(f"{label} & {value} \\\\" for label, value in key_items),
         "STYLE_TITLE": spec["style_title"],
         "TABLE_FONT": table_font,
         "STYLE_ROWS": "\n".join(rows),
@@ -468,10 +643,13 @@ __CONCLUSION__
     body += "\n\\begin{document}\n"
     body += "\n".join(fill(frame, **values) for frame in frames)
     body += "\n\\end{document}\n"
+    if lang == "en":
+        for zh, en in FIXED_EN.items():
+            body = body.replace(zh, en)
 
     out_dir = Path(spec["out_dir"]) if spec.get("out_dir") else Path(spec["dir"]) / "slides"
     out_dir.mkdir(parents=True, exist_ok=True)
-    tex_path = out_dir / f"{spec['name']}.tex"
+    tex_path = out_dir / f"{spec['name']}_{lang}.tex"
     tex_path.write_text(body, encoding="utf-8")
     print("wrote", tex_path)
     return tex_path
@@ -484,6 +662,8 @@ def build_from_metrics(
     title: str = "视频风格迁移评估报告",
     subtitle: str | None = None,
     report_id: str | None = None,
+    lang: str = "zh",
+    image: str | None = None,
 ) -> Path:
     """Build a deck for an arbitrary evaluation directory."""
     metrics = json.loads(Path(metrics_path).read_text(encoding="utf-8"))
@@ -512,39 +692,72 @@ def build_from_metrics(
         if key in aggregate
     }
     vbench = {
-        key: aggregate[key]["mean"]
+        key.replace("vbench_", ""): aggregate[key]["mean"]
         for key in aggregate
         if key.startswith("vbench_")
     }
 
     contact_dir = Path(metrics_path).parent / "contact_sheets"
     images = sorted(contact_dir.glob("*.jpg")) if contact_dir.is_dir() else []
-    image = str(images[0].resolve()) if images else ""
+    image = image or (str(images[0].resolve()) if images else "")
 
-    overview = [
-        ("数据集", f"{count} 对（{len(styles)} 种风格）"),
-        ("待评方法", "、".join(labels.values())),
-        (
-            "评估配置",
-            f"seed {experiment.get('blind_seed', '—')} · 每视频 "
-            f"{experiment.get('frame_limit', '—')} 帧 · 最大边 "
-            f"{experiment.get('max_side', '—')} px",
-        ),
-        ("定性评审", "Qwen3-VL-Plus · 单盲 contact sheet"),
-    ]
-    key_bullets = [
-        ("内容保持：", f"SSIM {fmt(aggregate['ssim']['mean'])} ± {fmt(aggregate['ssim']['std'])}。"),
-        ("时序稳定：", f"亮度闪烁 {fmt(aggregate['luminance_flicker']['mean'], 2)}。"),
-        ("风格差异：", f"{STYLE_ZH.get(best, best)} 最好（{fmt(styles[best]['ssim'])}），"
-                      f"{STYLE_ZH.get(worst, worst)} 最差（{fmt(styles[worst]['ssim'])}）。"),
-        ("样本：", f"{count} 对，方向一致的指标才可直接比较。"),
-    ]
-    conclusion = [
-        ("最优风格：", f"{STYLE_ZH.get(best, best)} 的 SSIM 为 {fmt(styles[best]['ssim'])}。"),
-        ("最弱风格：", f"{STYLE_ZH.get(worst, worst)} 的 SSIM 为 {fmt(styles[worst]['ssim'])}。"),
-        ("时序：", f"平均亮度闪烁 {fmt(aggregate['luminance_flicker']['mean'], 2)}。"),
-        ("限制：", "单方法评估；跨方法比较需在同一子集上运行基线。"),
-    ]
+    style_names = STYLE_ZH if lang == "zh" else STYLE_EN
+    if lang == "zh":
+        overview = [
+            ("数据集", f"{count} 对（{len(styles)} 种风格）"),
+            ("待评方法", "、".join(labels.values())),
+            (
+                "评估配置",
+                f"seed {experiment.get('blind_seed', '—')} · 每视频 "
+                f"{experiment.get('frame_limit', '—')} 帧 · 最大边 "
+                f"{experiment.get('max_side', '—')} px",
+            ),
+            ("定性评审", "Qwen3-VL-Plus · 单盲 contact sheet"),
+        ]
+        key_bullets = [
+            ("内容保持：", f"SSIM {fmt(aggregate['ssim']['mean'])} ± {fmt(aggregate['ssim']['std'])}。"),
+            ("时序稳定：", f"亮度闪烁 {fmt(aggregate['luminance_flicker']['mean'], 2)}。"),
+            ("风格差异：", f"{style_names.get(best, best)} 最好（{fmt(styles[best]['ssim'])}），"
+                          f"{style_names.get(worst, worst)} 最差（{fmt(styles[worst]['ssim'])}）。"),
+            ("样本：", f"{count} 对，方向一致的指标才可直接比较。"),
+        ]
+        conclusion = [
+            ("最优风格：", f"{style_names.get(best, best)} 的 SSIM 为 {fmt(styles[best]['ssim'])}。"),
+            ("最弱风格：", f"{style_names.get(worst, worst)} 的 SSIM 为 {fmt(styles[worst]['ssim'])}。"),
+            ("时序：", f"平均亮度闪烁 {fmt(aggregate['luminance_flicker']['mean'], 2)}。"),
+            ("限制：", "单方法评估；跨方法比较需在同一子集上运行基线。"),
+        ]
+        subtitle_text = subtitle or f"{count} 对 · {len(styles)} 种风格"
+        style_title = "按风格结果"
+        image_caption = "Contact sheet：源视频帧与盲化候选。"
+    else:
+        overview = [
+            ("Dataset", f"{count} pairs ({len(styles)} styles)"),
+            ("Method", ", ".join(labels.values())),
+            (
+                "Setup",
+                f"seed {experiment.get('blind_seed', '—')} · "
+                f"{experiment.get('frame_limit', '—')} frames per clip · "
+                f"max side {experiment.get('max_side', '—')} px",
+            ),
+            ("Qualitative", "Qwen3-VL-Plus · single-blind contact sheets"),
+        ]
+        key_bullets = [
+            ("Content:", f"SSIM {fmt(aggregate['ssim']['mean'])} ± {fmt(aggregate['ssim']['std'])}."),
+            ("Temporal:", f"luminance flicker {fmt(aggregate['luminance_flicker']['mean'], 2)}."),
+            ("Styles:", f"{style_names.get(best, best)} best ({fmt(styles[best]['ssim'])}), "
+                        f"{style_names.get(worst, worst)} worst ({fmt(styles[worst]['ssim'])})."),
+            ("Sample:", f"{count} pairs; compare only metrics with the same direction."),
+        ]
+        conclusion = [
+            ("Best style:", f"{style_names.get(best, best)} reaches SSIM {fmt(styles[best]['ssim'])}."),
+            ("Weakest style:", f"{style_names.get(worst, worst)} reaches SSIM {fmt(styles[worst]['ssim'])}."),
+            ("Temporal:", f"mean luminance flicker {fmt(aggregate['luminance_flicker']['mean'], 2)}."),
+            ("Limits:", "single method; baselines must run on the same subset."),
+        ]
+        subtitle_text = subtitle or f"{count} pairs · {len(styles)} styles"
+        style_title = "Results by style"
+        image_caption = "Contact sheet: source frames and blinded candidates."
 
     spec = {
         "name": Path(out_dir).name or "slides",
@@ -554,14 +767,15 @@ def build_from_metrics(
         "review": review,
         "method_id": method_id,
         "title": title,
-        "subtitle": subtitle or f"{count} 对 · {len(styles)} 种风格",
+        "subtitle": subtitle_text,
+        "lang": lang,
         "report_id": report_id,
         "overview": overview,
         "style_order": order,
-        "style_title": "按风格结果",
-        "chart": len(order) > 3,
+        "style_title": style_title,
+        "chart": len(order) >= 2,
         "image": image,
-        "image_caption": "Contact sheet：源视频帧与盲化候选。",
+        "image_caption": image_caption,
         "key_bullets": key_bullets,
         "conclusion": conclusion,
         "cost": cost,
@@ -584,25 +798,30 @@ def _cli() -> None:
     parser.add_argument("--title", default="视频风格迁移评估报告")
     parser.add_argument("--subtitle", default=None)
     parser.add_argument("--report-id", default=None)
+    parser.add_argument("--language", choices=["both", "zh", "en"], default="both")
+    parser.add_argument("--image", default=None)
     args = parser.parse_args()
 
-    tex_path = build_from_metrics(
-        args.metrics, args.review, args.out_dir,
-        args.title, args.subtitle, args.report_id,
-    )
+    languages = ["zh", "en"] if args.language == "both" else [args.language]
     tectonic = shutil.which("tectonic")
-    if tectonic:
-        result = subprocess.run(
-            [tectonic, "-X", "compile", tex_path.name],
-            cwd=tex_path.parent, capture_output=True, text=True, check=False,
+    for lang in languages:
+        tex_path = build_from_metrics(
+            args.metrics, args.review, args.out_dir,
+            args.title, args.subtitle, args.report_id, lang,
+            image=args.image,
         )
-        if result.returncode != 0:
-            print(result.stdout[-800:])
-            print(result.stderr[-800:])
-            raise SystemExit(result.returncode)
-        print("wrote", tex_path.with_suffix(".pdf"))
-    else:
-        print("tectonic not found; compile", tex_path, "manually")
+        if tectonic:
+            result = subprocess.run(
+                [tectonic, "-X", "compile", tex_path.name],
+                cwd=tex_path.parent, capture_output=True, text=True, check=False,
+            )
+            if result.returncode != 0:
+                print(result.stdout[-800:])
+                print(result.stderr[-800:])
+                raise SystemExit(result.returncode)
+            print("wrote", tex_path.with_suffix(".pdf"))
+        else:
+            print("tectonic not found; compile", tex_path, "manually")
 
 
 if __name__ == "__main__":

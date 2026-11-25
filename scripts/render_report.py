@@ -4916,6 +4916,7 @@ def main() -> None:
             "--metrics", str(args.metrics),
             "--review", str(args.review),
             "--out-dir", str(args.output_dir / "slides"),
+            "--language", args.language,
         ]
         if args.title_zh:
             command += ["--title", args.title_zh]
