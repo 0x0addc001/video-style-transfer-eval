@@ -4732,12 +4732,38 @@ def copy_contact_sheets(
             shutil.copy2(source_path, assets_dir / asset_name(source))
 
 
+def inline_assets(html_path: Path) -> Path:
+    """Return a copy of the HTML with local images embedded as data URIs."""
+    import base64
+    import re
+
+    html_text = html_path.read_text(encoding="utf-8")
+
+    def replace(match: "re.Match[str]") -> str:
+        src = match.group(1)
+        if src.startswith(("http:", "https:", "data:")):
+            return match.group(0)
+        asset = (html_path.parent / src).resolve()
+        if not asset.is_file():
+            return match.group(0)
+        suffix = asset.suffix.lower().lstrip(".")
+        mime = "jpeg" if suffix in {"jpg", "jpeg"} else suffix
+        data = base64.b64encode(asset.read_bytes()).decode("ascii")
+        return f'src="data:image/{mime};base64,{data}"'
+
+    html_text = re.sub(r'src=["\']([^"\']+)["\']', replace, html_text)
+    temp = html_path.with_name(html_path.stem + "_print.html")
+    temp.write_text(html_text, encoding="utf-8")
+    return temp
+
+
 def print_pdf_with_chrome(
     chrome_path: str,
     html_path: Path,
     pdf_path: Path,
 ) -> None:
     """Print the HTML report to PDF with headless Chrome."""
+    print_html = inline_assets(html_path)
     command = [
         chrome_path,
         "--headless=new",
@@ -4745,7 +4771,7 @@ def print_pdf_with_chrome(
         "--no-pdf-header-footer",
         "--virtual-time-budget=10000",
         f"--print-to-pdf={pdf_path}",
-        html_path.resolve().as_uri(),
+        print_html.resolve().as_uri(),
     ]
     completed = subprocess.run(
         command, capture_output=True, text=True, check=False, timeout=180
