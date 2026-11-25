@@ -12,24 +12,60 @@ CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 
 PAGE_CSS = """
 @page { size: 13.333in 7.5in; margin: 0; }
-html, body { margin: 0 !important; padding: 0 !important; background: #fff !important; }
-main { max-width: none !important; padding: 0 !important; }
-main > header, main > section {
+html, body { margin: 0 !important; padding: 0 !important; background: #eef2f6 !important; }
+main { max-width: none !important; padding: 0 !important; background: transparent !important; }
+main > section {
+  width: 1228px !important;
+  height: 668px !important;
+  margin: 26px auto !important;
+  padding: 44px 54px 58px !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+  page-break-after: always !important;
+  break-after: page !important;
+  background: #ffffff !important;
+  border-radius: 20px !important;
+  border: 1px solid #e3e9f1 !important;
+  box-shadow: 0 14px 34px rgba(16, 36, 56, 0.07) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-start !important;
+}
+main > header {
   width: 1280px !important;
   height: 720px !important;
   margin: 0 !important;
-  padding: 46px 56px !important;
+  padding: 96px 84px !important;
   box-sizing: border-box !important;
   overflow: hidden !important;
   page-break-after: always !important;
   break-after: page !important;
   border-radius: 0 !important;
-  box-shadow: none !important;
+  background: linear-gradient(135deg, #123e4a 0%, #1d5c63 60%, #24707a 100%) !important;
+  color: #fff !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
 }
-main > header { background: linear-gradient(135deg,#123e4a,#1d5c63) !important; color: #fff !important; }
-main > header h1, main > header strong, main > header code, main > header a { color: #fff !important; }
+main > header h1 { font-size: 52px !important; line-height: 1.16 !important; color: #fff !important; margin: 0 0 22px !important; letter-spacing: 0.01em; }
+main > header p { font-size: 18px !important; line-height: 1.7 !important; color: #dbe9ec !important; margin: 0 0 6px !important; }
+main > header strong { color: #ffffff !important; }
+main > header code, main > header a { color: #ffffff !important; }
 main > section:last-child { page-break-after: auto !important; break-after: auto !important; }
+main > section h2 { font-size: 34px !important; margin: 0 0 18px !important; color: #123e4a !important; letter-spacing: 0.01em; }
+main > section h3 { font-size: 31px !important; margin: 0 0 16px !important; color: #123e4a !important; letter-spacing: 0.01em; }
+main > section table { font-size: 17px !important; }
+main > section th { padding: 11px 12px !important; }
+main > section td { padding: 10px 12px !important; }
+main > section p, main > section li { font-size: 16.5px !important; line-height: 1.62 !important; }
+main > section ul { padding-left: 22px !important; }
 .page-inner { transform-origin: top left; }
+.slide-footer {
+  position: absolute; left: 54px; right: 54px; bottom: 18px;
+  display: flex; justify-content: space-between;
+  font-size: 12px; color: #8394a8; letter-spacing: 0.02em;
+}
+main > header .slide-footer { color: #a9c6cc; left: 84px; right: 84px; }
 """
 
 SLIDE_JS = r"""
@@ -67,6 +103,7 @@ SLIDE_JS = r"""
     inner.style.width = (availW / scale) + 'px';
     inner.style.transform = 'scale(' + scale + ')';
   });
+
 })();
 """
 
