@@ -23,7 +23,8 @@ PREAMBLE = r"""
 \usepackage{ragged2e}
 
 \definecolor{navy}{RGB}{0,32,96}
-\definecolor{gold}{RGB}{191,144,0}
+\definecolor{blue}{RGB}{31,78,156}
+\definecolor{lightblue}{RGB}{220,230,245}
 \definecolor{ink}{RGB}{31,41,55}
 \definecolor{muted}{RGB}{96,112,128}
 
@@ -32,12 +33,12 @@ PREAMBLE = r"""
 \setbeamercolor{structure}{fg=navy}
 \setbeamercolor{footline}{fg=muted}
 \setbeamertemplate{navigation symbols}{}
-\setbeamertemplate{itemize item}{\color{gold}$\blacktriangleright$}
+\setbeamertemplate{itemize item}{\color{navy}$\blacktriangleright$}
 \setbeamerfont{frametitle}{size=\LARGE,series=\bfseries}
 \setbeamerfont{title}{size=\Huge,series=\bfseries}
 \setbeamertemplate{frametitle}{%
   \vspace{0.35em}\insertframetitle\par
-  \vspace{0.15em}{\color{gold}\rule{\textwidth}{1.2pt}}%
+  \vspace{0.15em}{\color{navy}\rule{\textwidth}{1.2pt}}%
 }
 \setbeamertemplate{footline}{%
   \hbox to \paperwidth{\hspace{0.6cm}%
@@ -96,8 +97,8 @@ FIXED_EN = {
     "谢谢！": "Thank you!",
     "越高越好": "higher is better",
     "越接近 0.5 越好": "closer to 0.5 is better",
-    "金色底：SSIM 最优；红色底：SSIM 最差；SSIM 越高越好，闪烁与重映射越低越好。":
-        "Gold: best SSIM; red: worst SSIM; higher SSIM is better, lower flicker and warping are better.",
+    "较深蓝底：SSIM 最优；较浅蓝底：SSIM 最差；SSIM 越高越好，闪烁与重映射越低越好。":
+        "Higher SSIM is better; best/worst are marked in the table.",
     "项目": "Item",
     "内容": "Content",
     "指标": "Metric",
@@ -256,9 +257,9 @@ __MISSING_ROWS__
 \fill[navy] (current page.south west) rectangle (current page.north east);
 \end{tikzpicture}
 \vspace{2.2cm}
-{\fontsize{30}{36}\selectfont\bfseries\color{white} __TITLE__\par}
+{\fontsize{20}{26}\selectfont\bfseries\color{white} __TITLE__\par}
 \vspace{0.45cm}
-{\color{gold}\rule{6cm}{2pt}}
+{\color{white}\rule{6cm}{2pt}}
 \vspace{0.55cm}
 
 {\large\color{white} __SUBTITLE__\par}
@@ -347,11 +348,11 @@ __KEY_BULLETS__
         value = styles[style]
         name = names.get(style, style)
         if style == best_style:
-            prefix = r"\rowcolor{gold!22}"
+            prefix = r"\rowcolor{navy!15}"
             name = rf"\textbf{{{name}}}"
             ssim_cell = rf"\textbf{{{fmt(value['ssim'])}}}"
         elif style == worst_style:
-            prefix = r"\rowcolor{red!8}"
+            prefix = r"\rowcolor{blue!10}"
             ssim_cell = fmt(value["ssim"])
         else:
             prefix = ""
@@ -380,20 +381,34 @@ __STYLE_ROWS__
 
     if spec.get("chart"):
         chart_styles = sorted(order, key=lambda s: styles[s]["ssim"], reverse=True)
+        best_index = chart_styles.index(best_style)
+        worst_index = chart_styles.index(worst_style)
+        others = " ".join(
+            f"({fmt(styles[s]['ssim'])},{i})"
+            for i, s in enumerate(chart_styles)
+            if i not in (best_index, worst_index)
+        )
+        best_coord = f"({fmt(styles[best_style]['ssim'])},{best_index})"
+        worst_coord = f"({fmt(styles[worst_style]['ssim'])},{worst_index})"
         coords = " ".join(
             f"({fmt(styles[s]['ssim'])},{i})" for i, s in enumerate(chart_styles)
         )
         labels = ", ".join(names.get(s, s) for s in chart_styles)
-        best_index = chart_styles.index(best_style)
-        worst_index = chart_styles.index(worst_style)
+        extra["CHART_TICKS"] = ",".join(str(i) for i in range(len(chart_styles)))
+        extra["CHART_HEIGHT"] = "0.78\\textheight" if len(chart_styles) > 6 else "0.40\\textheight"
+        extra["CHART_OTHERS_PLOT"] = (
+            f"\\addplot[fill=navy!70,draw=none] coordinates {{{others}}};" if others else ""
+        )
+        extra["BEST_COORD"] = best_coord
+        extra["WORST_COORD"] = worst_coord
         frames.append(r"""
 \begin{frame}{各风格 SSIM}
 \begin{center}
 \begin{tikzpicture}
 \begin{axis}[
-  xbar, width=0.92\textwidth, height=0.78\textheight,
+  xbar, width=0.92\textwidth, height=__CHART_HEIGHT__,
   xmin=0, xmax=0.68, bar width=10pt,
-  ytick={0,...,11},
+  ytick={__CHART_TICKS__},
   yticklabels={__CHART_LABELS__},
   yticklabel style={font=\scriptsize},
   y dir=reverse,
@@ -403,12 +418,10 @@ __STYLE_ROWS__
   enlarge y limits=0.06,
 ]
 \addplot[fill=navy,draw=none] coordinates {__CHART_COORDS__};
-\addplot[fill=gold,draw=none] coordinates {(__BEST_X__,__BEST_I__)};
-\addplot[fill=red!70,draw=none] coordinates {(__WORST_X__,__WORST_I__)};
 \end{axis}
 \end{tikzpicture}
 \end{center}
-{\scriptsize\color{muted} 金色：SSIM 最优；红色：SSIM 最差。}
+{\scriptsize\color{muted} SSIM 越高越好；最优/最差已在上表标出。}
 \end{frame}
 """)
         extra["BEST_X"] = fmt(styles[best_style]["ssim"])
@@ -459,7 +472,7 @@ __STYLE_ROWS__
   axis lines*=left, ylabel={}, xmajorgrids=false, ymajorgrids=true,
   grid style={black!12}, enlarge x limits=0.25,
 ]
-\addplot[fill=gold,draw=none] coordinates {(吉卜力,__G_SSIM__) (梵高,__V_SSIM__)};
+\addplot[fill=navy,draw=none] coordinates {(吉卜力,__G_SSIM__) (梵高,__V_SSIM__)};
 \end{axis}
 \end{tikzpicture}
 \end{center}
@@ -484,8 +497,8 @@ __STYLE_ROWS__
 \end{columns}
 \vspace{0.25em}
 \begin{center}
-\colorbox{gold!20}{\small\bfseries SSIM 差距 +__SSIM_DELTA__} \qquad
-\colorbox{red!10}{\small\bfseries 闪烁差距 __FLICKER_DELTA__（吉卜力更低）}
+\colorbox{blue!12}{\small\bfseries SSIM 差距 +__SSIM_DELTA__} \qquad
+\colorbox{blue!6}{\small\bfseries 闪烁差距 __FLICKER_DELTA__（吉卜力更低）}
 \end{center}
 \end{frame}
 """)
@@ -620,9 +633,9 @@ __CONCLUSION__
             else "VBench 0.1.5, custom\\_input mode; scores are normalised by VBench."
         ),
         "LEGEND": (
-            "金色底：SSIM 最优；红色底：SSIM 最差；SSIM 越高越好，闪烁与重映射越低越好。"
+            "较深蓝底：SSIM 最优；较浅蓝底：SSIM 最差；SSIM 越高越好，闪烁与重映射越低越好。"
             if lang == "zh"
-            else "Gold: best SSIM; red: worst SSIM; higher SSIM is better, lower flicker and warping are better."
+            else "Higher SSIM is better; best/worst are marked in the table."
         ),
         "KEY_ROWS": "\n".join(f"{label} & {value} \\\\" for label, value in key_items),
         "STYLE_TITLE": spec["style_title"],
@@ -796,6 +809,7 @@ def _cli() -> None:
     parser.add_argument("--review", type=Path, required=True)
     parser.add_argument("--out-dir", type=Path, required=True)
     parser.add_argument("--title", default="视频风格迁移评估报告")
+    parser.add_argument("--title-en", default="Video Style Transfer Evaluation Report")
     parser.add_argument("--subtitle", default=None)
     parser.add_argument("--report-id", default=None)
     parser.add_argument("--language", choices=["both", "zh", "en"], default="both")
@@ -807,7 +821,8 @@ def _cli() -> None:
     for lang in languages:
         tex_path = build_from_metrics(
             args.metrics, args.review, args.out_dir,
-            args.title, args.subtitle, args.report_id, lang,
+            args.title if lang == "zh" else args.title_en,
+            args.subtitle, args.report_id, lang,
             image=args.image,
         )
         if tectonic:

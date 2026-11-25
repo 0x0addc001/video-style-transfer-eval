@@ -4918,6 +4918,8 @@ def main() -> None:
             "--review", str(args.review),
             "--out-dir", str(args.output_dir / "slides"),
             "--language", args.language,
+            "--title", args.title_zh or "视频风格迁移评估报告",
+            "--title-en", args.title or "Video Style Transfer Evaluation Report",
         ]
         if args.title_zh:
             command += ["--title", args.title_zh]
