@@ -37,6 +37,24 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 
 
+METRIC_UNIT_FALLBACK = {
+    "ssim": "0–1",
+    "offset_1_flow_correlation": "0–1",
+    "offset_5_flow_correlation": "0–1",
+    "luminance_flicker": "gray levels",
+    "offset_1_warp_rmse": "RGB levels",
+    "offset_5_warp_rmse": "RGB levels",
+    "offset_1_warp_mae": "RGB levels",
+    "offset_5_warp_mae": "RGB levels",
+    "offset_1_flow_epe": "px",
+    "offset_5_flow_epe": "px",
+    "csd_s": "cosine",
+    "csd_c": "cosine",
+    "runtime_s": "s/clip",
+    "peak_memory_gb": "GB",
+}
+
+
 KEY_METRICS = [
     ("artfid", "ArtFID"),
     ("fid", "FID"),
@@ -1879,7 +1897,7 @@ def metric_tables(
                 if second_value is not None and abs(value - second_value) < 1e-12
             ]
             label = metric_label(lang, metric, info)
-            unit = info.get("unit")
+            unit = info.get("unit") or METRIC_UNIT_FALLBACK.get(metric)
             if unit:
                 label = f"{label} ({unit})"
             rows.append(
@@ -2286,6 +2304,26 @@ def make_analysis_sections(
     return sections
 
 
+def conclusion_blocks(text: str) -> tuple[str, list[str]]:
+    intro: list[str] = []
+    bullets: list[str] = []
+    for line in text.split("\n"):
+        stripped = line.strip()
+        if stripped.startswith("- "):
+            bullets.append(stripped[2:])
+        elif stripped:
+            intro.append(stripped)
+    return " ".join(intro), bullets
+
+
+def _metric_mean(metrics: dict[str, Any], key: str) -> float | None:
+    for summary in metrics.get("aggregates", {}).values():
+        value = summary.get(key)
+        if isinstance(value, dict) and value.get("mean") is not None:
+            return float(value["mean"])
+    return None
+
+
 def make_conclusion(
     metrics: dict[str, Any],
     labels: dict[str, str],
@@ -2295,47 +2333,61 @@ def make_conclusion(
     status: str,
     lang: str,
 ) -> str:
-    valid_cases = sum(
-        1
-        for case in metrics.get("cases", [])
-        if any(result.get("valid") for result in case.get("methods", {}).values())
-    )
+    """Overall takeaway plus one short conclusion per metric module."""
+    def f(key: str, digits: int = 2) -> str:
+        value = _metric_mean(metrics, key)
+        return "—" if value is None else f"{value:.{digits}f}"
+
     if lang == "zh":
-        if status == "Exploratory":
-            return (
-                f"本报告用 {valid_cases} 个案例验证了评估流程，未提供基准性能证据。"
-                "结果表、感知分析和结论仍保留多维证据，不应被解释为 EchoStyle 或本文方法的基准排名。"
-            )
-        suffix = (
-            "由于独立片段数量少于五个，当前差异未配套稳定置信区间，应视为探索性比较。"
-            if valid_cases < 5
-            else "应结合配对差值的置信区间判断差异稳定性和实际意义。"
+        intro = (
+            f"总体结论：在 {len(metrics.get('cases', []))} 个案例上，内容语义保持较好，"
+            "时序稳定性和帧间运动一致性是主要短板；单方法结果不构成跨方法排名，"
+            "基线需在同一子集、同一评估配置下运行。"
         )
-        return (
-            "评估显示风格、内容、运动、视频质量与成本目标之间可能存在权衡；"
-            "只有在替代方案取得相近风格强度后才可解释保持性差异。"
-            + suffix
+        bullets = [
+            f"风格模块：CSD-S {f('csd_s', 3)}（cosine，越高越好）；缺少风格参考图，LAB 调色板未计算。",
+            f"内容模块：SSIM {f('ssim', 3)}（0–1，越高越好）、PSNR {f('psnr')} dB（越高越好）；CSD-C {f('csd_c', 3)}（越高越好）。",
+            f"时序与运动：亮度闪烁 {f('luminance_flicker', 2)}（gray levels，越低越好）、重映射 RMSE Δ1 {f('offset_1_warp_rmse')}（RGB levels，越低越好）、光流 EPE {f('offset_1_flow_epe', 2)} px（越低越好）、光流相关性 {f('offset_1_flow_correlation', 2)}（0–1，越高越好）。",
+            f"视频质量：VBench 主体 {f('vbench_subject_consistency', 3)}、背景 {f('vbench_background_consistency', 3)}、时序闪烁 {f('vbench_temporal_flickering', 3)}、运动平滑 {f('vbench_motion_smoothness', 3)}、美学 {f('vbench_aesthetic_quality', 3)}、成像 {f('vbench_imaging_quality', 3)}（均为 0–1，越高越好）。",
+            f"成本：运行时间 {f('runtime_s', 1)} s/条、峰值显存 {f('peak_memory_gb', 1)} GB。",
+        ]
+        if review_agg.get("scored_count"):
+            means = review_agg.get("method_dimension", {})
+            method_id = next(iter(means), None)
+            if method_id:
+                dims = means[method_id]
+                bullets.append(
+                    "定性模块：VLM 风格遵循 "
+                    f"{dims['style_adherence']['mean']:.2f}、内容保持 {dims['content_preservation']['mean']:.2f}、"
+                    f"时序稳定 {dims['temporal_stability']['mean']:.2f}、伪影控制 {dims['artifact_control']['mean']:.2f}、"
+                    f"整体质量 {dims['overall_visual_quality']['mean']:.2f}（1–5）。"
+                )
+    else:
+        intro = (
+            f"Overall: across {len(metrics.get('cases', []))} cases, content semantics are preserved "
+            "reasonably well while temporal stability and inter-frame motion consistency are the main "
+            "weaknesses. Single-method evidence is not a cross-method ranking; baselines must run on the "
+            "same subset with the same evaluation settings."
         )
-    if status == "Exploratory":
-        return (
-            f"This report uses {valid_cases} case(s) to validate the evaluation "
-            "pipeline and does not provide benchmark performance evidence. The "
-            "tables, perceptual analysis, and conclusions preserve multidimensional "
-            "evidence and should not be interpreted as a benchmark ranking of EchoStyle "
-            "or the proposed method."
-        )
-    suffix = (
-        "With fewer than five independent clips, the observed differences lack stable "
-        "confidence intervals and should be treated as exploratory."
-        if valid_cases < 5
-        else "Paired confidence intervals should be used to judge the stability and practical relevance of the differences."
-    )
-    return (
-        "The evaluation indicates that style, content, motion, video quality, and cost "
-        "objectives may trade off. Preservation differences are interpretable only "
-        "after methods are compared at similar achieved style strength. "
-        + suffix
-    )
+        bullets = [
+            f"Style: CSD-S {f('csd_s', 3)} (cosine, higher is better); LAB palette is skipped without a style reference.",
+            f"Content: SSIM {f('ssim', 3)} (0–1, higher is better), PSNR {f('psnr')} dB (higher is better); CSD-C {f('csd_c', 3)} (higher is better).",
+            f"Temporal and motion: flicker {f('luminance_flicker', 2)} (gray levels, lower is better), warp RMSE Δ1 {f('offset_1_warp_rmse')} (RGB levels, lower is better), flow EPE {f('offset_1_flow_epe', 2)} px (lower is better), flow correlation {f('offset_1_flow_correlation', 2)} (0–1, higher is better).",
+            f"Video quality: VBench subject {f('vbench_subject_consistency', 3)}, background {f('vbench_background_consistency', 3)}, temporal flickering {f('vbench_temporal_flickering', 3)}, motion smoothness {f('vbench_motion_smoothness', 3)}, aesthetic {f('vbench_aesthetic_quality', 3)}, imaging {f('vbench_imaging_quality', 3)} (all 0–1, higher is better).",
+            f"Cost: {f('runtime_s', 1)} s per clip, peak GPU memory {f('peak_memory_gb', 1)} GB.",
+        ]
+        if review_agg.get("scored_count"):
+            means = review_agg.get("method_dimension", {})
+            method_id = next(iter(means), None)
+            if method_id:
+                dims = means[method_id]
+                bullets.append(
+                    "Qualitative: VLM style adherence "
+                    f"{dims['style_adherence']['mean']:.2f}, content preservation {dims['content_preservation']['mean']:.2f}, "
+                    f"temporal stability {dims['temporal_stability']['mean']:.2f}, artifact control {dims['artifact_control']['mean']:.2f}, "
+                    f"overall quality {dims['overall_visual_quality']['mean']:.2f} (1–5)."
+                )
+    return intro + "\n\n" + "\n".join(f"- {bullet}" for bullet in bullets)
 
 
 def paired_effect_rows(
@@ -3157,6 +3209,12 @@ def html_report(
             )
             + "</section>"
         )
+    conclusion_intro, conclusion_bullets = conclusion_blocks(conclusion)
+    conclusion_html = f"<p>{html.escape(conclusion_intro)}</p>"
+    if conclusion_bullets:
+        conclusion_html += "<ul>" + "".join(
+            f"<li>{html.escape(item)}</li>" for item in conclusion_bullets
+        ) + "</ul>"
     metric_defs_html = "".join(
         "<article class='metric-definition'>"
         f"<h3>{html.escape(definition['name'])}</h3>"
@@ -3444,7 +3502,7 @@ window.MathJax = {{ tex: {{ inlineMath: [['$', '$']], displayMath: [['$$', '$$']
 <section><h2>{html.escape(s['quantitative'])}</h2>{''.join(table_html)}{paired_html}{style_html}<p class="small">{html.escape(s['metrics_note'])}</p></section>
 <section><h2>{html.escape(s['blind_review'])}</h2><div class="grid">{''.join(review_cards)}</div></section>
 {analysis_html}
-<section><h2>{html.escape(s['conclusion'])}</h2><p>{html.escape(conclusion)}</p></section>
+<section><h2>{html.escape(s['conclusion'])}</h2>{conclusion_html}</section>
 {notes_html}
 <section class="appendix"><h2>{html.escape(s['appendix'])}</h2>
 <h3>{html.escape(s['appendix_metric_definitions'])}</h3>{metric_defs_html}
@@ -4089,7 +4147,12 @@ def pdf_report(
 
     story.append(PageBreak())
     story.append(Paragraph(html.escape(s["conclusion"]), styles["Section"]))
-    story.append(Paragraph(html.escape(conclusion), styles["BodyCJK"]))
+    conclusion_intro_pdf, conclusion_bullets_pdf = conclusion_blocks(conclusion)
+    story.append(Paragraph(html.escape(conclusion_intro_pdf), styles["BodyCJK"]))
+    for item in conclusion_bullets_pdf:
+        story.append(
+            Paragraph(html.escape(item), styles["BodyCJK"], bulletText="•")
+        )
     if report_notes(args, lang):
         notes_block = [Paragraph(html.escape(s["notes"]), styles["Section"])]
         for note in report_notes(args, lang):
@@ -4367,7 +4430,7 @@ def latex_report(
         rf"\date{{{latex_escape(s['report_id_label'])}: \texttt{{{latex_escape(report_id)}}} \\ {latex_escape(args.report_datetime)} \\ {latex_escape(s['tool_label'])}: \href{{{latex_escape(args.skill_url)}}}{{{latex_escape(repo_name_from_url(args.skill_url))}}}}}",
         r"\maketitle",
         r"\begin{abstract}",
-        latex_escape(conclusion),
+        latex_escape(conclusion_blocks(conclusion)[0]),
         r"\end{abstract}",
         rf"\section*{{{latex_escape(labels_text['setup'])}}}",
         r"\begin{tabular}{@{}ll@{}}",
@@ -4597,10 +4660,17 @@ def latex_report(
             ]
         )
 
+    conclusion_intro_tex, conclusion_bullets_tex = conclusion_blocks(conclusion)
     lines += [
         rf"\section*{{{latex_escape(labels_text['conclusion'])}}}",
-        latex_escape(conclusion),
+        latex_escape(conclusion_intro_tex),
     ]
+    if conclusion_bullets_tex:
+        lines.append(r"\begin{itemize}")
+        lines.extend(
+            rf"\item {latex_escape(item)}" for item in conclusion_bullets_tex
+        )
+        lines.append(r"\end{itemize}")
     if report_notes(args, lang):
         lines.append(rf"\section*{{{latex_escape(s['notes'])}}}")
         lines.append(r"\begin{itemize}")

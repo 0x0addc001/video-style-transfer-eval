@@ -365,8 +365,8 @@ __KEY_BULLETS__
 __TABLE_FONT__
 \begin{tabular}{lrrrrr}
 \toprule
-\rowcolor{navy}\headrow{风格} & \headrow{n} & \headrow{SSIM $\uparrow$} & \headrow{PSNR $\uparrow$} &
-\headrow{闪烁 $\downarrow$} & \headrow{重映射 $\downarrow$} \\
+\rowcolor{navy}\headrow{风格} & \headrow{n} & \headrow{SSIM (0–1) $\uparrow$} & \headrow{PSNR (dB) $\uparrow$} &
+\headrow{闪烁 (gray) $\downarrow$} & \headrow{重映射 (RGB) $\downarrow$} \\
 \midrule
 __STYLE_ROWS__
 \bottomrule
