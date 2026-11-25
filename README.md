@@ -52,6 +52,7 @@ and the numbers illustrate the workflow rather than model performance.
   ArtFID, tLP, CLIP-CONS, CSD style/content consistency, and VBench video
   quality.
 - English and Chinese Markdown, standalone HTML, PDF, and XeLaTeX reports.
+- A LaTeX/Beamer slide deck (`--slides`) generated with every report.
 - Case study appendix, uncertainty caveats, failure analysis, and report /
   evidence IDs that trace back to the metrics JSON.
 

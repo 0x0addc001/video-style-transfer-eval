@@ -1187,6 +1187,11 @@ def parse_args() -> argparse.Namespace:
         type=Path,
         help="Validated review export. Omit when visual review is unavailable.",
     )
+    parser.add_argument(
+        "--slides",
+        action="store_true",
+        help="Also render a LaTeX/Beamer slide deck into <output-dir>/slides.",
+    )
     parser.add_argument("--output-dir", required=True, type=Path)
     parser.add_argument("--language", choices=["en", "zh", "both"], default="both")
     parser.add_argument("--title", help="English report title.")
@@ -4751,6 +4756,30 @@ def main() -> None:
         print(f"Wrote {html_path}")
         print(f"Wrote {pdf_path}")
         print(f"Wrote {latex_path}")
+
+    if args.slides:
+        import subprocess
+        import sys
+
+        if not args.review:
+            print("Slides skipped: --review is required for the qualitative frame.")
+            return
+        decks = sorted(args.output_dir.glob("report_zh_VST-*.pdf"))
+        report_slides_id = decks[-1].stem.split("_")[2] if decks else None
+        command = [
+            sys.executable,
+            str(Path(__file__).with_name("build_eval_beamer.py")),
+            "--metrics", str(args.metrics),
+            "--review", str(args.review),
+            "--out-dir", str(args.output_dir / "slides"),
+        ]
+        if args.title_zh:
+            command += ["--title", args.title_zh]
+        if report_slides_id:
+            command += ["--report-id", report_slides_id]
+        result = subprocess.run(command, check=False)
+        if result.returncode != 0:
+            print("Slide generation failed; report files were still written.")
 
 
 if __name__ == "__main__":

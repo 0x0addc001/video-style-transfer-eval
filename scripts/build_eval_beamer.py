@@ -74,10 +74,10 @@ def fmt(value: float, digits: int = 3) -> str:
     return f"{value:.{digits}f}"
 
 
-def style_stats(metrics):
+def style_stats(metrics, method_id="echostyle"):
     per = {}
     for case in metrics["cases"]:
-        record = case["methods"]["echostyle"]
+        record = case["methods"][method_id]
         if not record.get("valid"):
             continue
         key = case["style_id"].lower().replace(" ", "_").replace("-", "_")
@@ -112,16 +112,23 @@ def bullets(items) -> str:
 
 def build(spec: dict) -> Path:
     directory = Path(spec["dir"])
-    metrics = json.loads((directory / "run" / "metrics.json").read_text(encoding="utf-8"))
-    review_path = directory / "run" / "review_packet" / "validated_reviews.json"
-    if not review_path.is_file():
-        review_path = directory / "review_packet" / "validated_reviews.json"
-    review = json.loads(review_path.read_text(encoding="utf-8"))
+    metrics = spec.get("metrics")
+    if metrics is None:
+        metrics = json.loads((directory / "run" / "metrics.json").read_text(encoding="utf-8"))
+    review = spec.get("review")
+    if review is None:
+        review_path = directory / "run" / "review_packet" / "validated_reviews.json"
+        if not review_path.is_file():
+            review_path = directory / "review_packet" / "validated_reviews.json"
+        review = json.loads(review_path.read_text(encoding="utf-8"))
     report_files = sorted((directory / "report").glob("report_zh_VST-*.pdf"))
-    report_id = report_files[-1].stem.split("_")[2] if report_files else "VST"
+    report_id = spec.get("report_id") or (
+        report_files[-1].stem.split("_")[2] if report_files else "VST"
+    )
 
-    aggregate = metrics["aggregates"]["echostyle"]
-    styles = style_stats(metrics)
+    method_id = spec.get("method_id") or next(iter(metrics["aggregates"]))
+    aggregate = metrics["aggregates"][method_id]
+    styles = style_stats(metrics, method_id)
     order = [s for s in spec["style_order"] if s in styles]
     vlm, tags = review_stats(review, metrics)
     cost = spec.get("cost", {})
@@ -462,7 +469,7 @@ __CONCLUSION__
     body += "\n".join(fill(frame, **values) for frame in frames)
     body += "\n\\end{document}\n"
 
-    out_dir = Path(spec["dir"]) / "slides"
+    out_dir = Path(spec["out_dir"]) if spec.get("out_dir") else Path(spec["dir"]) / "slides"
     out_dir.mkdir(parents=True, exist_ok=True)
     tex_path = out_dir / f"{spec['name']}.tex"
     tex_path.write_text(body, encoding="utf-8")
@@ -470,7 +477,141 @@ __CONCLUSION__
     return tex_path
 
 
+def build_from_metrics(
+    metrics_path: Path,
+    review_path: Path,
+    out_dir: Path,
+    title: str = "视频风格迁移评估报告",
+    subtitle: str | None = None,
+    report_id: str | None = None,
+) -> Path:
+    """Build a deck for an arbitrary evaluation directory."""
+    metrics = json.loads(Path(metrics_path).read_text(encoding="utf-8"))
+    review = json.loads(Path(review_path).read_text(encoding="utf-8"))
+    method_id = next(iter(metrics["aggregates"]))
+    styles = style_stats(metrics, method_id)
+    order = sorted(styles, key=lambda s: styles[s]["ssim"], reverse=True)
+    count = len(metrics["cases"])
+    experiment = metrics.get("experiment", {})
+    labels = {
+        m["id"]: m.get("label_zh") or m.get("label") or m["id"]
+        for m in metrics.get("methods", [])
+    }
+    best = order[0]
+    worst = order[-1]
+    aggregate = metrics["aggregates"][method_id]
+
+    cost: dict[str, float] = {}
+    if aggregate.get("runtime_s"):
+        cost["runtime_s"] = aggregate["runtime_s"]["mean"]
+    if aggregate.get("peak_memory_gb"):
+        cost["peak_memory_gb"] = aggregate["peak_memory_gb"]["mean"]
+    csd = {
+        key: aggregate[key]["mean"]
+        for key in ("csd_s", "csd_c")
+        if key in aggregate
+    }
+    vbench = {
+        key: aggregate[key]["mean"]
+        for key in aggregate
+        if key.startswith("vbench_")
+    }
+
+    contact_dir = Path(metrics_path).parent / "contact_sheets"
+    images = sorted(contact_dir.glob("*.jpg")) if contact_dir.is_dir() else []
+    image = str(images[0].resolve()) if images else ""
+
+    overview = [
+        ("数据集", f"{count} 对（{len(styles)} 种风格）"),
+        ("待评方法", "、".join(labels.values())),
+        (
+            "评估配置",
+            f"seed {experiment.get('blind_seed', '—')} · 每视频 "
+            f"{experiment.get('frame_limit', '—')} 帧 · 最大边 "
+            f"{experiment.get('max_side', '—')} px",
+        ),
+        ("定性评审", "Qwen3-VL-Plus · 单盲 contact sheet"),
+    ]
+    key_bullets = [
+        ("内容保持：", f"SSIM {fmt(aggregate['ssim']['mean'])} ± {fmt(aggregate['ssim']['std'])}。"),
+        ("时序稳定：", f"亮度闪烁 {fmt(aggregate['luminance_flicker']['mean'], 2)}。"),
+        ("风格差异：", f"{STYLE_ZH.get(best, best)} 最好（{fmt(styles[best]['ssim'])}），"
+                      f"{STYLE_ZH.get(worst, worst)} 最差（{fmt(styles[worst]['ssim'])}）。"),
+        ("样本：", f"{count} 对，方向一致的指标才可直接比较。"),
+    ]
+    conclusion = [
+        ("最优风格：", f"{STYLE_ZH.get(best, best)} 的 SSIM 为 {fmt(styles[best]['ssim'])}。"),
+        ("最弱风格：", f"{STYLE_ZH.get(worst, worst)} 的 SSIM 为 {fmt(styles[worst]['ssim'])}。"),
+        ("时序：", f"平均亮度闪烁 {fmt(aggregate['luminance_flicker']['mean'], 2)}。"),
+        ("限制：", "单方法评估；跨方法比较需在同一子集上运行基线。"),
+    ]
+
+    spec = {
+        "name": Path(out_dir).name or "slides",
+        "dir": Path(metrics_path).parents[1],
+        "out_dir": str(out_dir),
+        "metrics": metrics,
+        "review": review,
+        "method_id": method_id,
+        "title": title,
+        "subtitle": subtitle or f"{count} 对 · {len(styles)} 种风格",
+        "report_id": report_id,
+        "overview": overview,
+        "style_order": order,
+        "style_title": "按风格结果",
+        "chart": len(order) > 3,
+        "image": image,
+        "image_caption": "Contact sheet：源视频帧与盲化候选。",
+        "key_bullets": key_bullets,
+        "conclusion": conclusion,
+        "cost": cost,
+        "csd": csd,
+        "vbench": vbench,
+    }
+    return build(spec)
+
+
+def _cli() -> None:
+    import argparse
+    import shutil
+    import subprocess
+    import sys
+
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--metrics", type=Path, required=True)
+    parser.add_argument("--review", type=Path, required=True)
+    parser.add_argument("--out-dir", type=Path, required=True)
+    parser.add_argument("--title", default="视频风格迁移评估报告")
+    parser.add_argument("--subtitle", default=None)
+    parser.add_argument("--report-id", default=None)
+    args = parser.parse_args()
+
+    tex_path = build_from_metrics(
+        args.metrics, args.review, args.out_dir,
+        args.title, args.subtitle, args.report_id,
+    )
+    tectonic = shutil.which("tectonic")
+    if tectonic:
+        result = subprocess.run(
+            [tectonic, "-X", "compile", tex_path.name],
+            cwd=tex_path.parent, capture_output=True, text=True, check=False,
+        )
+        if result.returncode != 0:
+            print(result.stdout[-800:])
+            print(result.stderr[-800:])
+            raise SystemExit(result.returncode)
+        print("wrote", tex_path.with_suffix(".pdf"))
+    else:
+        print("tectonic not found; compile", tex_path, "manually")
+
+
 if __name__ == "__main__":
+    import sys
+
+    if "--metrics" in sys.argv:
+        _cli()
+        raise SystemExit(0)
+
     base = Path("evaluation_run")
     runtime_values = json.loads(Path("/tmp/runtime.json").read_text())
     durations = [v for v in runtime_values.values() if 60 < v < 900]
