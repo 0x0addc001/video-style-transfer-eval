@@ -65,11 +65,15 @@ main > section ul { padding-left: 22px !important; }
   display: flex; justify-content: space-between;
   font-size: 12px; color: #8394a8; letter-spacing: 0.02em;
 }
-main > header .slide-footer { color: #a9c6cc; left: 84px; right: 84px; }
+.case-slide .case-card { border: 0 !important; box-shadow: none !important; padding: 0 !important; margin: 0 !important; background: transparent !important; }
+.case-slide img { width: 100% !important; height: auto !important; border-radius: 12px !important; }
+.case-slide h3 { margin-bottom: 14px !important; }
+.case-slide .case-card h3 { font-size: 20px !important; font-weight: 500 !important; color: #6b7f94 !important; margin: 0 0 8px !important; }
 """
 
 SLIDE_JS = r"""
 (function () {
+  function run() {
   // flatten nested result tables so each table becomes its own page
   [...document.querySelectorAll('main > section')].forEach((parent) => {
     const children = [...parent.children].filter((node) => node.tagName === 'SECTION');
@@ -79,9 +83,34 @@ SLIDE_JS = r"""
     }
   });
 
-  // the appendix is evidence, not presentation: keep it in the report only
+  // keep two representative case studies from the appendix gallery
   const appendix = document.querySelector('main > section.appendix');
-  if (appendix) appendix.remove();
+  let casePicks = [];
+  if (appendix) {
+    const cards = [...appendix.querySelectorAll('article.case-card')];
+    const scored = cards.map((card) => {
+      const cells = card.querySelectorAll('tbody td');
+      const value = parseFloat((cells[1] || {}).textContent || '');
+      return { card, value };
+    }).filter((item) => !Number.isNaN(item.value));
+    scored.sort((a, b) => b.value - a.value);
+    if (scored.length) {
+      casePicks = [scored[0], scored[scored.length - 1]];
+    }
+    appendix.remove();
+  }
+  casePicks.forEach((pick, index) => {
+    const page = document.createElement('section');
+    page.className = 'case-slide';
+    const heading = document.createElement('h3');
+    const zh = (document.documentElement.lang || 'en').startsWith('zh');
+    heading.textContent = index === 0
+      ? (zh ? '案例研究：SSIM 最高' : 'Case study: highest SSIM')
+      : (zh ? '案例研究：SSIM 最低' : 'Case study: lowest SSIM');
+    page.appendChild(heading);
+    page.appendChild(pick.card.cloneNode(true));
+    document.querySelector('main').appendChild(page);
+  });
 
   const pages = [...document.querySelectorAll('main > header, main > section')];
   pages.forEach((page) => {
@@ -103,7 +132,13 @@ SLIDE_JS = r"""
     inner.style.width = (availW / scale) + 'px';
     inner.style.transform = 'scale(' + scale + ')';
   });
+  }
 
+  const images = [...document.images];
+  Promise.all(images.map((img) => {
+    if (img.complete) return Promise.resolve();
+    return new Promise((resolve) => { img.onload = resolve; img.onerror = resolve; });
+  })).then(run);
 })();
 """
 
