@@ -2789,8 +2789,7 @@ def markdown_report(
         )
         if comment:
             lines.append("")
-            label = s["ai_label"] if ai_used else s["comment_label"]
-            lines.append(f"*{label}:* {comment}")
+            lines.append(f"*{comment}*")
         lines.append("")
     if paired_rows:
         lines.extend(
@@ -3033,8 +3032,7 @@ def html_report(
             getattr(args, "baseline", None), table, lang, args,
         )
         if comment:
-            label = s["ai_label"] if ai_used else s["comment_label"]
-            comment = f"{label}：" + comment
+            pass
         table_html.append(
             f"<section><h3>{html.escape(table['heading'])}</h3>"
             f"<div class='table-wrap'><table><thead><tr>{header_cells}</tr></thead>"
@@ -3937,10 +3935,9 @@ def pdf_report(
             metrics, labels, args.primary, args.baseline, table_data, lang, args
         )
         if comment:
-            label = s["ai_label"] if ai_used else s["comment_label"]
             story.append(
                 Paragraph(
-                    html.escape(f"{label}：" + comment),
+                    html.escape(comment),
                     styles["BodySmall"],
                 )
             )
@@ -4488,11 +4485,8 @@ def latex_report(
             metrics, labels, args.primary, args.baseline, table, lang, args
         )
         if comment:
-            label = s["ai_label"] if ai_used else s["comment_label"]
             lines.append(
-                r"\noindent\textit{"
-                + latex_escape(f"{label}：" + comment)
-                + "}"
+                r"\noindent\textit{" + latex_escape(comment) + "}"
             )
 
     if paired_rows:
