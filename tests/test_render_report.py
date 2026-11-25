@@ -103,6 +103,7 @@ class LocalizedRenderTest(unittest.TestCase):
                     "baseline",
                     "--status",
                     "Exploratory",
+                    "--no-ai-analysis",
                 ],
                 check=False,
                 capture_output=True,
