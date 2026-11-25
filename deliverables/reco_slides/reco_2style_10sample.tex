@@ -1,0 +1,178 @@
+
+\documentclass[aspectratio=169,11pt]{beamer}
+\usepackage{xeCJK}
+\setCJKmainfont{PingFang SC}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{colortbl}
+\usepackage{graphicx}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usepackage{tabularx}
+\usepackage{ragged2e}
+
+\definecolor{navy}{RGB}{0,32,96}
+\definecolor{gold}{RGB}{191,144,0}
+\definecolor{ink}{RGB}{31,41,55}
+\definecolor{muted}{RGB}{96,112,128}
+
+\setbeamercolor{normal text}{fg=ink}
+\setbeamercolor{frametitle}{fg=navy}
+\setbeamercolor{structure}{fg=navy}
+\setbeamercolor{footline}{fg=muted}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{itemize item}{\color{gold}$\blacktriangleright$}
+\setbeamerfont{frametitle}{size=\LARGE,series=\bfseries}
+\setbeamerfont{title}{size=\Huge,series=\bfseries}
+\setbeamertemplate{frametitle}{%
+  \vspace{0.35em}\insertframetitle\par
+  \vspace{0.15em}{\color{gold}\rule{\textwidth}{1.2pt}}%
+}
+\setbeamertemplate{footline}{%
+  \hbox to \paperwidth{\hspace{0.6cm}%
+    {\scriptsize\color{muted}VST-20261124T203838-472e93301264}\hfill
+    {\scriptsize\color{muted}\insertframenumber\,/\,\inserttotalframenumber}%
+    \hspace{0.6cm}}\vspace{0.25em}%
+}
+\setlength{\parindent}{0pt}
+\renewcommand{\arraystretch}{1.25}
+\newcommand{\headrow}[1]{\color{white}\bfseries #1}
+
+\begin{document}
+
+\begin{frame}[plain]
+\begin{tikzpicture}[remember picture,overlay]
+\fill[navy] (current page.south west) rectangle (current page.north east);
+\end{tikzpicture}
+\vspace{2.2cm}
+{\usebeamerfont{title}\color{white} 视频风格迁移评估报告\par}
+\vspace{0.45cm}
+{\color{gold}\rule{6cm}{2pt}}
+\vspace{0.55cm}
+
+{\large\color{white} ReCo-Bench 风格化子集 · 10 条视频 × 2 种风格（20 对）\par}
+\vspace{0.25cm}
+{\small\color{white!70!navy} 报告 ID：VST-20261124T203838-472e93301264\quad·\quad 2026-11-24}\par
+\end{frame}
+
+
+\begin{frame}{评估概览}
+\small
+\begin{tabularx}{\textwidth}{>{\bfseries}p{2.2cm}X}
+\toprule
+\rowcolor{navy}\headrow{项目} & \headrow{内容} \\
+\midrule
+数据集 & ReCo-Bench stylization：10 条源视频 × 吉卜力 / 梵高（20 对） \\
+待评方法 & EchoStyle（Wan2.2-I2V-A14B + 双 LoRA） \\
+生成配置 & 41 帧、832×480、16 fps、40 步、cfg 5.0 \\
+评估配置 & seed 2026 · 41 帧 · 最大边 640 px · 偏移 [1, 5] · Farneback \\
+定性评审 & Qwen3-VL-Plus · 单盲 contact sheet \\
+\bottomrule
+\end{tabularx}
+\end{frame}
+
+
+\begin{frame}{关键结果}
+\begin{columns}[T]
+\begin{column}{0.52\textwidth}
+\small
+\begin{tabular}{lr}
+\toprule
+\rowcolor{navy}\headrow{指标} & \headrow{数值} \\
+\midrule
+SSIM $\uparrow$ & 0.4059 $\pm$ 0.2247 \\
+PSNR $\uparrow$ & 11.83 $\pm$ 3.06 dB \\
+亮度闪烁 $\downarrow$ & 1.007 $\pm$ 1.036 \\
+重映射 RMSE $\downarrow$ & 56.43 $\pm$ 20.10 \\
+运行时长 & 266.1 s / 条 \\
+CSD-S 风格一致性 $\uparrow$ & 0.9405 \\
+CSD-C 内容一致性 $\uparrow$ & 0.9582 \\
+
+\bottomrule
+\end{tabular}
+\end{column}
+\begin{column}{0.46\textwidth}
+\small
+\begin{itemize}
+\item \textbf{内容保持：} 吉卜力 SSIM 0.565，梵高 0.247。
+\item \textbf{时序稳定：} 闪烁 0.68 vs 1.33。
+\item \textbf{运动一致性：} 重映射误差 56.1 vs 56.8，接近。
+\item \textbf{定位：} 20 对、41 帧、480p 的预览子集。
+\end{itemize}
+\end{column}
+\end{columns}
+\end{frame}
+
+
+\begin{frame}{按风格对比}
+\small
+\begin{tabular}{lrrrrr}
+\toprule
+\rowcolor{navy}\headrow{风格} & \headrow{n} & \headrow{SSIM $\uparrow$} & \headrow{PSNR $\uparrow$} &
+\headrow{闪烁 $\downarrow$} & \headrow{重映射 $\downarrow$} \\
+\midrule
+\textbf{吉卜力} & 10 & 0.565 & 12.73 & 0.68 & 56.1 \\
+\textbf{梵高} & 10 & 0.247 & 10.93 & 1.33 & 56.8 \\
+\bottomrule
+\end{tabular}
+\end{frame}
+
+
+\begin{frame}{定性评估（VLM）}
+\small
+\begin{columns}[T]
+\begin{column}{0.56\textwidth}
+\begin{tabular}{lrl}
+\toprule
+\rowcolor{navy}\headrow{维度} & \headrow{均分} & \headrow{说明} \\
+\midrule
+风格遵循 & 4.35 / 5 & 是否达到目标风格 \\
+内容保持 & 3.85 / 5 & 主体与场景是否保留 \\
+时序稳定 & 2.85 / 5 & 闪烁与抖动 \\
+伪影控制 & 2.95 / 5 & 纹理粘连、重影等 \\
+整体质量 & 3.85 / 5 & 综合偏好 \\
+\bottomrule
+\end{tabular}
+\end{column}
+\begin{column}{0.40\textwidth}
+\footnotesize
+\textbf{评审设置}\par
+Qwen3-VL-Plus，单盲 contact sheet，每条只给目标风格。\par\medskip
+\textbf{失败标签}\par
+闪烁 20；细节损失 3；纹理粘连 1
+\end{column}
+\end{columns}
+\end{frame}
+
+
+\begin{frame}{示例}
+\begin{center}
+\includegraphics[width=0.96\textwidth]{../../evaluation_run/reco_2style_10sample/run/contact_sheets/reco_01_ghibli.jpg}
+\end{center}
+\vspace{-0.1cm}
+{\scriptsize\color{muted} Contact sheet：源视频帧 + 吉卜力风格候选。}
+\end{frame}
+
+
+\begin{frame}{结论与限制}
+\small
+\begin{itemize}
+\item \textbf{客观指标：} 吉卜力内容保持与时序稳定更好（SSIM 0.565 vs 0.247；闪烁 0.68 vs 1.33）。
+\item \textbf{VLM 感知：} 梵高风格遵循略高（4.5 vs 4.2），整体质量接近（3.9 vs 3.8）。
+\item \textbf{运动一致性：} 重映射误差 56.1 vs 56.8，差异主要在外观与时序。
+\item \textbf{限制：} 20 对、41 帧、832×480，不能与 81 帧/720p 混比。
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}[plain]
+\begin{tikzpicture}[remember picture,overlay]
+\fill[navy] (current page.south west) rectangle (current page.north east);
+\end{tikzpicture}
+\vspace{2.8cm}
+\begin{center}
+{\Huge\color{white} 谢谢！}
+\end{center}
+\end{frame}
+
+\end{document}
