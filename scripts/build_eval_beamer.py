@@ -7,7 +7,7 @@ import json
 import statistics
 from pathlib import Path
 
-OUT = Path("deliverables/reco_slides")
+OUT = Path("evaluation_run")
 
 PREAMBLE = r"""
 \documentclass[aspectratio=169,11pt]{beamer}
@@ -128,6 +128,7 @@ def build(spec: dict) -> Path:
     csd = spec.get("csd", {})
 
     frames = []
+    extra: dict[str, object] = {}
 
     frames.append(r"""
 \begin{frame}[plain]
@@ -167,6 +168,19 @@ __OVERVIEW__ \\
         cost_rows += f"运行时长 & {fmt(cost['runtime_s'], 1)} s / 条 \\\\\n"
     if cost.get("peak_memory_gb") is not None:
         cost_rows += f"峰值显存 & {fmt(cost['peak_memory_gb'], 1)} GB / 卡 \\\\\n"
+    vbench = spec.get("vbench", {})
+    vbench_rows = ""
+    for key, label in [
+        ("subject_consistency", "VBench 主体一致 $\\uparrow$"),
+        ("background_consistency", "VBench 背景一致 $\\uparrow$"),
+        ("temporal_flickering", "VBench 时序闪烁 $\\uparrow$"),
+        ("motion_smoothness", "VBench 运动平滑 $\\uparrow$"),
+        ("aesthetic_quality", "VBench 美学 $\\uparrow$"),
+        ("imaging_quality", "VBench 成像 $\\uparrow$"),
+        ("dynamic_degree", "VBench 动态度 $\\rightarrow$"),
+    ]:
+        if vbench.get(key) is not None:
+            vbench_rows += f"{label} & {fmt(vbench[key], 3)} \\\\\\n"
     csd_rows = ""
     if csd.get("csd_s") is not None:
         csd_rows += f"CSD-S 风格一致性 $\\uparrow$ & {fmt(csd['csd_s'], 4)} \\\\\n"
@@ -206,10 +220,18 @@ __KEY_BULLETS__
     for style in order:
         value = styles[style]
         name = STYLE_ZH.get(style, style)
-        if style in (best_style, worst_style):
+        if style == best_style:
+            prefix = r"\rowcolor{gold!22}"
             name = rf"\textbf{{{name}}}"
+            ssim_cell = rf"\textbf{{{fmt(value['ssim'])}}}"
+        elif style == worst_style:
+            prefix = r"\rowcolor{red!8}"
+            ssim_cell = fmt(value["ssim"])
+        else:
+            prefix = ""
+            ssim_cell = fmt(value["ssim"])
         rows.append(
-            f"{name} & {value['n']} & {fmt(value['ssim'])} & {fmt(value['psnr'], 2)} & "
+            f"{prefix} {name} & {value['n']} & {ssim_cell} & {fmt(value['psnr'], 2)} & "
             f"{fmt(value['flicker'], 2)} & {fmt(value['warp'], 1)} \\\\"
         )
     table_font = r"\scriptsize" if len(order) > 6 else r"\small"
@@ -224,6 +246,8 @@ __TABLE_FONT__
 __STYLE_ROWS__
 \bottomrule
 \end{tabular}
+\par\vspace{0.25em}
+{\scriptsize\color{muted} 金色底：SSIM 最优；红色底：SSIM 最差；SSIM 越高越好，闪烁与重映射越低越好。\par}
 \end{frame}
 """)
 
@@ -233,6 +257,8 @@ __STYLE_ROWS__
             f"({fmt(styles[s]['ssim'])},{i})" for i, s in enumerate(chart_styles)
         )
         labels = ", ".join(STYLE_ZH.get(s, s) for s in chart_styles)
+        best_index = chart_styles.index(best_style)
+        worst_index = chart_styles.index(worst_style)
         frames.append(r"""
 \begin{frame}{各风格 SSIM}
 \begin{center}
@@ -250,11 +276,18 @@ __STYLE_ROWS__
   enlarge y limits=0.06,
 ]
 \addplot[fill=navy,draw=none] coordinates {__CHART_COORDS__};
+\addplot[fill=gold,draw=none] coordinates {(__BEST_X__,__BEST_I__)};
+\addplot[fill=red!70,draw=none] coordinates {(__WORST_X__,__WORST_I__)};
 \end{axis}
 \end{tikzpicture}
 \end{center}
+{\scriptsize\color{muted} 金色：SSIM 最优；红色：SSIM 最差。}
 \end{frame}
 """)
+        extra["BEST_X"] = fmt(styles[best_style]["ssim"])
+        extra["WORST_X"] = fmt(styles[worst_style]["ssim"])
+        extra["BEST_I"] = best_index
+        extra["WORST_I"] = worst_index
 
     tag_text = "；".join(
         f"{TAG_ZH.get(k, k)} {v}" for k, v in sorted(tags.items(), key=lambda x: -x[1])
@@ -269,6 +302,63 @@ __STYLE_ROWS__
             ("overall_visual_quality", "整体质量", "综合偏好"),
         ]
     )
+    if spec.get("comparison"):
+        ghibli = styles.get("ghibli", {})
+        van = styles.get("van_gogh", {})
+        ssim_delta = ghibli.get("ssim", 0) - van.get("ssim", 0)
+        flicker_delta = van.get("flicker", 0) - ghibli.get("flicker", 0)
+        frames.append(r"""
+\begin{frame}{关键对比}
+\begin{columns}[T]
+\begin{column}{0.5\textwidth}
+\begin{center}
+{\small\bfseries SSIM（越高越好）}
+\begin{tikzpicture}
+\begin{axis}[
+  ybar, width=0.92\linewidth, height=0.36\textheight,
+  ymin=0, ymax=0.68, bar width=26pt,
+  symbolic x coords={吉卜力,梵高}, xtick=data,
+  nodes near coords, nodes near coords style={font=\scriptsize,color=ink},
+  axis lines*=left, ylabel={}, xmajorgrids=false, ymajorgrids=true,
+  grid style={black!12}, enlarge x limits=0.25,
+]
+\addplot[fill=gold,draw=none] coordinates {(吉卜力,__G_SSIM__) (梵高,__V_SSIM__)};
+\end{axis}
+\end{tikzpicture}
+\end{center}
+\end{column}
+\begin{column}{0.5\textwidth}
+\begin{center}
+{\small\bfseries 亮度闪烁（越低越好）}
+\begin{tikzpicture}
+\begin{axis}[
+  ybar, width=0.92\linewidth, height=0.36\textheight,
+  ymin=0, ymax=1.6, bar width=26pt,
+  symbolic x coords={吉卜力,梵高}, xtick=data,
+  nodes near coords, nodes near coords style={font=\scriptsize,color=ink},
+  axis lines*=left, xmajorgrids=false, ymajorgrids=true,
+  grid style={black!12}, enlarge x limits=0.25,
+]
+\addplot[fill=navy,draw=none] coordinates {(吉卜力,__G_FLICKER__) (梵高,__V_FLICKER__)};
+\end{axis}
+\end{tikzpicture}
+\end{center}
+\end{column}
+\end{columns}
+\vspace{0.25em}
+\begin{center}
+\colorbox{gold!20}{\small\bfseries SSIM 差距 +__SSIM_DELTA__} \qquad
+\colorbox{red!10}{\small\bfseries 闪烁差距 __FLICKER_DELTA__（吉卜力更低）}
+\end{center}
+\end{frame}
+""")
+        extra["G_SSIM"] = fmt(ghibli.get("ssim", 0))
+        extra["V_SSIM"] = fmt(van.get("ssim", 0))
+        extra["G_FLICKER"] = fmt(ghibli.get("flicker", 0), 2)
+        extra["V_FLICKER"] = fmt(van.get("flicker", 0), 2)
+        extra["SSIM_DELTA"] = fmt(ssim_delta)
+        extra["FLICKER_DELTA"] = fmt(abs(flicker_delta), 2)
+
     frames.append(r"""
 \begin{frame}{定性评估（VLM）}
 \small
@@ -334,7 +424,7 @@ __CONCLUSION__
         "FLICKER": f"{fmt(aggregate['luminance_flicker']['mean'], 3)} $\\pm$ {fmt(aggregate['luminance_flicker']['std'], 3)}",
         "WARP": f"{fmt(aggregate['offset_1_warp_rmse']['mean'], 2)} $\\pm$ {fmt(aggregate['offset_1_warp_rmse']['std'], 2)}",
         "COST": cost_rows,
-        "CSD": csd_rows,
+        "CSD": csd_rows + vbench_rows,
         "KEY_BULLETS": bullets(spec["key_bullets"]),
         "STYLE_TITLE": spec["style_title"],
         "TABLE_FONT": table_font,
@@ -349,13 +439,15 @@ __CONCLUSION__
         values["CHART_LABELS"] = labels
         values["CHART_COORDS"] = coords
 
+    values.update(extra)
     body = fill(PREAMBLE, REPORT_ID=report_id)
     body += "\n\\begin{document}\n"
     body += "\n".join(fill(frame, **values) for frame in frames)
     body += "\n\\end{document}\n"
 
-    OUT.mkdir(parents=True, exist_ok=True)
-    tex_path = OUT / f"{spec['name']}.tex"
+    out_dir = Path(spec["dir"]) / "slides"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    tex_path = out_dir / f"{spec['name']}.tex"
     tex_path.write_text(body, encoding="utf-8")
     print("wrote", tex_path)
     return tex_path
@@ -388,13 +480,14 @@ if __name__ == "__main__":
         "style_order": ["ghibli", "van_gogh"],
         "style_title": "按风格对比",
         "chart": False,
+        "comparison": True,
         "key_bullets": [
             ("内容保持：", "吉卜力 SSIM 0.565，梵高 0.247。"),
             ("时序稳定：", "闪烁 0.68 vs 1.33。"),
             ("运动一致性：", "重映射误差 56.1 vs 56.8，接近。"),
             ("定位：", "20 对、41 帧、480p 的预览子集。"),
         ],
-        "image": "../../evaluation_run/reco_2style_10sample/run/contact_sheets/reco_01_ghibli.jpg",
+        "image": "../run/contact_sheets/reco_01_ghibli.jpg",
         "image_caption": "Contact sheet：源视频帧 + 吉卜力风格候选。",
         "conclusion": [
             ("客观指标：", "吉卜力内容保持与时序稳定更好（SSIM 0.565 vs 0.247；闪烁 0.68 vs 1.33）。"),
@@ -429,7 +522,7 @@ if __name__ == "__main__":
             ("运动一致性：", "重映射 RMSE 81.2。"),
             ("风格差异：", "JoJo 最好 0.576，浮世绘最差 0.264。"),
         ],
-        "image": "../../evaluation_run/reco_12style_5sample/run/contact_sheets/3873059-hd_1920_1080_25fps__Ghibli.jpg",
+        "image": "../run/contact_sheets/3873059-hd_1920_1080_25fps__Ghibli.jpg",
         "image_caption": "Contact sheet：舞蹈视频的吉卜力风格候选。",
         "conclusion": [
             ("风格差异显著：", "JoJo 内容保持最好（0.576），浮世绘最差（0.264）。"),
