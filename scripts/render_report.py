@@ -3004,8 +3004,11 @@ def markdown_report(
         )
 
     lines.extend(["", f"### {s['appendix_per_case']}", ""])
-    for video, cases in grouped_cases(metrics).items():
-        lines.append(f"#### {video}")
+    for chunk in grouped_case_chunks(metrics):
+        video = chunk["video"]
+        cases = chunk["cases"]
+        suffix = f"（{chunk['part']}/{chunk['total']}）" if chunk["total"] > 1 else ""
+        lines.append(f"#### {video}{suffix}")
         lines.append("")
         lines.append("| " + " | ".join(["风格" if lang == "zh" else "Style", *s["per_case_headers"]]) + " |")
         lines.append("|---|---|---|---|---|---|")
@@ -3019,7 +3022,11 @@ def markdown_report(
                     f"{format_number(values.get('offset_1_warp_rmse'))} | "
                     f"{format_number(values.get('offset_1_flow_epe'))} |"
                 )
-        name = Path(str(cases[0].get("source_video", ""))).stem + ".jpg"
+        name = (
+            f"{video}__{chunk['part']}.jpg"
+            if chunk["total"] > 1
+            else f"{video}.jpg"
+        )
         lines.extend(["", f"![{s['contact_sheet']} {video}](assets/{name})", ""])
 
     lines.extend(
@@ -3153,7 +3160,9 @@ def html_report(
         )
 
     case_sections = []
-    for video, cases in grouped_cases(metrics).items():
+    for chunk in grouped_case_chunks(metrics):
+        video = chunk["video"]
+        cases = chunk["cases"]
         rows = []
         for case in cases:
             for method_id, result in case.get("methods", {}).items():
@@ -3168,13 +3177,13 @@ def html_report(
                     f"<td>{html.escape(format_number(values.get('offset_1_flow_epe')))}</td>"
                     "</tr>"
                 )
-        image = ""
-        if (Path(str(cases[0].get("source_video", ""))).stem + ".jpg"):
-            name = Path(str(cases[0].get("source_video", ""))).stem + ".jpg"
-            image = f"<img src='assets/{html.escape(name)}' alt='Case group {html.escape(video)}'>"
+        name = f"{video}__{chunk['part']}.jpg"
+        image = f"<img src='assets/{html.escape(name)}' alt='Case group {html.escape(video)}'>"
         case_sections.append(
             "<article class='case-group'>"
-            f"<h3>{html.escape(video)}</h3>"
+            f"<h3>{html.escape(video)}"
+            + (f"（{chunk['part']}/{chunk['total']}）" if chunk["total"] > 1 else "")
+            + "</h3>"
             "<table><thead><tr>"
             f"<th>{html.escape('风格' if lang == 'zh' else 'Style')}</th>"
             + "".join(f"<th>{html.escape(header)}</th>" for header in s["per_case_headers"])
@@ -4784,6 +4793,17 @@ def grouped_cases(metrics: dict[str, Any]) -> dict[str, list[dict[str, Any]]]:
         source = Path(str(case.get("source_video", ""))).stem or case.get("id", "")
         groups.setdefault(source, []).append(case)
     return groups
+
+
+def grouped_case_chunks(metrics: dict[str, Any], size: int = 6) -> list[dict[str, Any]]:
+    chunks = []
+    for video, cases in grouped_cases(metrics).items():
+        total = (len(cases) + size - 1) // size
+        for part, start in enumerate(range(0, len(cases), size), start=1):
+            chunks.append(
+                {"video": video, "part": part, "total": total, "cases": cases[start:start + size]}
+            )
+    return chunks
 
 
 def copy_contact_sheets(
