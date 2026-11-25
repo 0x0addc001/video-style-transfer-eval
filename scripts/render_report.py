@@ -5009,28 +5009,24 @@ def main() -> None:
         import subprocess
         import sys
 
-        if not args.review:
-            print("Slides skipped: --review is required for the qualitative frame.")
-            return
-        decks = sorted(args.output_dir.glob("report_zh_VST-*.pdf"))
-        report_slides_id = decks[-1].stem.split("_")[2] if decks else None
-        command = [
-            sys.executable,
-            str(Path(__file__).with_name("build_eval_slides_html.py")),
-            "--metrics", str(args.metrics),
-            "--review", str(args.review),
-            "--out-dir", str(args.output_dir / "slides"),
-            "--language", args.language,
-            "--title", args.title_zh or "视频风格迁移评估报告",
-            "--title-en", args.title or "Video Style Transfer Evaluation Report",
-        ]
-        if args.title_zh:
-            command += ["--title", args.title_zh]
-        if report_slides_id:
-            command += ["--report-id", report_slides_id]
-        result = subprocess.run(command, check=False)
-        if result.returncode != 0:
-            print("Slide generation failed; report files were still written.")
+        slides_dir = args.output_dir / "slides"
+        slides_dir.mkdir(parents=True, exist_ok=True)
+        for lang_code in (["zh", "en"] if args.language == "both" else [args.language]):
+            html_files = sorted(
+                args.output_dir.glob(f"report_{lang_code}_*.html")
+            )
+            if not html_files:
+                continue
+            command = [
+                sys.executable,
+                str(Path(__file__).with_name("build_slides_from_report.py")),
+                "--report-html", str(html_files[-1]),
+                "--out-dir", str(slides_dir),
+                "--language", lang_code,
+            ]
+            result = subprocess.run(command, check=False)
+            if result.returncode != 0:
+                print(f"Slide generation failed for {lang_code}; report files were still written.")
 
 
 if __name__ == "__main__":
