@@ -5016,7 +5016,7 @@ def main() -> None:
         report_slides_id = decks[-1].stem.split("_")[2] if decks else None
         command = [
             sys.executable,
-            str(Path(__file__).with_name("build_eval_beamer.py")),
+            str(Path(__file__).with_name("build_eval_slides_html.py")),
             "--metrics", str(args.metrics),
             "--review", str(args.review),
             "--out-dir", str(args.output_dir / "slides"),
