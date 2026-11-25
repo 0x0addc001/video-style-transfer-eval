@@ -908,10 +908,22 @@ def key_result_rows(
         second_ids = (
             [mid for mid, value in numeric[1:2]] if len(numeric) > 1 else []
         )
+        fallback_unit = {
+            "ssim": "0–1",
+            "psnr": "dB",
+            "luminance_flicker": "gray levels",
+            "offset_1_warp_rmse": "RGB levels",
+            "csd_s": "cosine",
+            "csd_c": "cosine",
+            "runtime_s": "s/clip",
+            "peak_memory_gb": "GB",
+        }.get(metric)
+        unit = info.get("unit") or fallback_unit
         rows.append(
             {
                 "dimension": METRIC_DIMENSION_LABELS[lang].get(dimension, dimension),
-                "metric": metric_label(lang, metric, info),
+                "metric": metric_label(lang, metric, info)
+                + (f" ({unit})" if unit else ""),
                 "metric_id": metric,
                 "values": values,
                 "method_ids": method_order,
@@ -1016,7 +1028,9 @@ def by_style_rows(metrics: dict[str, Any], lang: str) -> list[dict[str, Any]]:
         rows.append(
             {
                 "method": labels.get(method_id, method_id),
-                "style": STYLE_LABELS[lang].get(style, style),
+                "style": STYLE_LABELS[lang].get(
+                    style.lower().replace(" ", "_").replace("-", "_"), style
+                ),
                 "n": len(values),
                 "ssim": stat("ssim"),
                 "psnr": stat("psnr"),
@@ -3257,12 +3271,12 @@ def html_report(
             for row in style_rows
         )
         style_html = (
-            f"<p class='small'><b>{html.escape(s['by_style'])}</b></p>"
+            f"<section><h3>{html.escape(s['by_style'])}</h3>"
             "<div class='table-wrap'><table><thead><tr>"
             f"<th>{html.escape(s['method'])}</th><th>{html.escape(s['style_label'])}</th>"
             "<th>n</th><th>SSIM ↑</th><th>PSNR ↑</th>"
             + ("<th>亮度闪烁 ↓</th><th>重映射 RMSE Δ1 ↓</th>" if lang == "zh" else "<th>Flicker ↓</th><th>Warp RMSE Δ1 ↓</th>")
-            + "</tr></thead><tbody>" + body + "</tbody></table></div>"
+            + "</tr></thead><tbody>" + body + "</tbody></table></div></section>"
         )
     notes_html = ""
     if report_notes(args, lang):
@@ -3427,8 +3441,7 @@ window.MathJax = {{ tex: {{ inlineMath: [['$', '$']], displayMath: [['$$', '$$']
 {key_table_html}
 <section><h2>{html.escape(s['protocol'])}</h2><div class="table-wrap"><table><thead><tr><th>{html.escape(s['setting'])}</th><th>{html.escape(s['value_label'])}</th></tr></thead><tbody>{protocol_rows_html}</tbody></table></div></section>
 {metric_config_html}{data_config_html}
-<section><h2>{html.escape(s['quantitative'])}</h2>{''.join(table_html)}{paired_html}<p class="small">{html.escape(s['metrics_note'])}</p></section>
-{style_html}
+<section><h2>{html.escape(s['quantitative'])}</h2>{''.join(table_html)}{paired_html}{style_html}<p class="small">{html.escape(s['metrics_note'])}</p></section>
 <section><h2>{html.escape(s['blind_review'])}</h2><div class="grid">{''.join(review_cards)}</div></section>
 {analysis_html}
 <section><h2>{html.escape(s['conclusion'])}</h2><p>{html.escape(conclusion)}</p></section>

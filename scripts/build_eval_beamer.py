@@ -293,7 +293,7 @@ __OVERVIEW__ \\
     cost_rows = "\n".join(cost_items)
     csd_rows = ""
     key_items = []
-    key_items.append(("SSIM $\\uparrow$", f"{fmt(aggregate['ssim']['mean'], 4)} $\\pm$ {fmt(aggregate['ssim']['std'], 4)}"))
+    key_items.append(("SSIM (0–1) $\\uparrow$", f"{fmt(aggregate['ssim']['mean'], 4)} $\\pm$ {fmt(aggregate['ssim']['std'], 4)}"))
     key_items.append(("PSNR $\\uparrow$", f"{fmt(aggregate['psnr']['mean'], 2)} $\\pm$ {fmt(aggregate['psnr']['std'], 2)} dB"))
     if lang == "zh":
         flicker_label, warp_label = "亮度闪烁 $\\downarrow$", "重映射 RMSE $\\downarrow$"
@@ -303,16 +303,16 @@ __OVERVIEW__ \\
         flicker_label, warp_label = "Luminance flicker $\\downarrow$", "Warp RMSE $\\downarrow$"
         runtime_label, memory_label = "Runtime", "Peak GPU memory"
         csd_s_label, csd_c_label = "CSD-S style consistency $\\uparrow$", "CSD-C content consistency $\\uparrow$"
-    key_items.append((flicker_label, f"{fmt(aggregate['luminance_flicker']['mean'], 3)} $\\pm$ {fmt(aggregate['luminance_flicker']['std'], 3)}"))
-    key_items.append((warp_label, f"{fmt(aggregate['offset_1_warp_rmse']['mean'], 2)} $\\pm$ {fmt(aggregate['offset_1_warp_rmse']['std'], 2)}"))
+    key_items.append((flicker_label + " (gray levels)", f"{fmt(aggregate['luminance_flicker']['mean'], 3)} $\\pm$ {fmt(aggregate['luminance_flicker']['std'], 3)}"))
+    key_items.append((warp_label + " (RGB levels)", f"{fmt(aggregate['offset_1_warp_rmse']['mean'], 2)} $\\pm$ {fmt(aggregate['offset_1_warp_rmse']['std'], 2)}"))
     if cost.get("runtime_s") is not None:
-        key_items.append((runtime_label, f"{fmt(cost['runtime_s'], 1)} s / clip"))
+        key_items.append((runtime_label + " (s/clip)", f"{fmt(cost['runtime_s'], 1)}"))
     if cost.get("peak_memory_gb") is not None:
-        key_items.append((memory_label, f"{fmt(cost['peak_memory_gb'], 1)} GB"))
+        key_items.append((memory_label + " (GB)", f"{fmt(cost['peak_memory_gb'], 1)}"))
     if csd.get("csd_s") is not None:
-        key_items.append((csd_s_label, fmt(csd["csd_s"], 4)))
+        key_items.append((csd_s_label + " (cosine)", fmt(csd["csd_s"], 4)))
     if csd.get("csd_c") is not None:
-        key_items.append((csd_c_label, fmt(csd["csd_c"], 4)))
+        key_items.append((csd_c_label + " (cosine)", fmt(csd["csd_c"], 4)))
     frames.append(r"""
 \begin{frame}{关键结果}
 \begin{columns}[T]
