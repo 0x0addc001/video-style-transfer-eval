@@ -37,8 +37,7 @@ PREAMBLE = r"""
 \setbeamerfont{frametitle}{size=\LARGE,series=\bfseries}
 \setbeamerfont{title}{size=\Huge,series=\bfseries}
 \setbeamertemplate{frametitle}{%
-  \vspace{0.35em}\insertframetitle\par
-  \vspace{0.15em}{\color{navy}\rule{\textwidth}{1.2pt}}%
+  \vspace{0.5em}\insertframetitle\par\vspace{0.2em}%
 }
 \setbeamertemplate{footline}{%
   \hbox to \paperwidth{\hspace{0.6cm}%
@@ -258,9 +257,7 @@ __MISSING_ROWS__
 \end{tikzpicture}
 \vspace{2.2cm}
 {\fontsize{20}{26}\selectfont\bfseries\color{white} __TITLE__\par}
-\vspace{0.45cm}
-{\color{white}\rule{6cm}{2pt}}
-\vspace{0.55cm}
+\vspace{0.9cm}
 
 {\large\color{white} __SUBTITLE__\par}
 \vspace{0.25cm}
