@@ -3041,6 +3041,8 @@ def markdown_report(
             if chunk["total"] > 1
             else f"{video}.jpg"
         )
+        if lang == "en":
+            name = name.replace(".jpg", "__en.jpg")
         lines.extend(["", f"![{s['contact_sheet']} {video}](assets/{name})", ""])
 
     lines.extend(
@@ -3210,6 +3212,8 @@ def html_report(
             if chunk["total"] > 1
             else f"{video}.jpg"
         )
+        if lang == "en":
+            name = name.replace(".jpg", "__en.jpg")
         image = f"<img src='assets/{html.escape(name)}' alt='Case group {html.escape(video)}'>"
         case_sections.append(
             "<article class='case-group'>"
@@ -4848,10 +4852,12 @@ def copy_contact_sheets(
     metrics_dir: Path,
 ) -> None:
     assets_dir.mkdir(parents=True, exist_ok=True)
-    group_dir = metrics_dir / "case_groups"
-    if group_dir.is_dir():
+    for folder, suffix in (("case_groups", ""), ("case_groups_en", "__en")):
+        group_dir = metrics_dir / folder
+        if not group_dir.is_dir():
+            continue
         for image in group_dir.glob("*.jpg"):
-            shutil.copy2(image, assets_dir / image.name)
+            shutil.copy2(image, assets_dir / f"{image.stem}{suffix}{image.suffix}")
     for case in metrics.get("cases", []):
         source = case.get("contact_sheet")
         if not source:
