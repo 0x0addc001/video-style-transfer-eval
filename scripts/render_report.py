@@ -1108,6 +1108,22 @@ def data_profile_rows(
     ]
 
 
+VLM_PROMPT_TEMPLATE = (
+    "You are a blinded reviewer of video style-transfer results. The image is a contact sheet: "
+    "the STYLE reference (if present), several SOURCE frames, and N candidate rows labelled M1..MN. "
+    "The requested style/instruction is: <the case's style_prompt>. "
+    "Judge each candidate independently on five 1-5 scales: style_adherence, content_preservation, "
+    "temporal_stability, artifact_control, overall_visual_quality. Return strict JSON with this shape:\n"
+    '{"scores": [{"method_blind_id": "M1", "style_adherence": 4, "content_preservation": 4, '
+    '"temporal_stability": 3, "artifact_control": 3, "overall_visual_quality": 4, '
+    '"confidence": "medium", "failure_tags": ["flicker"], "evidence": "short visual evidence", '
+    '"comments": "one sentence"}]}\n'
+    "Allowed failure tags: flicker, texture_sticking, texture_drift, identity_drift, geometry_melting, "
+    "edge_ghosting, occlusion_break, new_region_error, motion_duplication, temporal_jump, color_bleed, "
+    "banding, detail_loss, reference_copied. Use an empty failure_tags list when nothing applies. "
+    "Case id: <case_id>. Return JSON only."
+)
+
 QUALITATIVE_DEFINITIONS = (
     {
         "id": "style_adherence",
@@ -1118,6 +1134,8 @@ QUALITATIVE_DEFINITIONS = (
         "rationale_zh": "评审模型在同一张 contact sheet 上看到风格参考、源帧和盲化候选行，然后对每个候选的风格遵循程度打 1-5 分；提示词固定并随评审记录保存。",
         "caveat_en": "Subjective: record the judge model, prompt version and reviewer count; do not compare across different judges.",
         "caveat_zh": "主观指标：必须记录评审模型、提示词版本和评审次数，不同评审模型之间不可直接比较。",
+        "print_anchors_zh": "1 分：风格缺失或无关；3 分：可识别但局部/时序不一致；5 分：调色板、笔触/纹理与视觉语言连贯迁移",
+        "print_anchors_en": "1: style absent or unrelated; 3: recognizable but inconsistent across regions/time; 5: coherent palette, texture/brushwork and visual language",
     },
     {
         "id": "content_preservation",
@@ -1128,6 +1146,8 @@ QUALITATIVE_DEFINITIONS = (
         "rationale_zh": "以源帧为参照，评估主体、构图与场景语义在风格化后是否保留。",
         "caveat_en": "Image-level judgement; local identity or occlusion errors need the per-case evidence.",
         "caveat_zh": "图像级判断；局部身份或遮挡错误仍需逐案例证据。",
+        "print_anchors_zh": "1 分：主体身份或场景结构丢失；3 分：主体可识别但局部身份/结构变化明显；5 分：身份、布局、边界与语义清晰保留",
+        "print_anchors_en": "1: source identity or scene structure lost; 3: main content recognizable but local identity/structure changes visible; 5: identity, layout, boundaries and semantics remain clear",
     },
     {
         "id": "temporal_stability",
@@ -1138,6 +1158,8 @@ QUALITATIVE_DEFINITIONS = (
         "rationale_zh": "根据采样帧之间的闪烁、抖动与时序连贯性打分。",
         "caveat_en": "Contact sheets sample frames; subtle high-frequency flicker can be missed.",
         "caveat_zh": "contact sheet 只采样部分帧，细微高频闪烁可能被漏掉。",
+        "print_anchors_zh": "1 分：严重闪烁、形变或运动不连续；3 分：局部闪烁/漂移或轻微运动不一致；5 分：采样运动范围内稳定、无实质时序伪影",
+        "print_anchors_en": "1: severe flicker, warping or motion discontinuity; 3: localized flicker/drift or minor motion disagreement; 5: stable through sampled motion with no material temporal artifact",
     },
     {
         "id": "artifact_control",
@@ -1148,6 +1170,8 @@ QUALITATIVE_DEFINITIONS = (
         "rationale_zh": "对纹理粘连、重影、色带与几何畸变等可见伪影打分。",
         "caveat_en": "Artifact severity depends on display size; review at the reported resolution.",
         "caveat_zh": "伪影严重程度与显示尺寸有关，应在报告分辨率下查看。",
+        "print_anchors_zh": "1 分：明显融化、重影、空洞、重复或纹理粘连；3 分：有可见但局部的伪影；5 分：在审查尺度下无实质伪影",
+        "print_anchors_en": "1: obvious melting, ghosting, holes, duplication or texture sticking; 3: noticeable but localized artifacts; 5: no material artifacts at the reviewed scale",
     },
     {
         "id": "overall_visual_quality",
@@ -1158,6 +1182,8 @@ QUALITATIVE_DEFINITIONS = (
         "rationale_zh": "综合风格、内容与时序印象的整体偏好分。",
         "caveat_en": "Do not collapse it into a benchmark claim without per-dimension evidence.",
         "caveat_zh": "没有各维度证据时，不能把它单独当作基准结论。",
+        "print_anchors_zh": "1 分：不可用；3 分：可用但有明显妥协；5 分：完成度高、符合预期用途",
+        "print_anchors_en": "1: not usable; 3: usable with visible compromises; 5: polished and plausible for the intended use",
     },
 )
 
@@ -1183,7 +1209,8 @@ def metric_button(metric_id: str, label: str, lang: str) -> str:
     if definition in QUALITATIVE_DEFINITIONS:
         extra = (
             " data-model='qwen3-vl-plus'"
-            " data-prompt='references/vlm-rubric.md (v1, blinded contact sheets)'"
+            f" data-prompt='{html.escape(VLM_PROMPT_TEMPLATE, quote=True)}'"
+            f" data-anchors='{html.escape(definition[f'print_anchors_{lang}'], quote=True)}'"
         )
     return (
         f"<button class='metric-link' data-name='{html.escape(label, quote=True)}' "
@@ -3179,13 +3206,13 @@ def html_report(
     if lang == "zh":
         review_meta = (
             f"<p class='small'>评审模型：{html.escape(review_models)} · "
-            "评分标准：references/vlm-rubric.md（通用 VST 盲评量表 v1，非 EchoStyle/ReCo 专用） · "
+            "提示词：见各维度卡片（固定盲评模板 + 该 case 的 style_prompt） · "
             f"每条片段 1 个评分，n={review_n} · 各维度均值为所有片段评分的平均值。</p>"
         )
     else:
         review_meta = (
             f"<p class='small'>Judge model: {html.escape(review_models)} · "
-            "Rubric: references/vlm-rubric.md (generic blinded VST rubric v1, not EchoStyle/ReCo-specific) · "
+            "Prompt: shown in each dimension card (fixed blinded template + the case's style_prompt) · "
             f"one score per clip, n={review_n} · dimension means average all clips.</p>"
         )
 
@@ -3499,7 +3526,7 @@ th,td {{ padding:10px 12px; border-bottom:1px solid var(--line); vertical-align:
 .key-table td.second {{ background:#f3f8f7; font-weight:600; text-decoration:underline 2px; text-underline-offset:3px; }}
 .metric-link {{ background:none; border:0; padding:0; font:inherit; color:inherit; cursor:pointer; border-bottom:1px dotted var(--muted); }}
 .metric-link:hover {{ color:var(--accent); }}
-.metric-card {{ position:absolute; z-index:80; width:380px; max-width:calc(100vw - 24px); background:var(--panel);
+.metric-card {{ position:absolute; z-index:80; width:420px; max-width:calc(100vw - 24px); max-height:70vh; overflow-y:auto; background:var(--panel);
   border:1px solid var(--line); border-radius:14px; box-shadow:0 18px 40px rgba(15,30,40,.22); padding:16px 18px;
   font-size:13px; color:var(--ink); display:none; }}
 .metric-card h4 {{ margin:0 0 8px; font-size:15px; color:var(--accent); }}
@@ -3576,6 +3603,7 @@ window.MathJax = {{ tex: {{ inlineMath: [['$', '$']], displayMath: [['$$', '$$']
     if (link.getAttribute('data-model')) {{
       card.appendChild(line(isZh ? '评审模型' : 'Judge model', link.getAttribute('data-model')));
       card.appendChild(line(isZh ? '提示词' : 'Prompt', link.getAttribute('data-prompt') || ''));
+      card.appendChild(line(isZh ? '评分锚点' : 'Score anchors', link.getAttribute('data-anchors') || ''));
     }}
     card.appendChild(line(isZh ? '注意事项' : 'Caveat', link.getAttribute('data-caveat') || ''));
     card.style.display = 'block';
