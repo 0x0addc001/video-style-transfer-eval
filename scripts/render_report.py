@@ -258,7 +258,7 @@ TEXT = {
         "appendix_failures": "E. Failure gallery",
         "appendix_threats": "F. Threats to validity",
         "motivation": "Motivation",
-        "implementation": "Interpretation and reporting caveat",
+        "implementation": "Caveat",
         "evidence_gates": "Evidence gates",
         "gate": "Gate",
         "value": "Value",
@@ -408,7 +408,7 @@ TEXT = {
         "appendix_failures": "E. 失败案例",
         "appendix_threats": "F. 有效性威胁",
         "motivation": "设计动机",
-        "implementation": "解释与报告注意事项",
+        "implementation": "注意事项",
         "evidence_gates": "证据完整性检查",
         "gate": "检查项",
         "value": "结果",
@@ -585,8 +585,8 @@ METRIC_DEFINITIONS = [
         "formula_tex": r"W_{1,c}=\frac{1}{255}\sum_{k=0}^{255}\left|F^{\mathrm{frame}}_c(k)-F^{\mathrm{style}}_c(k)\right|,\qquad \mathrm{PaletteW1}=100\cdot\frac{1}{|C|}\sum_{c\in C}W_{1,c}",
         "rationale_en": "This inexpensive diagnostic summarizes marginal LAB color alignment. It is useful for detecting global recoloring and palette mismatch before expensive perceptual metrics.",
         "rationale_zh": "该低成本的诊断指标概括 LAB 颜色边缘分布的一致性，可在运行昂贵感知指标前发现全局着色和调色板不匹配。",
-        "caveat_en": "It does not measure brushwork, texture attachment, composition, or style semantics.",
-        "caveat_zh": "它不衡量笔触、纹理附着、构图或风格语义。",
+        "caveat_en": "It does not measure brushwork, texture attachment, composition, or style semantics. Without a style_image the metric is undefined (not zero); text-driven methods therefore skip it.",
+        "caveat_zh": "它不衡量笔触、纹理附着、构图或风格语义。没有 style_image 时该指标未定义（不是 0）；文本驱动方法因此跳过。",
     },
     {
         "id": "warp_rmse",
@@ -680,16 +680,28 @@ METRIC_DEFINITIONS = [
         "caveat_zh": "VLM 判断是感知证据而非真实标签；应记录模型版本，并使用多个独立审查者支持论文级结论。",
     },
     {
-        "id": "cost",
-        "name_en": "Runtime and peak memory",
-        "name_zh": "运行时间与峰值显存",
-        "available_keys": ["runtime_s", "peak_memory_gb"],
-        "formula": "Runtime_m = mean_c t_(c,m); PeakMemory_m = max_c peak_(c,m)",
-        "formula_tex": r"\mathrm{Runtime}_m=\frac{1}{|C|}\sum_c t_{c,m},\qquad \mathrm{PeakMem}_m=\max_c p_{c,m}",
-        "rationale_en": "Quality comparisons are incomplete without deployment cost. Mean runtime captures expected latency, while maximum peak memory captures the worst observed resource requirement.",
-        "rationale_zh": "如果缺少部署成本，质量比较并不完整。平均运行时间反映预期延迟，最大峰值显存反映最差观测资源需求。",
-        "caveat_en": "Measure on identical hardware, precision, resolution, and batch settings; report both mean and peak.",
-        "caveat_zh": "必须在相同硬件、精度、分辨率和批设置下测量，并同时报告均值和峰值。",
+        "id": "runtime",
+        "name_en": "Runtime",
+        "name_zh": "运行时间",
+        "available_keys": ["runtime_s"],
+        "formula": "Runtime_m = (1/|C|) * sum_c t_(c,m)",
+        "formula_tex": r"\mathrm{Runtime}_m=\frac{1}{|C|}\sum_c t_{c,m}",
+        "rationale_en": "Mean wall-clock latency per clip captures the expected inference cost of a method.",
+        "rationale_zh": "每条片段平均 wall-clock 延迟反映方法的预期推理成本。",
+        "caveat_en": "Measure on identical hardware, precision, resolution, and batch settings; per-clip timing is not comparable across different GPU counts.",
+        "caveat_zh": "必须在相同硬件、精度、分辨率和批设置下测量；不同 GPU 数量下的单条耗时不可直接比较。",
+    },
+    {
+        "id": "peak_memory",
+        "name_en": "Peak GPU memory",
+        "name_zh": "峰值 GPU 显存",
+        "available_keys": ["peak_memory_gb"],
+        "formula": "PeakMemory_m = max_c peak_(c,m)",
+        "formula_tex": r"\mathrm{PeakMem}_m=\max_c p_{c,m}",
+        "rationale_en": "Maximum observed GPU memory captures the worst-case resource requirement for deployment.",
+        "rationale_zh": "观测到的最大 GPU 显存反映部署时的最差资源需求。",
+        "caveat_en": "Record the measurement tool, batch size, precision, and sequence length; peak memory scales with resolution and frame count.",
+        "caveat_zh": "必须记录测量工具、批大小、精度和序列长度；峰值显存会随分辨率和帧数变化。",
     },
     {
         "id": "csd_s",
@@ -698,8 +710,8 @@ METRIC_DEFINITIONS = [
         "available_keys": ["csd_s"],
         "formula": "CSD-S = (1/(T-1)) * sum_{t=1}^{T-1} cos(s(f_t), s(f_0))",
         "formula_tex": r"\mathrm{CSD\text{-}S}=\frac{1}{T-1}\sum_{t=1}^{T-1}\cos\!\left(s(f_t),s(f_0)\right)",
-        "rationale_en": "CSD (contrastive style descriptor) is a CLIP ViT-L/14 image encoder with separate style and content projection heads trained for content-style disentanglement; s(.) is the style head. Comparing every later frame with the first frame measures style drift without folding in content change, which is the 'Style Consis.' column reported by EchoStyle (ECCV 2026).",
-        "rationale_zh": "CSD（对比式风格描述子）以 CLIP ViT-L/14 图像编码器为骨干，训练出彼此分离的风格头 s(·) 与内容头 c(·)。将后续每一帧与首帧比较，可以在不混入内容变化的情况下度量风格漂移，对应 EchoStyle（ECCV 2026）报告中的“Style Consis.”列。",
+        "rationale_en": "CSD (contrastive style descriptor) is a CLIP ViT-L/14 image encoder with separate style and content projection heads trained for content-style disentanglement; s(.) is the style head. Comparing every later frame with the first frame measures style drift without folding in content change, which is a standard style-consistency column in video style-transfer evaluation.",
+        "rationale_zh": "CSD（对比式风格描述子）以 CLIP ViT-L/14 图像编码器为骨干，训练出彼此分离的风格头 s(·) 与内容头 c(·)。将后续每一帧与首帧比较，可以在不混入内容变化的情况下度量风格漂移，这是视频风格迁移评估中常用的风格一致性列。",
         "caveat_en": "The score is image-level and does not localize drift. Fix the CSD checkpoint, the CLIP preprocessing, and the frame sampling for every method; absolute cosine values are not comparable across different CSD variants.",
         "caveat_zh": "该分数是图像级汇总，无法定位漂移位置。所有方法必须固定 CSD checkpoint、CLIP 预处理和抽帧方式；不同 CSD 变体的绝对余弦值不可直接比较。",
     },
@@ -794,8 +806,8 @@ METRIC_DEFINITIONS = [
         "available_keys": ["vbench_imaging_quality"],
         "formula": "Imaging = (1/T) * sum_t MUSIQ(I_t)",
         "formula_tex": r"\mathrm{Imaging}=\frac{1}{T}\sum_{t=1}^{T}\mathrm{MUSIQ}(I_t)",
-        "rationale_en": "MUSIQ is a no-reference image-quality model, so it can flag compression, blur, and noise artifacts without a ground-truth target. EchoStyle reports this column as 'Imaging Qual.'",
-        "rationale_zh": "MUSIQ 是无参考图像质量模型，无需真值即可标记压缩、模糊与噪声伪影。EchoStyle 将其作为“Imaging Qual.”列报告。",
+        "rationale_en": "MUSIQ is a no-reference image-quality model, so it can flag compression, blur, and noise artifacts without a ground-truth target. This column is often reported as 'Imaging Qual.'",
+        "rationale_zh": "MUSIQ 是无参考图像质量模型，无需真值即可标记压缩、模糊与噪声伪影。该列通常报告为“Imaging Qual.”。",
         "caveat_en": "No-reference quality models can reward oversharpening and may score a heavily textured painting style lower than a clean photo. Report the model version and input resolution.",
         "caveat_zh": "无参考质量模型可能奖励过度锐化，并给纹理强烈的绘画风格打更低的分。必须报告模型版本与输入分辨率。",
     },
@@ -1167,11 +1179,17 @@ def metric_button(metric_id: str, label: str, lang: str) -> str:
         )
     if definition is None:
         return html.escape(label)
+    extra = ""
+    if definition in QUALITATIVE_DEFINITIONS:
+        extra = (
+            " data-model='qwen3-vl-plus'"
+            " data-prompt='references/vlm-rubric.md (v1, blinded contact sheets)'"
+        )
     return (
         f"<button class='metric-link' data-name='{html.escape(label, quote=True)}' "
         f"data-formula='{html.escape(definition.get('formula_tex') or definition['formula'], quote=True)}' "
         f"data-why='{html.escape(definition[f'rationale_{lang}'], quote=True)}' "
-        f"data-caveat='{html.escape(definition[f'caveat_{lang}'], quote=True)}'>"
+        f"data-caveat='{html.escape(definition[f'caveat_{lang}'], quote=True)}'{extra}>"
         f"{html.escape(label)}</button>"
     )
 
@@ -2609,18 +2627,19 @@ def ai_analyze(text: str, table: dict[str, Any], lang: str) -> str | None:
         from validate_review import FAILURE_TAGS  # noqa: F401  (keeps cwd importable)
     except Exception:
         pass
+    allowed_ids = {row.get("metric") for row in table.get("rows", [])}
+    allowed_labels = [str(row.get("label") or row.get("metric")) for row in table.get("rows", [])]
+    allow_text = "、".join(allowed_labels)
     prompt = (
-        "你是视频风格迁移评估的分析助手。指标含义：SSIM/PSNR 比较源视频与风格化输出，"
-        "不是与风格参考图比较；重映射 RMSE、光流 EPE/相关性比较源视频光流与输出；"
-        "LAB 调色板指标需要风格参考图，没有参考图时不可计算；CSD 是风格/内容一致性。"
-        "基于给出的数字写 2-3 句中文分析，说明数值含义、差异和缺失指标的影响；"
-        "只分析本表列出的指标，不要讨论本表之外的指标，也不要说本表之外的指标缺失；只能使用给定数字，不要编造。"
+        "你是视频风格迁移评估的分析助手。"
+        f"本表只包含以下指标：{allow_text}。"
+        "请基于表中数字写 2-3 句中文分析，解释数值含义和指标间差异；"
+        "绝对不要提到本表之外的任何指标，也不要声称其他指标缺失；只能使用给定数字，不要编造。"
         if lang == "zh"
         else "You are an analysis assistant for video style-transfer evaluation. "
-        "SSIM/PSNR compare the source video with the stylized output, not with a style reference; "
-        "warping RMSE and flow metrics compare source flow with output flow; LAB palette metrics need a style reference image; "
-        "CSD measures style/content consistency. Write 2-3 sentences using only the given numbers, "
-        "explaining their meaning, differences, and the impact of missing metrics. Do not invent numbers."
+        f"This table contains only: {allow_text}. "
+        "Write 2-3 sentences using only the given numbers, explaining their meaning and differences; "
+        "never mention a metric outside this list and never claim that other metrics are missing. Do not invent numbers."
     )
     payload = {
         "model": "qwen-plus",
@@ -2641,7 +2660,24 @@ def ai_analyze(text: str, table: dict[str, Any], lang: str) -> str | None:
     )
     try:
         body = _json.loads(urllib.request.urlopen(request, timeout=60).read())
-        return body["choices"][0]["message"]["content"].strip()
+        content = body["choices"][0]["message"]["content"].strip()
+        import re as _re
+
+        forbidden = []
+        if not ({"lab_palette_w1", "lab_ab_palette_w1"} & allowed_ids):
+            forbidden += ["LAB", "调色板", "palette", "风格参考图", "style reference"]
+        if "csd_s" not in allowed_ids:
+            forbidden += ["CSD-S", "CSD-S 风格一致性", "style consistency"]
+        if "csd_c" not in allowed_ids:
+            forbidden += ["CSD-C", "content consistency"]
+        if forbidden:
+            sentences = _re.split(r"(?<=[。！？.!?])", content)
+            kept = [
+                sentence for sentence in sentences
+                if not any(token.lower() in sentence.lower() for token in forbidden)
+            ]
+            content = "".join(kept).strip()
+        return content or None
     except Exception:
         return None
 
@@ -3121,7 +3157,7 @@ def html_report(
                 width = 0 if value is None else value / 5 * 100
                 bars.append(
                     "<div class='bar-row'>"
-                    f"<span>{html.escape(DIMENSION_LABELS[lang][dimension])}</span>"
+                    f"<span>{metric_button(dimension, DIMENSION_LABELS[lang][dimension], lang)}</span>"
                     f"<div class='bar-track'><div class='bar-fill' style='width:{width:.1f}%'></div></div>"
                     f"<b>{na if value is None else f'{value:.2f}'}</b>"
                     "</div>"
@@ -3135,6 +3171,20 @@ def html_report(
     else:
         review_cards.append(
             f"<p class='pending'>{html.escape(s['pending'])}</p>"
+        )
+    review_models = ", ".join(review_agg.get("models", [])) or "not recorded"
+    review_n = review_agg.get("scored_count", 0)
+    if lang == "zh":
+        review_meta = (
+            f"<p class='small'>评审模型：{html.escape(review_models)} · "
+            "评分标准：references/vlm-rubric.md（通用 VST 盲评量表 v1，非 EchoStyle/ReCo 专用） · "
+            f"每条片段 1 个评分，n={review_n} · 各维度均值为所有片段评分的平均值。</p>"
+        )
+    else:
+        review_meta = (
+            f"<p class='small'>Judge model: {html.escape(review_models)} · "
+            "Rubric: references/vlm-rubric.md (generic blinded VST rubric v1, not EchoStyle/ReCo-specific) · "
+            f"one score per clip, n={review_n} · dimension means average all clips.</p>"
         )
 
     case_sections = []
@@ -3482,7 +3532,7 @@ window.MathJax = {{ tex: {{ inlineMath: [['$', '$']], displayMath: [['$$', '$$']
 <section><h2>{html.escape(s['protocol'])}</h2><div class="table-wrap"><table><thead><tr><th>{html.escape(s['setting'])}</th><th>{html.escape(s['value_label'])}</th></tr></thead><tbody>{protocol_rows_html}</tbody></table></div></section>
 {metric_config_html}{data_config_html}
 <section><h2>{html.escape(s['quantitative'])}</h2>{''.join(table_html)}{paired_html}{style_html}<p class="small">{html.escape(s['metrics_note'])}</p></section>
-<section><h2>{html.escape(s['blind_review'])}</h2><div class="grid">{''.join(review_cards)}</div></section>
+<section><h2>{html.escape(s['blind_review'])}</h2>{review_meta}<div class="grid">{''.join(review_cards)}</div></section>
 {analysis_html}
 <section><h2>{html.escape(s['conclusion'])}</h2>{conclusion_html}</section>
 {notes_html}
@@ -3517,8 +3567,13 @@ window.MathJax = {{ tex: {{ inlineMath: [['$', '$']], displayMath: [['$$', '$$']
     formula.className = 'mm-formula';
     formula.textContent = '$' + (link.getAttribute('data-formula') || '') + '$';
     card.appendChild(formula);
-    card.appendChild(line('Motivation', link.getAttribute('data-why') || ''));
-    card.appendChild(line('Caveat', link.getAttribute('data-caveat') || ''));
+    var isZh = (document.documentElement.lang || '').indexOf('zh') === 0;
+    card.appendChild(line(isZh ? '动机' : 'Motivation', link.getAttribute('data-why') || ''));
+    if (link.getAttribute('data-model')) {{
+      card.appendChild(line(isZh ? '评审模型' : 'Judge model', link.getAttribute('data-model')));
+      card.appendChild(line(isZh ? '提示词' : 'Prompt', link.getAttribute('data-prompt') || ''));
+    }}
+    card.appendChild(line(isZh ? '注意事项' : 'Caveat', link.getAttribute('data-caveat') || ''));
     card.style.display = 'block';
     var rect = link.getBoundingClientRect();
     card.style.left = Math.max(12, Math.min(rect.left, window.innerWidth - 400)) + 'px';
